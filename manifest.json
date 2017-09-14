@@ -23,6 +23,6 @@
   },
   "options_page": "options.html",
   "background": {
-    "scripts": ["/js/background.js","/js/jquery.min.js"]
+    "scripts": ["/js/background.js"]
   }
 }
