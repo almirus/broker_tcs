@@ -8,7 +8,7 @@ const HOST_URL='https://www.tinkoff.ru/';
  * @return {boolean} можно использовать или нет
  */
 function sessionIsAlive(sessionId) {
-    fetch(INFO_URL + sessionId)
+    return fetch(INFO_URL + sessionId)
         .then(function (response) {
             return response.json()
         }).then(function (json) {
@@ -63,7 +63,7 @@ function getAllSum() {
                 return response.json()
             }).then(function (json) {
                 console.log('parsed json', json);
-            return json.payload.totalAmountStocks;
+            return json.payload.totalAmountStocks.value;
         }).catch(function (ex) {
             console.log('parsing failed', ex)
         })
