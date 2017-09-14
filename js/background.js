@@ -111,12 +111,15 @@ chrome.runtime.onMessage.addListener(
     });
 */
 
-chrome.extension.onConnect.addListener(function(port) {
+chrome.runtime.onConnect.addListener(function(port) {
     console.log("Connected .....");
     port.onMessage.addListener(function(msg) {
         console.log("message recieved " + JSON.stringify(msg));
         if (msg.method == "getAllSum") {
-            port.postMessage({sum: getAllSum()});
+            getAllSum().tnen(function (sums){
+                port.postMessage({sum: sums});
+            });
+
         }
     });
 });
