@@ -3,12 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>Настройки</title>
+    <link rel="stylesheet" type="text/css" href="css/options.css">
+    <script type="module" src="js/options.js"></script>
 </head>
 <body>
 <form>
-    <input type="checkbox" value="0" name="ping" id="alert"><label for="alert">Выдавать оповещения на любых страницах</label>
-    <input type="checkbox" value="0" name="ping" id="ping"><label for="ping">Сохранять сессию в личном кабинете (для получения данных в фоне)</label>
-    <input type="submit" value="Сохранить">
+    <div id="error_message"></div>
+    <div id="message"></div>
+    <div id="container">
+        <fieldset>
+            <legend>Основные настройки</legend>
+            <input type="checkbox" value="0" name="redirect" id="redirect"
+                   title="Если галочка установлена, то при любой проверке данных с сервера и невалидной сессии будет открыто окно с предложением залогиниться">
+            <label for="redirect">При истечении сессии редиректить на страницу логина, иначе показывать иконкой</label>
+            <br>
+            <input type="checkbox" value="0" name="session" id="session"
+                   title="В фоне периодически будет пинговаться сервер и недавать завершить сессию">
+            <label for="session">Сохранять сессию в личном кабинете (для получения данных в фоне)</label>
+            <br>
+            <input type="checkbox" value="0" name="cosmetic" id="cosmetic"
+            title="Уменьшает размеры элементов чтобы на экране поместилось больше информации">
+            <label for="cosmetic">Применить косметические фильтры на странице брокера</label>
+            <br>
+            <input type="checkbox" value="0" name="alert_redirect" id="alert_redirect"
+            title="Если установлена галочка будет сразу открыто окно с покупкой/продажи акции, иначе будет показано стандартное уведомление">
+            <label for="alert_redirect">При достижении цены открывать страницу покупки/продажи</label>
+        </fieldset>
+    </div>
+
+    <div class="fieldsetRow">
+        <fieldset class="table"
+                  title="Работает только при работе браузера и никак не затрагивает оповещения в моб приложении">
+            <legend>Отслеживаемые</legend>
+            <div id="alert_table"></div>
+        </fieldset>
+        <fieldset class="table">
+            <legend>Добавить оповещения об изменении цены</legend>
+            <div id="price_table">
+                Добавить бумаги из
+                <select id="add_list_type">
+                    <option value="0" selected></option>
+                    <option value="1">вручную</option>
+                    <option value="2">из портфеля</option>
+                    <option value="3">из избранного</option>
+                </select>
+                <input id="symbol_name" name="symbol_name" maxlength="10" placeholder="Введите название акции" disabled>
+            </div>
+            <div id="table"></div>
+        </fieldset>
+    </div>
 </form>
 </body>
 </html>

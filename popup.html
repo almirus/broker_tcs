@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Статистика по счету</title>
-    <script src="js/popup.js"></script>
+    <script type="module" src="js/popup.js"></script>
     <link rel="stylesheet" type="text/css" href="css/popup.css">
 </head>
 <body>
+<a target="_blank" href="https://www.tinkoff.ru/invest/broker_account/">Открыть кабинет брокера</a>
+<a target="_blank" href="options.html">Настройки</a>
 
-<div>
-    <h5>Обновлено <span id="timestamp">~</span>
-    </h5>
+<div id="container">
     <h5>Стоимость портфеля</h5>
     <span id="sum">~</span>
-    <h5>Доходность</h5>
-    <div id="all"><span id="earnedAll">~</span><span id="earnedAllPercent">~</span></div>
+    <h5>Доходность за все время</h5>
+    <div id="all"><span id="earnedAll">~</span><span class="percent" id="earnedAllPercent">~</span></div>
 
     <h5>Доходность за день</h5>
-    <div id="day"><span id="earnedToday">~</span><span id="earnedTodayPercent">~</span></div>
+    <div id="day"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></div>
+    <div id="footer">Обновлено <span id="timestamp">~</span></div>
+
 </div>
 </body>
 </html>

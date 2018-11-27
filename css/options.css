@@ -1,0 +1,48 @@
+#container input {
+    display: inline-block;
+}
+
+#error_message {
+    color: red;
+    font-weight: bold;
+}
+
+#message {
+    color: green;
+    font-weight: bold;
+}
+
+#table td {
+    border-bottom: 1pt solid black;
+}
+
+.tickerPrice {
+    width: 100px;
+}
+
+.tickerCol {
+    vertical-align: bottom;
+}
+.onlineAverage{
+    font-weight: bold;
+}
+.onlineBuy{
+    color: green;
+}
+.onlineSell{
+    color: red;
+}
+div.fieldsetRow {
+    display: flex;
+    align-items: baseline;
+}
+fieldset legend{
+    color: darkblue;
+    font-weight: bold;
+}
+fieldset.table {
+    width: 50%;
+}
+.priceTable{
+    width: 100%;
+}
