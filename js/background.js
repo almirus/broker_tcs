@@ -332,7 +332,7 @@ function checkPortfolioAlerts() {
         if (result[OPTION_ALERT_TODAY]) {
             console.log('check portfolio for yield');
             getAllSum().then(function (sums) {
-                if (sums.expectedYieldPerDayRelative >= 0.001) {
+                if (sums.expectedYieldPerDayRelative >= 0.03) {
                     chrome.notifications.create(OPTION_ALERT_TODAY, {
                         type: 'basic',
                         iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
@@ -345,7 +345,7 @@ function checkPortfolioAlerts() {
                         priority: 0
                     });
                 }
-                if (sums.expectedYieldPerDayRelative <= -0.001) {
+                if (sums.expectedYieldPerDayRelative <= -0.03) {
                     chrome.notifications.create(OPTION_ALERT_TODAY, {
                         type: 'basic',
                         iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
