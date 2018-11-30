@@ -36,10 +36,15 @@ div.fieldsetRow {
     display: flex;
     align-items: baseline;
 }
+div.equal {
+    display: flex;
+    align-items: stretch;
+}
 fieldset legend{
     color: darkblue;
     font-weight: bold;
 }
+
 fieldset.table {
     width: 50%;
 }

@@ -13,13 +13,14 @@ export const OPTION_COSMETICS = 'cosmetic';
 export const OPTION_SESSION = 'session';
 export const OPTION_REDIRECT = 'redirect';
 export const OPTION_ALERT = 'alert_redirect';
+export const OPTION_ALERT_TODAY = 'alert_today';
 export const TICKER_LIST = 'tickerList';
 export const PRICE_URL = 'https://api.tinkoff.ru/trading/stocks/price?sessionId=';
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/symbols/get?sessionId=';
 
-export const EXTENSION_ID='gggmpnfbhgpbglfenigemnnlfhjddcid';
-//export const EXTENSION_ID = 'heplhpapcgfjfajhnabkjcmgcfgfbbhh';
+//export const EXTENSION_ID='gggmpnfbhgpbglfenigemnnlfhjddcid';
+export const EXTENSION_ID = 'gapmjheepdpmgeidjoickhapneiapgek';
 
-export let port = chrome.runtime.connect(EXTENSION_ID, {
+export let port = chrome.runtime.connect( {
     name: "tcs_trader"
 });

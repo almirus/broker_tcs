@@ -8,6 +8,7 @@ import {
     INTERVAL_TO_CHECK,
     LOGIN_URL,
     OPTION_ALERT,
+    OPTION_ALERT_TODAY,
     OPTION_REDIRECT,
     OPTION_SESSION,
     PING_URL,
@@ -18,6 +19,7 @@ import {
     TICKER_LIST,
     TRADING_PURCHASED_URL
 } from "/js/constants.mjs";
+
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -187,7 +189,7 @@ function getListStock(name) {
                                 },
                                 symbol: {
                                     ticker: element.ticker,
-                                   // showName: symbol.payload.symbol.brand,
+                                    // showName: symbol.payload.symbol.brand,
                                     lotSize: element.currentBalance,
                                 },
                                 exchangeStatus: element.exchangeStatus
@@ -291,7 +293,7 @@ function deleteFromAlert(ticker) {
             }
         });
         chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
-            //console.log('Save ticker ' + JSON.stringify(new_alert_date));
+            console.log('Save ticker ' + JSON.stringify(new_alert_date));
         })
     })
 }
@@ -299,10 +301,10 @@ function deleteFromAlert(ticker) {
 function updatePrices() {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
-        alert_data.forEach(function (item, i, allertList) {
+        alert_data.forEach(function (item, i, alertList) {
             getTCSsession().then(function (session_id) {
                 getTickerInfo(item.ticker, session_id).then(function (res) {
-                    allertList[i] = {
+                    alertList[i] = {
                         ticker: item.ticker,
                         showName: item.showName,
                         buy_price: item.buy_price,
@@ -316,12 +318,48 @@ function updatePrices() {
                         online_buy_price: res.payload.buy.value,
                         online_sell_price: res.payload.sell.value,
                     };
-                    chrome.storage.sync.set({[TICKER_LIST]: allertList}, function () {
+                    chrome.storage.sync.set({[TICKER_LIST]: alertList}, function () {
                         //console.log('Save ticker ' + JSON.stringify(allertList));
                     })
                 })
             })
         })
+    })
+}
+
+function checkPortfolioAlerts() {
+    chrome.storage.sync.get([OPTION_ALERT_TODAY], function (result) {
+        if (result[OPTION_ALERT_TODAY]) {
+            console.log('check portfolio for yield');
+            getAllSum().then(function (sums) {
+                if (sums.expectedYieldPerDayRelative >= 0.001) {
+                    chrome.notifications.create(OPTION_ALERT_TODAY, {
+                        type: 'basic',
+                        iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
+                        title: 'Доходность резко повысилась более чем на 3%',
+                        message: 'Проверьте свой портфель',
+                        requireInteraction: true,
+                        buttons: [
+                            {title: 'Удалить уведомление и перейти в портфель'}
+                        ],
+                        priority: 0
+                    });
+                }
+                if (sums.expectedYieldPerDayRelative <= -0.001) {
+                    chrome.notifications.create(OPTION_ALERT_TODAY, {
+                        type: 'basic',
+                        iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
+                        title: 'Доходность резко снизилась более чем на 3%',
+                        message: 'Проверьте свой портфель',
+                        requireInteraction: true,
+                        buttons: [
+                            {title: 'Удалить уведомление и перейти в портфель'}
+                        ],
+                        priority: 0
+                    });
+                }
+            })
+        }
     })
 }
 
@@ -334,11 +372,11 @@ function checkAlerts() {
                 checkTicker(item).then(function (response) {
                     console.log('Пытаемся проверить ' + item.ticker + ' на продажу по ' + item.sell_price + ' и покупку по ' + item.buy_price);
                     if (response.buy) {
-                        chrome.notifications.create({
+                        chrome.notifications.create('buy|' + item.ticker, {
                             type: 'basic',
-                            iconUrl: '/icons/icon16.png',
+                            iconUrl: '/icons/buy-2-64.png',
                             title: 'Цена достигла',
-                            message: 'Цена ' + item.ticker + ' достигла цены покупки ' + item.sell_price,
+                            message: 'Цена ' + item.ticker + ' достигла цены покупки ' + item.buy_price,
                             requireInteraction: true,
                             priority: 0
                         });
@@ -350,11 +388,11 @@ function checkAlerts() {
                         console.log('Проверка сработала по покупке ' + item.ticker + ' за ' + item.buy_price);
                     }
                     if (response.sell) {
-                        chrome.notifications.create({
+                        chrome.notifications.create('sell|' + item.ticker, {
                             type: 'basic',
-                            iconUrl: "/icons/icon16.png",
+                            iconUrl: "/icons/sell-2-64.png",
                             title: 'Цена достигла',
-                            message: 'Цена ' + item.ticker + ' достигла цены продаже ' + item.buy_price,
+                            message: 'Цена ' + item.ticker + ' достигла цены продажи ' + item.sell_price,
                             requireInteraction: true,
                             priority: 0
                         });
@@ -367,7 +405,7 @@ function checkAlerts() {
                     }
 
                 }).catch(e => {
-                    console.log('Не удалось проверить цену ' + item.ticker);
+                    console.log('Не удалось проверить цену ' + item.ticker + ' потому что ' + e);
                 })
             } else {
                 // просрочилась проверка
@@ -419,7 +457,31 @@ chrome.runtime.onConnect.addListener(function (port) {
     });
 });
 
-// запускаем фоновый пинг чтобы ткс не закрыл сессию
+chrome.notifications.onClicked.addListener(function (notificationId) {
+    let ticker = notificationId.split("|");
+    if (notificationId.includes("buy")) {
+        redirect_to_page(BUY_LINK + ticker[1], true)
+    }
+    if (notificationId.includes("sell")) {
+        redirect_to_page(SELL_LINK + ticker[1], true)
+    }
+    if (notificationId === OPTION_ALERT_TODAY) {
+        redirect_to_page(LOGIN_URL)
+    }
+});
+chrome.notifications.onButtonClicked.addListener(function(notificationId, btnIdx) {
+    if (notificationId === OPTION_ALERT_TODAY) {
+        if (btnIdx === 0) {
+            chrome.notifications.clear(notificationId);
+            chrome.storage.sync.set({[OPTION_ALERT_TODAY]: false}, function () {
+                console.log('Alert_today option set to ' + false);
+                redirect_to_page(LOGIN_URL)
+            })
+        }
+    }
+});
+
+// запускаем фоновый пинг сервера + в нем все проверки
 chrome.alarms.create("pingServer", {
     delayInMinutes: INTERVAL_TO_CHECK,
     periodInMinutes: INTERVAL_TO_CHECK
@@ -434,6 +496,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                 getTCSsession().then(function (session_id) {
                     fetch(PING_URL + session_id).then(function (response) {
                         checkAlerts();
+                        checkPortfolioAlerts();
                         updatePrices();
                         // возвращаем обычную иконку
                         chrome.browserAction.setIcon({path: "/icons/icon16.png"});

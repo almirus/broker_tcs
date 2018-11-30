@@ -3,6 +3,7 @@
 import {
     LOGIN_URL,
     OPTION_ALERT,
+    OPTION_ALERT_TODAY,
     OPTION_COSMETICS,
     OPTION_REDIRECT,
     OPTION_SESSION,
@@ -11,14 +12,14 @@ import {
 } from "/js/constants.mjs";
 
 const debounce = (func, delay) => {
-    let inDebounce
+    let inDebounce;
     return function () {
-        const context = this
-        const args = arguments
-        clearTimeout(inDebounce)
+        const context = this;
+        const args = arguments;
+        clearTimeout(inDebounce);
         inDebounce = setTimeout(() => func.apply(context, args), delay)
     }
-}
+};
 const throttle = (func, limit) => {
     let lastFunc;
     let lastRan;
@@ -326,6 +327,19 @@ chrome.storage.sync.get([OPTION_ALERT], function (result) {
     document.getElementById(OPTION_ALERT).checked = result[OPTION_ALERT] === true;
 });
 
+// сохраняем применение Изменение цены за день
+document.getElementById(OPTION_ALERT_TODAY).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_ALERT_TODAY]: e.target.checked}, function () {
+        console.log('Alert_today option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALERT_TODAY], function (result) {
+    console.log('get alert_today option');
+    document.getElementById(OPTION_ALERT_TODAY).checked = result[OPTION_ALERT_TODAY] === true;
+});
+
+// перерисовываем таблицу с уведомлениями при изменении Storage
 chrome.storage.onChanged.addListener(function (changes, namespace) {
     for (let key in changes) {
         if (key === TICKER_LIST) {
@@ -333,7 +347,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
         }
     }
 });
-
+// запрашиваем права на выдачу уведомлений
 if (window.Notification && Notification.permission !== "granted") {
     Notification.requestPermission(function (status) {
         if (Notification.permission !== status) {
@@ -341,6 +355,10 @@ if (window.Notification && Notification.permission !== "granted") {
         }
     });
 }
+(function getAppVersion(){
+    let manifestData = chrome.runtime.getManifest();
+    document.getElementById('app_version').innerText = manifestData.version;
+})();
 create_alert_table();
 port.postMessage({method: "getSession"});
 port.postMessage({method: "updatePrices"});
