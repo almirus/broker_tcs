@@ -4,7 +4,8 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="chrome-DefinitelyTyped" level="application" />
     <orderEntry type="library" name="@types/chrome" level="application" />
+    <orderEntry type="library" name="@types/chrome" level="application" />
+    <orderEntry type="library" name="chrome-DefinitelyTyped" level="application" />
   </component>
 </module>

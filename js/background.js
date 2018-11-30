@@ -14,6 +14,7 @@ import {
     PING_URL,
     PORTFOLIO_URL,
     PRICE_URL,
+    SEARCH_URL,
     SELL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
@@ -105,7 +106,7 @@ function getAllSum() {
                 .then(function (response) {
                     return response.json()
                 }).then(function (json) {
-                console.log('parsed json', json);
+
                 resolve({
                     totalAmountPortfolio: json.payload.totalAmountPortfolio.value,
                     expectedYield: json.payload.expectedYield.value,
@@ -148,7 +149,28 @@ function getListStock(name) {
     return new Promise(function (resolve, reject) {
         console.log('try to get list');
         getTCSsession().then(function (session_id) {
-            if (name === 3) {
+            if (!/^\d+$/.test(name)) { // вручную
+                findTicker(name, session_id)
+                    .then(function (json) {
+                    console.log('finded list');
+                    let return_data = [];
+                    json.payload.values.forEach(function (element) {
+                        return_data.push({
+                            prices: element.prices,
+                            symbol: {
+                                ticker: element.symbol.ticker,
+                                showName: element.symbol.showName,
+                                lotSize: element.symbol.lotSize,
+                            },
+                            exchangeStatus: element.exchangeStatus
+                        });
+                    });
+                    resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                }).catch(function (ex) {
+                    console.log('parsing failed', ex);
+                    reject(undefined);
+                })
+            } else if (name === 3) { // избранное
                 fetch(FAVORITE_URL + session_id)
                     .then(function (response) {
                         return response.json()
@@ -172,7 +194,7 @@ function getListStock(name) {
                     reject(undefined);
                 })
             } else {
-                if (name === 2) {
+                if (name === 2) { // портфолио
                     fetch(PORTFOLIO_URL + session_id)
                         .then(function (response) {
                             return response.json()
@@ -204,6 +226,41 @@ function getListStock(name) {
             }
         })
     })
+}
+
+function findTicker(search, session_id) {
+    return new Promise(function (resolve, reject) {
+            // POST
+            fetch(SEARCH_URL + session_id, {
+                method: "POST",
+                body: JSON.stringify({
+                    start: 0,
+                    end: 1000,
+                    sortType: "ByName",
+                    orderType: "Asc",
+                    country: "All",
+                    filter: search
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            }).then(function (res) {
+                return res.json();
+            })
+                .then(function (res) {
+                    if (res.status.toLocaleUpperCase() === 'OK') {
+                        resolve(res);
+                    } else {
+                        console.log('Сервис поиска недоступен');
+                        reject(undefined)
+                    }
+                }).catch(e => {
+                console.log(e);
+                reject(undefined);
+            })
+        }
+    )
 }
 
 function getTickerInfo(ticker, session_id) {
@@ -283,7 +340,7 @@ function checkTicker(item) {
 }
 
 function deleteFromAlert(ticker) {
-    console.log('Удаляем проверку ' + ticker);
+    console.log('delete alert for ' + ticker);
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
         let new_alert_date = alert_data.slice();
@@ -469,7 +526,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
         redirect_to_page(LOGIN_URL)
     }
 });
-chrome.notifications.onButtonClicked.addListener(function(notificationId, btnIdx) {
+chrome.notifications.onButtonClicked.addListener(function (notificationId, btnIdx) {
     if (notificationId === OPTION_ALERT_TODAY) {
         if (btnIdx === 0) {
             chrome.notifications.clear(notificationId);

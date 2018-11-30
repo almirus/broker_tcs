@@ -177,6 +177,8 @@ function create_table(data) {
             table.appendChild(tr);
         })
     }
+    document.getElementById('table').innerText = '';
+
     document.getElementById('table').appendChild(table);
 }
 
@@ -202,7 +204,7 @@ function create_alert_table() {
     tr.appendChild(th5);
     table.appendChild(tr);
     chrome.storage.sync.get([TICKER_LIST], function (data) {
-        if (data && data[TICKER_LIST].length > 0) {
+        if (data[TICKER_LIST] && data[TICKER_LIST].length > 0) {
             data[TICKER_LIST].forEach(function (element, i) {
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
@@ -269,9 +271,9 @@ document.getElementById('add_list_type').addEventListener('change', function (e)
 });
 
 // подгрузка списка акций по названию
-document.getElementById('symbol_name').addEventListener('change', function (e) {
+document.getElementById('symbol_name').addEventListener('input', function (e) {
     if (e.target.value) {
-        port.postMessage({method: "getListStock", params: e.target.value});
+        throttle(port.postMessage({method: "getListStock", params: e.target.value}),500);
     }
 });
 
