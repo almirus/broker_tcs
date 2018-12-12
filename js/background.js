@@ -9,6 +9,7 @@ import {
     LOGIN_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
+    OPTION_ALERT_TODAY_VALUE,
     OPTION_REDIRECT,
     OPTION_SESSION,
     PING_URL,
@@ -18,7 +19,6 @@ import {
     SELL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
-    TRADING_PURCHASED_URL
 } from "/js/constants.mjs";
 
 
@@ -102,7 +102,7 @@ function getAllSum() {
     return new Promise(function (resolve, reject) {
         console.log('try to get sums');
         getTCSsession().then(function (session_id) {
-            fetch(TRADING_PURCHASED_URL + session_id)
+            fetch(PORTFOLIO_URL + session_id)
                 .then(function (response) {
                     return response.json()
                 }).then(function (json) {
@@ -152,21 +152,21 @@ function getListStock(name) {
             if (!/^\d+$/.test(name)) { // вручную
                 findTicker(name, session_id)
                     .then(function (json) {
-                    console.log('finded list');
-                    let return_data = [];
-                    json.payload.values.forEach(function (element) {
-                        return_data.push({
-                            prices: element.prices,
-                            symbol: {
-                                ticker: element.symbol.ticker,
-                                showName: element.symbol.showName,
-                                lotSize: element.symbol.lotSize,
-                            },
-                            exchangeStatus: element.exchangeStatus
+                        console.log('finded list');
+                        let return_data = [];
+                        json.payload.values.forEach(function (element) {
+                            return_data.push({
+                                prices: element.prices,
+                                symbol: {
+                                    ticker: element.symbol.ticker,
+                                    showName: element.symbol.showName,
+                                    lotSize: element.symbol.lotSize,
+                                },
+                                exchangeStatus: element.exchangeStatus
+                            });
                         });
-                    });
-                    resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
-                }).catch(function (ex) {
+                        resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                    }).catch(function (ex) {
                     console.log('parsing failed', ex);
                     reject(undefined);
                 })
@@ -355,7 +355,7 @@ function deleteFromAlert(ticker) {
     })
 }
 
-function updatePrices() {
+function updateAlertPrices() {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
         alert_data.forEach(function (item, i, alertList) {
@@ -389,32 +389,37 @@ function checkPortfolioAlerts() {
         if (result[OPTION_ALERT_TODAY]) {
             console.log('check portfolio for yield');
             getAllSum().then(function (sums) {
-                if (sums.expectedYieldPerDayRelative >= 0.03) {
-                    chrome.notifications.create(OPTION_ALERT_TODAY, {
-                        type: 'basic',
-                        iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
-                        title: 'Доходность резко повысилась более чем на 3%',
-                        message: 'Проверьте свой портфель',
-                        requireInteraction: true,
-                        buttons: [
-                            {title: 'Удалить уведомление и перейти в портфель'}
-                        ],
-                        priority: 0
-                    });
-                }
-                if (sums.expectedYieldPerDayRelative <= -0.03) {
-                    chrome.notifications.create(OPTION_ALERT_TODAY, {
-                        type: 'basic',
-                        iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
-                        title: 'Доходность резко снизилась более чем на 3%',
-                        message: 'Проверьте свой портфель',
-                        requireInteraction: true,
-                        buttons: [
-                            {title: 'Удалить уведомление и перейти в портфель'}
-                        ],
-                        priority: 0
-                    });
-                }
+                chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE], function (result) {
+                    let alert_value = result[OPTION_ALERT_TODAY_VALUE] || 2;
+                    if (alert_value) {
+                        if (sums.expectedYieldPerDayRelative >= alert_value / 10) {
+                            chrome.notifications.create(OPTION_ALERT_TODAY, {
+                                type: 'basic',
+                                iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
+                                title: `Доходность резко повысилась более чем на $alert_value%`,
+                                message: 'Проверьте свой портфель',
+                                requireInteraction: true,
+                                buttons: [
+                                    {title: 'Удалить уведомление и перейти в портфель'}
+                                ],
+                                priority: 0
+                            });
+                        }
+                        if (sums.expectedYieldPerDayRelative <= -alert_value / 100) {
+                            chrome.notifications.create(OPTION_ALERT_TODAY, {
+                                type: 'basic',
+                                iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
+                                title: `Доходность резко снизилась более чем на $alert_value%`,
+                                message: 'Проверьте свой портфель',
+                                requireInteraction: true,
+                                buttons: [
+                                    {title: 'Удалить уведомление и перейти в портфель'}
+                                ],
+                                priority: 0
+                            });
+                        }
+                    }
+                })
             })
         }
     })
@@ -478,13 +483,23 @@ chrome.runtime.onConnect.addListener(function (port) {
     port.onMessage.addListener(function (msg) {
         console.log("Background - message received " + JSON.stringify(msg));
         switch (msg.method) {
-            case 'updatePrices':
-                updatePrices();
+            case 'updateAlertPrices':
+                updateAlertPrices().then(function (alert_list) {
+                    console.log("send message tickerInfo .....");
+                    port.postMessage(Object.assign({}, {result: "updatePrice"}, {stocks: alert_list}));
+                });
                 break;
             case 'getTickerInfo':
                 getTickerInfo(msg.params).then(function (ticker_info) {
                     console.log("send message tickerInfo .....");
                     port.postMessage(Object.assign({}, {result: "tickerInfo"}, {ticker: ticker_info}));
+                });
+                break;
+            case 'getPortfolio':
+                getListStock(2).then(function (list_symbols) {
+                    console.log("send message portfolio .....");
+                    list_symbols.result = 'listPortfolio';
+                    port.postMessage(list_symbols);
                 });
                 break;
             case 'getListStock':
@@ -554,7 +569,8 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                     fetch(PING_URL + session_id).then(function (response) {
                         checkAlerts();
                         checkPortfolioAlerts();
-                        updatePrices();
+                        updateAlertPrices();
+
                         // возвращаем обычную иконку
                         chrome.browserAction.setIcon({path: "/icons/icon16.png"});
                         chrome.browserAction.setTitle({title: 'TCS Broker'});

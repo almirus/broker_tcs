@@ -23,24 +23,30 @@
 .tickerCol {
     vertical-align: bottom;
 }
-.onlineAverage{
+
+.onlineAverage {
     font-weight: bold;
 }
-.onlineBuy{
+
+.onlineBuy {
     color: green;
 }
-.onlineSell{
+
+.onlineSell {
     color: red;
 }
+
 div.fieldsetRow {
     display: flex;
     align-items: baseline;
 }
+
 div.equal {
     display: flex;
     align-items: stretch;
 }
-fieldset legend{
+
+fieldset legend {
     color: darkblue;
     font-weight: bold;
 }
@@ -48,6 +54,32 @@ fieldset legend{
 fieldset.table {
     width: 50%;
 }
-.priceTable{
+
+.priceTable {
     width: 100%;
+}
+
+input.textInput:focus {
+    border: none;
+    outline: 0;
+    cursor: text;
+    width: 15px;
+}
+
+input.textInput:not(:focus) {
+    outline: 0;
+    width:15px;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px dotted #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+input.textInput::-webkit-outer-spin-button,
+input.textInput::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }

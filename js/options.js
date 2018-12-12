@@ -4,11 +4,12 @@ import {
     LOGIN_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
+    OPTION_ALERT_TODAY_VALUE,
     OPTION_COSMETICS,
     OPTION_REDIRECT,
     OPTION_SESSION,
     port,
-    TICKER_LIST
+    TICKER_LIST,
 } from "/js/constants.mjs";
 
 const debounce = (func, delay) => {
@@ -43,9 +44,15 @@ const throttle = (func, limit) => {
 port.onMessage.addListener(function (msg) {
     console.log("Option - message received " + JSON.stringify(msg));
     switch (msg.result) {
+        case 'updatePrice':
+            create_table(msg.stocks);
+            break;
         case 'listStock':
             create_table(msg.stocks);
             setAddButtonHandler();
+            break;
+        case 'listPortfolio':
+            create_portfolio_table(msg.stocks);
             break;
         case 'tickerInfo':
             create_table(msg.stocks);
@@ -61,9 +68,7 @@ port.onMessage.addListener(function (msg) {
             // дизейблим пункты связанные с получением данных онлайн
             let op = document.getElementById("add_list_type").getElementsByTagName("option");
             for (let i = 0; i < op.length; i++) {
-                (op[i].value > 1)
-                    ? op[i].disabled = !msg.sessionId
-                    : op[i].disabled = false;
+                op[i].disabled = !msg.sessionId
             }
             break;
     }
@@ -123,6 +128,64 @@ function setRefreshHandler() {
     document.getElementById('updatePrice').addEventListener('click', function () {
         port.postMessage({method: "updatePrices"});
     }, false);
+}
+
+function create_portfolio_table(data) {
+    let table = document.createElement('table');
+    table.className = 'alertPriceTable';
+    let tr = document.createElement('tr');
+    let th1 = document.createElement('th');
+    th1.appendChild(document.createTextNode('название'));
+    let th2 = document.createElement('th');
+    th2.innerHTML = 'текущие цены';
+    let th3 = document.createElement('th');
+    th3.appendChild(document.createTextNode('количество'));
+    let th4 = document.createElement('th');
+    th4.appendChild(document.createTextNode('размер'));
+    let th5 = document.createElement('th');
+    th5.appendChild(document.createTextNode('доход'));
+    tr.appendChild(th1);
+    tr.appendChild(th2);
+    tr.appendChild(th3);
+    tr.appendChild(th4);
+    tr.appendChild(th5);
+    table.appendChild(tr);
+
+    data.forEach(function (element, i) {
+        let tr = document.createElement('tr');
+        let td1 = document.createElement('td');
+        td1.innerHTML = element.showName + '<br>' + '<strong>' + element.ticker + '</strong>';
+        let td2 = document.createElement('td');
+        td2.innerHTML =
+            '<div data-ticker="' + element.ticker + '" class="onlineAverage" title="Последняя цена">' + element.online_average_price + '</div>' +
+            '<div data-ticker="' + element.ticker + '" class="onlineBuy"  title="Цена покупки">' + element.online_buy_price + element.currency + '</div>' +
+            '<div data-ticker="' + element.ticker + '" class="onlineSell"  title="Цена продажи">' + element.online_sell_price + '</div>';
+        let td3 = document.createElement('td');
+        td3.innerHTML = element.sell_price;
+        td3.className = 'onlineBuy';
+        let td4 = document.createElement('td');
+        td4.innerHTML = element.buy_price;
+        td4.className = 'onlineSell';
+        let td5 = document.createElement('td');
+        td5.className = '';
+        let alert_date = new Date(Date.parse(element.best_before));
+        td5.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бесрочно';
+
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tr.appendChild(td3);
+        tr.appendChild(td4);
+        tr.appendChild(td5);
+
+        table.appendChild(tr);
+        setDeleteButtonHandler();
+        setRefreshHandler();
+
+    });
+
+    document.getElementById('portfolio').innerText = '';
+
+    document.getElementById('portfolio').appendChild(table);
 }
 
 // рендер таблицы с акциями
@@ -264,16 +327,15 @@ document.getElementById('add_list_type').addEventListener('change', function (e)
             document.getElementById('symbol_name').disabled = false;
             break;
         default:
-            document.getElementById('symbol_name').disabled = true;
             document.getElementById('table').innerText = '';
-
+            document.getElementById('symbol_name').disabled = true;
     }
 });
 
 // подгрузка списка акций по названию
 document.getElementById('symbol_name').addEventListener('input', function (e) {
     if (e.target.value) {
-        throttle(port.postMessage({method: "getListStock", params: e.target.value}),500);
+        throttle(port.postMessage({method: "getListStock", params: e.target.value}), 500);
     }
 });
 
@@ -341,6 +403,17 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY], function (result) {
     document.getElementById(OPTION_ALERT_TODAY).checked = result[OPTION_ALERT_TODAY] === true;
 });
 
+// сохраняем величина уменьшения увеличения портфеля
+document.getElementById(OPTION_ALERT_TODAY_VALUE).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_ALERT_TODAY_VALUE]: e.target.value}, function () {
+        console.log('Alert_today_value option set to ' + e.target.value);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE], function (result) {
+    console.log('get alert_today_value option');
+    document.getElementById(OPTION_ALERT_TODAY_VALUE).value = result[OPTION_ALERT_TODAY_VALUE] || 2;
+});
 // перерисовываем таблицу с уведомлениями при изменении Storage
 chrome.storage.onChanged.addListener(function (changes, namespace) {
     for (let key in changes) {
@@ -357,10 +430,11 @@ if (window.Notification && Notification.permission !== "granted") {
         }
     });
 }
-(function getAppVersion(){
+(function getAppVersion() {
     let manifestData = chrome.runtime.getManifest();
     document.getElementById('app_version').innerText = manifestData.version;
 })();
 create_alert_table();
 port.postMessage({method: "getSession"});
 port.postMessage({method: "updatePrices"});
+port.postMessage({method: "getPortfolio"});
