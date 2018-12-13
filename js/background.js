@@ -201,30 +201,30 @@ function getListStock(name) {
                     fetch(PORTFOLIO_URL + session_id)
                         .then(function (response) {
                             return response.json()
-                        }).then(function (json) {
+                        }).then(async function (json) {
                         console.log('list of portfolio');
                         let return_data = [];
-                        json.payload.data.forEach(function (element) {
-                            return_data.push({
-                                prices: {
-                                    last: {
-                                        value: element.currentPrice.value,
-                                        currency: element.currentPrice.currency
-                                    }
-                                },
-                                symbol: {
-                                    ticker: element.ticker,
-                                    // showName: symbol.payload.symbol.brand,
-                                    lotSize: element.currentBalance,
-                                    expectedYieldRelative: element.expectedYieldRelative,
-                                    expectedYield: element.expectedYield,
-                                    currentPrice: element.currentPrice,
-                                    currentAmount: element.currentAmount,
-                                    averagePositionPrice: element.averagePositionPrice,
-                                },
-                                exchangeStatus: element.exchangeStatus
+                        for (const element of json.payload.data) {
+                            await getSymbolInfo(element.ticker, session_id).then(function (symbol) {
+                                return_data.push({
+                                    prices: symbol.payload.prices,
+                                    earnings: symbol.payload.earnings,
+                                    symbol: {
+                                        ticker: element.ticker,
+                                        showName: symbol.payload.symbol.description,
+                                        lotSize: element.currentBalance,
+                                        expectedYieldRelative: element.expectedYieldRelative,
+                                        expectedYield: element.expectedYield,
+                                        currentPrice: element.currentPrice,
+                                        currentAmount: element.currentAmount,
+                                        averagePositionPrice: element.averagePositionPrice,
+                                    },
+                                    exchangeStatus: element.exchangeStatus
+                                });
+                            }).catch(e => {
+                                console.log(e);
                             });
-                        });
+                        }
                         resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                     }).catch(function (ex) {
                         console.log('parsing failed', ex);
@@ -319,7 +319,7 @@ function getSymbolInfo(ticker, session_id) {
                 if (res.status.toLocaleUpperCase() === 'OK') {
                     resolve(res);
                 } else {
-                    console.log('Сервис информации о бумаге недоступен');
+                    console.log(`Сервис информации о бумаге ${ticker} недоступен`);
                     reject(undefined)
                 }
             }).catch(e => {
@@ -337,8 +337,8 @@ function checkTicker(item) {
                 let last_price = res.payload.last.value;
                 let sell_price = res.payload.buy.value;
                 let buy_price = res.payload.sell.value;
-                if (item.sell_price && last_price/1 >= item.sell_price/1) sell = 1;
-                if (item.buy_price && last_price/1 <= item.buy_price/1) buy = 1;
+                if (item.sell_price && last_price / 1 >= item.sell_price / 1) sell = 1;
+                if (item.buy_price && last_price / 1 <= item.buy_price / 1) buy = 1;
                 resolve({buy: buy, sell: sell});
             }).catch(e => {
                 console.log(e);
@@ -446,7 +446,7 @@ function checkSymbolsAlerts() {
                         list_symbols.stocks.forEach(function (item, i, alertList) {
                             getPriceInfo(item.symbol.ticker, session_id).then(function (res) {
                                 let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
-                                if (earnings_relative/1 >= (alert_value/1)) {
+                                if (earnings_relative / 1 >= (alert_value / 1)) {
                                     chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
                                         type: 'basic',
                                         iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
@@ -461,7 +461,7 @@ function checkSymbolsAlerts() {
                                         priority: 0
                                     });
                                 }
-                                if (earnings_relative/1 <= -(alert_value/1)) {
+                                if (earnings_relative / 1 <= -(alert_value / 1)) {
                                     chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
                                         type: 'basic',
                                         iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
@@ -476,7 +476,7 @@ function checkSymbolsAlerts() {
                                         priority: 0
                                     });
                                 }
-                            }).catch(e=>{
+                            }).catch(e => {
                                 console.log(e);
                             });
 

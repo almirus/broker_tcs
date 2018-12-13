@@ -49,7 +49,7 @@ export const PRICE_URL = 'https://api.tinkoff.ru/trading/stocks/price?sessionId=
   "status": "Ok"
 }
 */
-export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/symbols/get?sessionId=';
+export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/stocks/get?sessionId=';
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';

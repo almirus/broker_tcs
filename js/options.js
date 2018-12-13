@@ -4,14 +4,14 @@ import {
     LOGIN_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
+    OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
+    OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
     OPTION_COSMETICS,
     OPTION_REDIRECT,
     OPTION_SESSION,
     port,
     TICKER_LIST,
-    OPTION_ALERT_TODAY_PER_SYMBOL,
-    OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
 } from "/js/constants.mjs";
 
 const debounce = (func, delay) => {
@@ -139,18 +139,24 @@ function create_portfolio_table(data) {
     let th1 = document.createElement('th');
     th1.appendChild(document.createTextNode('название'));
     let th2 = document.createElement('th');
-    th2.innerHTML = 'текущие цены';
+    th2.innerHTML = 'текущие цены брокера';
     let th3 = document.createElement('th');
-    th3.appendChild(document.createTextNode('количество'));
+    th3.innerHTML = 'изменение за день'
     let th4 = document.createElement('th');
-    th4.appendChild(document.createTextNode('размер'));
+    th4.appendChild(document.createTextNode('средняя цена покупки'));
     let th5 = document.createElement('th');
-    th5.appendChild(document.createTextNode('доход'));
+    th5.appendChild(document.createTextNode('кол-во'));
+    let th6 = document.createElement('th');
+    th6.appendChild(document.createTextNode('текущая стоимость'));
+    let th7 = document.createElement('th');
+    th7.appendChild(document.createTextNode('доход на данный момент'));
     tr.appendChild(th1);
     tr.appendChild(th2);
     tr.appendChild(th3);
     tr.appendChild(th4);
     tr.appendChild(th5);
+    tr.appendChild(th6);
+    tr.appendChild(th7);
     table.appendChild(tr);
 
     data.forEach(function (element, i) {
@@ -160,23 +166,49 @@ function create_portfolio_table(data) {
         let td2 = document.createElement('td');
         td2.innerHTML =
             '<div data-ticker="' + element.ticker + '" class="onlineAverage" title="Последняя цена">' + element.prices.last.value + '</div>' +
-            '<div data-ticker="' + element.ticker + '" class="onlineBuy"  title="Цена покупки">' + element.prices.online_buy_price + element.prices.last.currency + '</div>' +
-            '<div data-ticker="' + element.ticker + '" class="onlineSell"  title="Цена продажи">' + element.prices.online_sell_price + '</div>';
+            '<div data-ticker="' + element.ticker + '" class="onlineBuy"  title="Цена покупки">' +
+            element.prices.buy.value.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: element.prices.buy.currency
+            }) + '</div>' +
+            '<div data-ticker="' + element.ticker + '" class="onlineSell"  title="Цена продажи">' + element.prices.sell.value + '</div>';
         let td3 = document.createElement('td');
-        td3.innerHTML = element.symbol.lotSize;
-
+        td3.innerHTML = element.earnings.absolute.value.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.earnings.absolute.currency
+        }) + '<br>' + element.earnings.relative.toLocaleString('ru-RU', {
+            style: 'percent',
+            maximumSignificantDigits: 2
+        });
         let td4 = document.createElement('td');
-        td4.innerHTML = element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', { style: 'currency', currency: element.symbol.averagePositionPrice.currency });
+        td4.innerHTML = element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.symbol.averagePositionPrice.currency
+        });
 
         let td5 = document.createElement('td');
-        td5.className = element.symbol.expectedYield.value/1<0?'onlineSell':'onlineBuy';
-        td5.innerHTML = element.symbol.expectedYield.value.toLocaleString('ru-RU', { style: 'currency', currency: element.symbol.expectedYield.currency });
+        td5.innerHTML = element.symbol.lotSize;
+
+        let td6 = document.createElement('td');
+        td6.innerHTML = element.symbol.currentAmount.value.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.symbol.currentAmount.currency
+        });
+
+        let td7 = document.createElement('td');
+        td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+        td7.innerHTML = element.symbol.expectedYield.value.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.symbol.expectedYield.currency
+        }) + '<br>' + element.symbol.expectedYieldRelative + '%';
 
         tr.appendChild(td1);
         tr.appendChild(td2);
         tr.appendChild(td3);
         tr.appendChild(td4);
         tr.appendChild(td5);
+        tr.appendChild(td6);
+        tr.appendChild(td7);
 
         table.appendChild(tr);
         setDeleteButtonHandler();
