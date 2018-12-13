@@ -9,7 +9,9 @@ import {
     LOGIN_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
+    OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
+    OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
     OPTION_REDIRECT,
     OPTION_SESSION,
     PING_URL,
@@ -17,6 +19,7 @@ import {
     PRICE_URL,
     SEARCH_URL,
     SELL_LINK,
+    SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
 } from "/js/constants.mjs";
@@ -115,7 +118,7 @@ function getAllSum() {
                     expectedYieldPerDayRelative: json.payload.expectedYieldPerDayRelative / 100,
                 });
             }).catch(function (ex) {
-                console.log('parsing failed', ex)
+                console.log('parsing failed', ex);
                 reject(undefined);
             })
         }).catch(function () {
@@ -149,10 +152,10 @@ function getListStock(name) {
     return new Promise(function (resolve, reject) {
         console.log('try to get list');
         getTCSsession().then(function (session_id) {
-            if (!/^\d+$/.test(name)) { // вручную
+            if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
                 findTicker(name, session_id)
                     .then(function (json) {
-                        console.log('finded list');
+                        console.log('found list');
                         let return_data = [];
                         json.payload.values.forEach(function (element) {
                             return_data.push({
@@ -213,13 +216,18 @@ function getListStock(name) {
                                     ticker: element.ticker,
                                     // showName: symbol.payload.symbol.brand,
                                     lotSize: element.currentBalance,
+                                    expectedYieldRelative: element.expectedYieldRelative,
+                                    expectedYield: element.expectedYield,
+                                    currentPrice: element.currentPrice,
+                                    currentAmount: element.currentAmount,
+                                    averagePositionPrice: element.averagePositionPrice,
                                 },
                                 exchangeStatus: element.exchangeStatus
                             });
                         });
                         resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                     }).catch(function (ex) {
-                        console.log('parsing failed', ex)
+                        console.log('parsing failed', ex);
                         reject(undefined);
                     })
                 }
@@ -263,31 +271,35 @@ function findTicker(search, session_id) {
     )
 }
 
-function getTickerInfo(ticker, session_id) {
+function getPriceInfo(ticker, session_id) {
     return new Promise(function (resolve, reject) {
-        // POST
-        fetch(PRICE_URL + session_id, {
-            method: "POST",
-            body: JSON.stringify({ticker: ticker}),
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }
-        }).then(function (res) {
-            return res.json();
-        })
-            .then(function (res) {
-                if (res.status.toLocaleUpperCase() === 'OK') {
-                    resolve(res);
-                } else {
-                    console.log('Сервис цен недоступен');
-                    reject(undefined)
+        console.log(`Get price for ${ticker}`);
+        if (ticker) {
+            // POST
+            fetch(PRICE_URL + session_id, {
+                method: "POST",
+                body: JSON.stringify({ticker: ticker}),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 }
-            }).catch(e => {
-            console.log(e);
-            reject(undefined);
-        })
+            }).then(function (res) {
+                return res.json();
+            })
+                .then(function (res) {
+                    if (res.status.toLocaleUpperCase() === 'OK') {
+                        resolve(res);
+                    } else {
+                        console.log(`Сервис цен недоступен для ${ticker}`);
+                        reject(undefined)
+                    }
+                }).catch(e => {
+                console.log(e);
+                reject(undefined);
+            })
+        } else reject(undefined);
     })
+
 }
 
 function getSymbolInfo(ticker, session_id) {
@@ -320,13 +332,13 @@ function getSymbolInfo(ticker, session_id) {
 function checkTicker(item) {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
-            getTickerInfo(item.ticker, session_id).then(function (res) {
+            getPriceInfo(item.ticker, session_id).then(function (res) {
                 let sell, buy = 0;
                 let last_price = res.payload.last.value;
                 let sell_price = res.payload.buy.value;
                 let buy_price = res.payload.sell.value;
-                if (item.sell_price && last_price >= item.sell_price) sell = 1;
-                if (item.buy_price && last_price <= item.buy_price) buy = 1;
+                if (item.sell_price && last_price/1 >= item.sell_price/1) sell = 1;
+                if (item.buy_price && last_price/1 <= item.buy_price/1) buy = 1;
                 resolve({buy: buy, sell: sell});
             }).catch(e => {
                 console.log(e);
@@ -360,7 +372,7 @@ function updateAlertPrices() {
         let alert_data = data[TICKER_LIST] || [];
         alert_data.forEach(function (item, i, alertList) {
             getTCSsession().then(function (session_id) {
-                getTickerInfo(item.ticker, session_id).then(function (res) {
+                getPriceInfo(item.ticker, session_id).then(function (res) {
                     alertList[i] = {
                         ticker: item.ticker,
                         showName: item.showName,
@@ -391,35 +403,86 @@ function checkPortfolioAlerts() {
             getAllSum().then(function (sums) {
                 chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE], function (result) {
                     let alert_value = result[OPTION_ALERT_TODAY_VALUE] || 2;
-                    if (alert_value) {
-                        if (sums.expectedYieldPerDayRelative >= alert_value / 10) {
-                            chrome.notifications.create(OPTION_ALERT_TODAY, {
-                                type: 'basic',
-                                iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
-                                title: `Доходность резко повысилась более чем на $alert_value%`,
-                                message: 'Проверьте свой портфель',
-                                requireInteraction: true,
-                                buttons: [
-                                    {title: 'Удалить уведомление и перейти в портфель'}
-                                ],
-                                priority: 0
-                            });
-                        }
-                        if (sums.expectedYieldPerDayRelative <= -alert_value / 100) {
-                            chrome.notifications.create(OPTION_ALERT_TODAY, {
-                                type: 'basic',
-                                iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
-                                title: `Доходность резко снизилась более чем на $alert_value%`,
-                                message: 'Проверьте свой портфель',
-                                requireInteraction: true,
-                                buttons: [
-                                    {title: 'Удалить уведомление и перейти в портфель'}
-                                ],
-                                priority: 0
-                            });
-                        }
+                    if (sums.expectedYieldPerDayRelative >= (alert_value / 100)) {
+                        chrome.notifications.create(OPTION_ALERT_TODAY, {
+                            type: 'basic',
+                            iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
+                            title: `Доходность резко повысилась более чем на ${alert_value}%`,
+                            message: 'Проверьте свой портфель',
+                            requireInteraction: true,
+                            buttons: [
+                                {title: 'Удалить уведомление и перейти в портфель'}
+                            ],
+                            priority: 0
+                        });
+                    }
+                    if (sums.expectedYieldPerDayRelative <= -(alert_value / 100)) {
+                        chrome.notifications.create(OPTION_ALERT_TODAY, {
+                            type: 'basic',
+                            iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
+                            title: `Доходность резко снизилась более чем на ${alert_value}%`,
+                            message: 'Проверьте свой портфель',
+                            requireInteraction: true,
+                            buttons: [
+                                {title: 'Удалить уведомление и перейти в портфель'}
+                            ],
+                            priority: 0
+                        });
                     }
                 })
+            })
+        }
+    })
+}
+
+function checkSymbolsAlerts() {
+    chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], function (result) {
+        if (result[OPTION_ALERT_TODAY_PER_SYMBOL]) {
+            console.log('check portfolio symbols for yield');
+            getTCSsession().then(function (session_id) {
+                getListStock(2).then(function (list_symbols) {
+                    chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result) {
+                        let alert_value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
+                        list_symbols.stocks.forEach(function (item, i, alertList) {
+                            getPriceInfo(item.symbol.ticker, session_id).then(function (res) {
+                                let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
+                                if (earnings_relative/1 >= (alert_value/1)) {
+                                    chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
+                                        type: 'basic',
+                                        iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
+                                        title: `Доходность ${item.symbol.ticker} достигла ${alert_value}% и составила ${earnings_relative}%`,
+                                        message: 'Проверьте свой портфель',
+                                        requireInteraction: true,
+                                        buttons: [
+                                            {title: 'Купить'},
+                                            {title: 'Продать'},
+                                            {title: 'Больше не показывать'},
+                                        ],
+                                        priority: 0
+                                    });
+                                }
+                                if (earnings_relative/1 <= -(alert_value/1)) {
+                                    chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
+                                        type: 'basic',
+                                        iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
+                                        title: `Доходность ${item.symbol.ticker} достигла -${alert_value}% и составила ${earnings_relative}%`,
+                                        message: 'Проверьте свой портфель',
+                                        requireInteraction: true,
+                                        buttons: [
+                                            {title: 'Купить'},
+                                            {title: 'Продать'},
+                                            {title: 'Больше не показывать'},
+                                        ],
+                                        priority: 0
+                                    });
+                                }
+                            }).catch(e=>{
+                                console.log(e);
+                            });
+
+                        });
+                    })
+                });
             })
         }
     })
@@ -431,6 +494,7 @@ function checkAlerts() {
         alert_data.forEach(function (item) {
             if (!item.best_before || Date.parse(item.best_before) > new Date()) {
                 // или дата не установлена или больше текущей => проверка не просрочилась
+                console.log(`check alert for ${item.ticker}`);
                 checkTicker(item).then(function (response) {
                     console.log('Пытаемся проверить ' + item.ticker + ' на продажу по ' + item.sell_price + ' и покупку по ' + item.buy_price);
                     if (response.buy) {
@@ -438,7 +502,7 @@ function checkAlerts() {
                             type: 'basic',
                             iconUrl: '/icons/buy-2-64.png',
                             title: 'Цена достигла',
-                            message: 'Цена ' + item.ticker + ' достигла цены покупки ' + item.buy_price,
+                            message: `Цена ${item.ticker} достигла цены покупки ${item.buy_price}`,
                             requireInteraction: true,
                             priority: 0
                         });
@@ -454,7 +518,7 @@ function checkAlerts() {
                             type: 'basic',
                             iconUrl: "/icons/sell-2-64.png",
                             title: 'Цена достигла',
-                            message: 'Цена ' + item.ticker + ' достигла цены продажи ' + item.sell_price,
+                            message: `Цена ${item.ticker} достигла цены продажи ${item.sell_price}`,
                             requireInteraction: true,
                             priority: 0
                         });
@@ -489,8 +553,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                     port.postMessage(Object.assign({}, {result: "updatePrice"}, {stocks: alert_list}));
                 });
                 break;
-            case 'getTickerInfo':
-                getTickerInfo(msg.params).then(function (ticker_info) {
+            case 'getPriceInfo':
+                getPriceInfo(msg.params).then(function (ticker_info) {
                     console.log("send message tickerInfo .....");
                     port.postMessage(Object.assign({}, {result: "tickerInfo"}, {ticker: ticker_info}));
                 });
@@ -528,7 +592,7 @@ chrome.runtime.onConnect.addListener(function (port) {
         }
     });
 });
-
+// листнер на клик по уведомлению
 chrome.notifications.onClicked.addListener(function (notificationId) {
     let ticker = notificationId.split("|");
     if (notificationId.includes("buy")) {
@@ -540,8 +604,14 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
     if (notificationId === OPTION_ALERT_TODAY) {
         redirect_to_page(LOGIN_URL)
     }
+    if (notificationId.includes(OPTION_ALERT_TODAY_PER_SYMBOL)) {
+        redirect_to_page(SYMBOL_LINK + ticker[1])
+    }
 });
+// листнер на клик по кнопкам в уведомлении
 chrome.notifications.onButtonClicked.addListener(function (notificationId, btnIdx) {
+    let ticker = notificationId.split("|");
+    // нажали по кнопке Удалить уведомление о изменении стоимости портфеля
     if (notificationId === OPTION_ALERT_TODAY) {
         if (btnIdx === 0) {
             chrome.notifications.clear(notificationId);
@@ -549,6 +619,16 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
                 console.log('Alert_today option set to ' + false);
                 redirect_to_page(LOGIN_URL)
             })
+        }
+    }
+    if (notificationId.includes(OPTION_ALERT_TODAY_PER_SYMBOL)) {
+        chrome.notifications.clear(notificationId);
+        if (btnIdx === 0) {
+            redirect_to_page(BUY_LINK + ticker[1], true)
+        } else if (btnIdx === 1) {
+            redirect_to_page(SELL_LINK + ticker[1], true)
+        } else {
+            // ставим метку больше не показывать
         }
     }
 });
@@ -567,10 +647,10 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                 console.log('ping server');
                 getTCSsession().then(function (session_id) {
                     fetch(PING_URL + session_id).then(function (response) {
-                        checkAlerts();
-                        checkPortfolioAlerts();
-                        updateAlertPrices();
-
+                        checkAlerts();          // достижение цены по бумагам в списке отслеживания
+                        checkPortfolioAlerts(); // резкая смена доходности портфеля
+                        checkSymbolsAlerts(); // резкая смена доходности портфеля
+                        updateAlertPrices();    // обновляем цены в интерфейсе настроек
                         // возвращаем обычную иконку
                         chrome.browserAction.setIcon({path: "/icons/icon16.png"});
                         chrome.browserAction.setTitle({title: 'TCS Broker'});

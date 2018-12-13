@@ -58,7 +58,10 @@ fieldset.table {
 .priceTable {
     width: 100%;
 }
-
+img.help{
+    padding-left: 3px;
+    height: 13px;
+}
 input.textInput:focus {
     border: none;
     outline: 0;

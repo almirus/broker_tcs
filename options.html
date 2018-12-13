@@ -8,30 +8,48 @@
 </head>
 <body>
 <form>
-    <div id="error_message"></div>
-    <div id="message"></div>
     <div class="fieldsetRow equal">
         <fieldset class="table">
+            <div id="error_message"></div>
+            <div id="message"></div>
             <legend>Основные настройки</legend>
-            <input type="checkbox" value="0" name="redirect" id="redirect"
-                   title="Если галочка установлена, то при любой проверке данных с сервера и невалидной сессии будет перенаправление на страницу брокера с предложением залогиниться">
+            <input type="checkbox" value="0" name="redirect" id="redirect">
             <label for="redirect">При истечении сессии редиректить на страницу логина, иначе показывать иконкой</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="Если галочка установлена, то при любой проверке данных с сервера и невалидной сессии будет перенаправление на страницу брокера с предложением залогиниться">
             <br>
-            <input type="checkbox" value="0" name="session" id="session"
-                   title="В фоне периодически будет пинговаться сервер и не давать завершить сессию&#013;Учтите, что это может быть небезопасно, если доступ к браузеру имеют 3е лица">
+            <input type="checkbox" value="0" name="session" id="session">
             <label for="session">Сохранять сессию в личном кабинете (для получения данных в фоне)</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="В фоне периодически будет пинговаться сервер и не давать завершить сессию в личном кабинете&#013;Если выключено, никаких уведомлений не будет&#013;Учтите, что это может быть небезопасно, если доступ к браузеру имеют 3е лица">
             <br>
-            <input type="checkbox" value="0" name="cosmetic" id="cosmetic"
-                   title="Уменьшает размеры элементов чтобы на экране в личном кабинете поместилось больше информации">
+            <input type="checkbox" value="0" name="cosmetic" id="cosmetic">
+
             <label for="cosmetic">Применить косметические фильтры на странице брокера</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="Уменьшает размеры элементов чтобы на экране в личном кабинете поместилось больше информации">
             <br>
             <input type="checkbox" value="0" name="alert_redirect" id="alert_redirect"
-                   title="Если установлена галочка будет сразу открыто окно с покупкой/продажи акции, иначе будет показано стандартное уведомление&#013;Нужно по нему кликнуть чтобы открылась страница покупки\продажи">
+            >
             <label for="alert_redirect">При достижении цены открывать страницу покупки/продажи</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="Если установлена галочка будет сразу открыто окно с покупкой/продажи акции, иначе будет показано стандартное уведомление&#013;Нужно по нему кликнуть чтобы открылась страница покупки\продажи">
             <br>
-            <input type="checkbox" value="0" name="alert_today" id="alert_today"
-                   title="Выдает уведомление, если стоимость всего портфеля поменялась в течени дня на более чем 3%">
-            <label for="alert_today">Выдавать оповещение, если в течении дня <strong>стоимость портфеля</strong> ± поменялась на <input class="textInput" type="number" name="alert_today_value" id="alert_today_value" maxlength="3" min="0">%</label>
+            <input type="checkbox" value="0" name="alert_today" id="alert_today">
+            <label for="alert_today">Оповещать, если в течении дня <strong>стоимость портфеля</strong> ± поменялась на
+                <input class="textInput" type="number" name="alert_today_value" id="alert_today_value" maxlength="3"
+                       min="0">%</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="Выдает уведомление, если стоимость всего портфеля поменялась в течении дня на более чем на указанную величину">
+            <br>
+            <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_today_per_symbol">
+            <label for="alert_today_per_symbol">Оповещать, если в течении дня <strong>стоимость любой купленной
+                позиции</strong> ± поменялась на <input class="textInput" type="number"
+                                                        name="alert_today_value_per_symbol"
+                                                        id="alert_today_value_per_symbol" maxlength="3"
+                                                        min="0">%</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="Выдает уведомление, если стоимость любой позиции в портфеле поменялась в течении дня на указанную величину">
             <p>Версия приложения <span id="app_version">~</span></p>
         </fieldset>
         <fieldset class="table">
@@ -41,9 +59,14 @@
             <p>Алгоритм очень простой: Каждую минуту приложение обращается к сервису брокера и получает актуальную
                 информацию о выбранных бумагах в списке для отслеживания.
                 И при достижении указанной цены, выдает оповещение на экран и опционально открывает страницу
-                покупки\продажи. В любом случае <strong>приложение ничего само не продает и не покупает</strong>,
+                покупки/продажи. В любом случае <strong>приложение ничего само не продает и не покупает</strong>,
                 более того такой возможности не предоставляет сам брокер, так как любые операции должны подтверждаться
-                СМС. Исходный код приложения доступен <a target="_blank" href="https://github.com/almirus/broker_tcs">тут</a></p>
+                СМС.
+            </p>
+            <p>
+                Исходный код приложения доступен <a target="_blank" href="https://github.com/almirus/broker_tcs">тут</a>.
+                <a href="mailto:al-open@yandex.ru?subject=TCS Broker">Вопросы, предложения</a>
+            </p>
             <p>Если у Вас есть сомнения связанные с безопасностью данных, просьба удалить приложение.</p>
 
         </fieldset>
@@ -51,7 +74,7 @@
 
     <div class="fieldsetRow">
         <fieldset class="table"
-                  title="Ваш портель обновляется раз в минуту">
+                  title="Ваш портфель обновляется раз в минуту">
             <legend>Портфель</legend>
             <div id="portfolio"></div>
         </fieldset>

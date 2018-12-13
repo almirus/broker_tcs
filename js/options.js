@@ -10,6 +10,8 @@ import {
     OPTION_SESSION,
     port,
     TICKER_LIST,
+    OPTION_ALERT_TODAY_PER_SYMBOL,
+    OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
 } from "/js/constants.mjs";
 
 const debounce = (func, delay) => {
@@ -154,22 +156,21 @@ function create_portfolio_table(data) {
     data.forEach(function (element, i) {
         let tr = document.createElement('tr');
         let td1 = document.createElement('td');
-        td1.innerHTML = element.showName + '<br>' + '<strong>' + element.ticker + '</strong>';
+        td1.innerHTML = element.symbol.showName + '<br>' + '<strong>' + element.symbol.ticker + '</strong>';
         let td2 = document.createElement('td');
         td2.innerHTML =
-            '<div data-ticker="' + element.ticker + '" class="onlineAverage" title="Последняя цена">' + element.online_average_price + '</div>' +
-            '<div data-ticker="' + element.ticker + '" class="onlineBuy"  title="Цена покупки">' + element.online_buy_price + element.currency + '</div>' +
-            '<div data-ticker="' + element.ticker + '" class="onlineSell"  title="Цена продажи">' + element.online_sell_price + '</div>';
+            '<div data-ticker="' + element.ticker + '" class="onlineAverage" title="Последняя цена">' + element.prices.last.value + '</div>' +
+            '<div data-ticker="' + element.ticker + '" class="onlineBuy"  title="Цена покупки">' + element.prices.online_buy_price + element.prices.last.currency + '</div>' +
+            '<div data-ticker="' + element.ticker + '" class="onlineSell"  title="Цена продажи">' + element.prices.online_sell_price + '</div>';
         let td3 = document.createElement('td');
-        td3.innerHTML = element.sell_price;
-        td3.className = 'onlineBuy';
+        td3.innerHTML = element.symbol.lotSize;
+
         let td4 = document.createElement('td');
-        td4.innerHTML = element.buy_price;
-        td4.className = 'onlineSell';
+        td4.innerHTML = element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', { style: 'currency', currency: element.symbol.averagePositionPrice.currency });
+
         let td5 = document.createElement('td');
-        td5.className = '';
-        let alert_date = new Date(Date.parse(element.best_before));
-        td5.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бесрочно';
+        td5.className = element.symbol.expectedYield.value/1<0?'onlineSell':'onlineBuy';
+        td5.innerHTML = element.symbol.expectedYield.value.toLocaleString('ru-RU', { style: 'currency', currency: element.symbol.expectedYield.currency });
 
         tr.appendChild(td1);
         tr.appendChild(td2);
@@ -369,13 +370,23 @@ chrome.storage.sync.get([OPTION_REDIRECT], function (result) {
 document.getElementById(OPTION_SESSION).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_SESSION]: e.target.checked}, function () {
         console.log('Redirect option set to ' + e.target.checked);
+        document.getElementById(OPTION_ALERT).disabled = !e.target.checked;
+        document.getElementById(OPTION_ALERT_TODAY).disabled = !e.target.checked;
+        document.getElementById(OPTION_ALERT_TODAY_VALUE).disabled = !e.target.checked;
+        document.getElementById(OPTION_ALERT_TODAY_PER_SYMBOL).disabled = !e.target.checked;
+        document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).disabled = !e.target.checked;
     })
 });
 
 // подгружаем настройки
 chrome.storage.sync.get([OPTION_SESSION], function (result) {
     console.log('get session option');
-    document.getElementById(OPTION_SESSION).checked = result[OPTION_SESSION] === true;
+    document.getElementById(OPTION_SESSION).checked = result[OPTION_SESSION];
+    document.getElementById(OPTION_ALERT).disabled = !result[OPTION_SESSION];
+    document.getElementById(OPTION_ALERT_TODAY).disabled = !result[OPTION_SESSION];
+    document.getElementById(OPTION_ALERT_TODAY_VALUE).disabled = !result[OPTION_SESSION];
+    document.getElementById(OPTION_ALERT_TODAY_PER_SYMBOL).disabled = !result[OPTION_SESSION];
+    document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).disabled = !result[OPTION_SESSION];
 });
 
 // сохраняем применение Покупка Продажа
@@ -403,7 +414,7 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY], function (result) {
     document.getElementById(OPTION_ALERT_TODAY).checked = result[OPTION_ALERT_TODAY] === true;
 });
 
-// сохраняем величина уменьшения увеличения портфеля
+// сохраняем величину уменьшения увеличения портфеля
 document.getElementById(OPTION_ALERT_TODAY_VALUE).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_ALERT_TODAY_VALUE]: e.target.value}, function () {
         console.log('Alert_today_value option set to ' + e.target.value);
@@ -414,6 +425,31 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE], function (result) {
     console.log('get alert_today_value option');
     document.getElementById(OPTION_ALERT_TODAY_VALUE).value = result[OPTION_ALERT_TODAY_VALUE] || 2;
 });
+
+// сохраняем применение Изменение цены по бумаге за день
+document.getElementById(OPTION_ALERT_TODAY_PER_SYMBOL).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_ALERT_TODAY_PER_SYMBOL]: e.target.checked}, function () {
+        console.log('Alert_today_per_symbol option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], function (result) {
+    console.log('get Alert_today_per_symbol option');
+    document.getElementById(OPTION_ALERT_TODAY_PER_SYMBOL).checked = result[OPTION_ALERT_TODAY_PER_SYMBOL] === true;
+});
+
+// сохраняем величину уменьшения увеличения по отдельной бумаге
+document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL]: e.target.value}, function () {
+        console.log('Alert_today_value_per_symbol option set to ' + e.target.value);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result) {
+    console.log('get Alert_today_value_per_symbol option');
+    document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
+});
+
 // перерисовываем таблицу с уведомлениями при изменении Storage
 chrome.storage.onChanged.addListener(function (changes, namespace) {
     for (let key in changes) {
