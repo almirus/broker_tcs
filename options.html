@@ -5,6 +5,7 @@
     <title>Настройки</title>
     <link rel="stylesheet" type="text/css" href="css/options.css">
     <script type="module" src="js/options.js"></script>
+    <script type="module" src="js/tinysort.min.js"></script>
 </head>
 <body>
 <form>
@@ -90,8 +91,9 @@
                     <option value="3">из избранного</option>
                 </select>
                 <input id="symbol_name" name="symbol_name" maxlength="10" placeholder="Введите название акции" disabled>
+                <div id="table"></div>
             </div>
-            <div id="table"></div>
+
         </fieldset>
     </div>
 </form>

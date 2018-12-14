@@ -25,6 +25,7 @@ import {
 } from "/js/constants.mjs";
 
 
+
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
         console.log('redirect to page');
@@ -652,6 +653,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                         checkPortfolioAlerts(); // резкая смена доходности портфеля
                         checkSymbolsAlerts(); // резкая смена доходности портфеля
                         updateAlertPrices();    // обновляем цены в интерфейсе настроек
+
                         // возвращаем обычную иконку
                         chrome.browserAction.setIcon({path: "/icons/icon16.png"});
                         chrome.browserAction.setTitle({title: 'TCS Broker'});

@@ -12,6 +12,7 @@ import {
     OPTION_SESSION,
     port,
     TICKER_LIST,
+    INTERVAL_TO_CHECK,
 } from "/js/constants.mjs";
 
 const debounce = (func, delay) => {
@@ -44,7 +45,7 @@ const throttle = (func, limit) => {
     }
 };
 port.onMessage.addListener(function (msg) {
-    console.log("Option - message received " + JSON.stringify(msg));
+    console.log(`Option - message received ${msg.result}`);
     switch (msg.result) {
         case 'updatePrice':
             create_table(msg.stocks);
@@ -98,9 +99,9 @@ function setAddButtonHandler() {
             chrome.storage.sync.get([TICKER_LIST], function (data) {
                 let alert_data = data[TICKER_LIST] || [];
                 alert_data.push(alert);
+                port.postMessage({method: "updatePrices"});
                 chrome.storage.sync.set({[TICKER_LIST]: alert_data}, function () {
                     console.log('Save ticker ' + JSON.stringify(alert_data));
-                    port.postMessage({method: "updatePrices"});
                 })
             });
 
@@ -125,6 +126,7 @@ function setDeleteButtonHandler() {
 
     })
 }
+
 /*
 function setRefreshHandler() {
     document.getElementById('updatePrice').addEventListener('click', function () {
@@ -138,18 +140,25 @@ function create_portfolio_table(data) {
     let tr = document.createElement('tr');
     let th1 = document.createElement('th');
     th1.appendChild(document.createTextNode('название'));
+    th1.className = 'sorting';
     let th2 = document.createElement('th');
     th2.innerHTML = 'текущие цены брокера';
+    th2.className = 'sorting';
     let th3 = document.createElement('th');
-    th3.innerHTML = 'изменение за день'
+    th3.innerHTML = 'изменение за день';
+    th3.className = 'sorting';
     let th4 = document.createElement('th');
     th4.appendChild(document.createTextNode('средняя цена покупки'));
+    th4.className = 'sorting';
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('кол-во'));
+    th5.className = 'sorting';
     let th6 = document.createElement('th');
     th6.appendChild(document.createTextNode('текущая стоимость'));
+    th6.className = 'sorting';
     let th7 = document.createElement('th');
     th7.appendChild(document.createTextNode('доход на данный момент'));
+    th7.className = 'sorting';
     tr.appendChild(th1);
     tr.appendChild(th2);
     tr.appendChild(th3);
@@ -201,7 +210,10 @@ function create_portfolio_table(data) {
         td7.innerHTML = element.symbol.expectedYield.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.expectedYield.currency
-        }) + '<br>' + element.symbol.expectedYieldRelative + '%';
+        }) + '<br>' + (element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
+            style: 'percent',
+            maximumSignificantDigits: 2
+        });
 
         tr.appendChild(td1);
         tr.appendChild(td2);
@@ -212,14 +224,16 @@ function create_portfolio_table(data) {
         tr.appendChild(td7);
 
         table.appendChild(tr);
-        setDeleteButtonHandler();
-        //setRefreshHandler();
-
     });
 
     document.getElementById('portfolio').innerText = '';
 
     document.getElementById('portfolio').appendChild(table);
+    tinysort(table.querySelectorAll('tr')
+        , {
+            selector: 'td'
+
+        });
 }
 
 // рендер таблицы с акциями
@@ -515,3 +529,14 @@ create_alert_table();
 port.postMessage({method: "getSession"});
 port.postMessage({method: "updatePrices"});
 port.postMessage({method: "getPortfolio"});
+
+// запускаем фоновый пинг сервера + в нем все проверки
+chrome.alarms.create("updatePortfolio", {
+    delayInMinutes: INTERVAL_TO_CHECK,
+    periodInMinutes: INTERVAL_TO_CHECK
+});
+chrome.alarms.onAlarm.addListener(function (alarm) {
+    if (alarm.name === "updatePortfolio") {
+        port.postMessage({method: "getPortfolio"});
+    }
+});
