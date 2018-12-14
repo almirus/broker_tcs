@@ -25,7 +25,6 @@ import {
 } from "/js/constants.mjs";
 
 
-
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
         console.log('redirect to page');
@@ -218,7 +217,7 @@ function getListStock(name) {
                                         expectedYield: element.expectedYield,
                                         currentPrice: element.currentPrice,
                                         currentAmount: element.currentAmount,
-                                        averagePositionPrice: element.averagePositionPrice||{},
+                                        averagePositionPrice: element.averagePositionPrice || {},
                                     },
                                     exchangeStatus: element.exchangeStatus
                                 });
@@ -334,12 +333,12 @@ function checkTicker(item) {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
             getPriceInfo(item.ticker, session_id).then(function (res) {
-                let sell, buy = 0;
+                let sell = 0, buy = 0;
                 let last_price = res.payload.last.value;
                 let sell_price = res.payload.buy.value;
                 let buy_price = res.payload.sell.value;
-                if (item.sell_price && last_price / 1 >= item.sell_price / 1) sell = 1;
-                if (item.buy_price && last_price / 1 <= item.buy_price / 1) buy = 1;
+                if (item.sell_price && (last_price / 1) >= item.sell_price / 1) sell = 1;
+                if (item.buy_price && (last_price / 1) <= item.buy_price / 1) buy = 1;
                 resolve({buy: buy, sell: sell});
             }).catch(e => {
                 console.log(e);
