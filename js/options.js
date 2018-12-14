@@ -125,13 +125,13 @@ function setDeleteButtonHandler() {
 
     })
 }
-
+/*
 function setRefreshHandler() {
     document.getElementById('updatePrice').addEventListener('click', function () {
         port.postMessage({method: "updatePrices"});
     }, false);
 }
-
+*/
 function create_portfolio_table(data) {
     let table = document.createElement('table');
     table.className = 'alertPriceTable';
@@ -180,6 +180,7 @@ function create_portfolio_table(data) {
             style: 'percent',
             maximumSignificantDigits: 2
         });
+        td3.className = element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
         let td4 = document.createElement('td');
         td4.innerHTML = element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
             style: 'currency',
@@ -212,7 +213,7 @@ function create_portfolio_table(data) {
 
         table.appendChild(tr);
         setDeleteButtonHandler();
-        setRefreshHandler();
+        //setRefreshHandler();
 
     });
 
@@ -286,7 +287,7 @@ function create_alert_table() {
     let th1 = document.createElement('th');
     th1.appendChild(document.createTextNode('название'));
     let th2 = document.createElement('th');
-    th2.innerHTML = 'текущие цены <br><input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">';
+    th2.innerHTML = 'текущие цены <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
     let th3 = document.createElement('th');
     th3.appendChild(document.createTextNode('продажа по достижению цены'));
     let th4 = document.createElement('th');
@@ -331,7 +332,7 @@ function create_alert_table() {
 
                 table.appendChild(tr);
                 setDeleteButtonHandler();
-                setRefreshHandler();
+                //setRefreshHandler();
 
             })
         }
@@ -363,6 +364,14 @@ document.getElementById('add_list_type').addEventListener('change', function (e)
             document.getElementById('table').innerText = '';
             document.getElementById('symbol_name').disabled = true;
     }
+});
+document.getElementById('alert_list').addEventListener('change', function (e) {
+    document.getElementById('price_table').style.display = 'none';
+    document.getElementById('alert_table').style.display = 'block';
+});
+document.getElementById('add_alert_list').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('price_table').style.display = 'block';
 });
 
 // подгрузка списка акций по названию

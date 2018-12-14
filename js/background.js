@@ -217,7 +217,7 @@ function getListStock(name) {
                                         expectedYield: element.expectedYield,
                                         currentPrice: element.currentPrice,
                                         currentAmount: element.currentAmount,
-                                        averagePositionPrice: element.averagePositionPrice,
+                                        averagePositionPrice: element.averagePositionPrice||{},
                                     },
                                     exchangeStatus: element.exchangeStatus
                                 });
@@ -621,6 +621,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
             })
         }
     }
+    // нажали на кнопках в Уведомлении об изменении цены акций
     if (notificationId.includes(OPTION_ALERT_TODAY_PER_SYMBOL)) {
         chrome.notifications.clear(notificationId);
         if (btnIdx === 0) {

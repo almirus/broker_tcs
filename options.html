@@ -69,21 +69,19 @@
             </p>
         </fieldset>
     </div>
-
     <div class="fieldsetRow">
-        <fieldset class="table"
-                  title="Ваш портфель обновляется раз в минуту">
+        <fieldset class="table" title="Ваш портфель обновляется раз в минуту">
             <legend>Портфель</legend>
             <div id="portfolio"></div>
         </fieldset>
-        <fieldset class="table"
-                  title="Работает только при работе браузера и никак не затрагивает оповещения в моб приложении">
-            <legend>Отслеживаемые</legend>
-            <div id="alert_table"></div>
-        </fieldset>
         <fieldset class="table">
             <legend>Добавить оповещения об изменении цены</legend>
-            <div id="price_table">
+            <input type="radio" value="0" checked="checked" name="list_type" id="alert_list">
+            <label for="alert_list">Список отслеживаемых</label>
+            <input type="radio" value="1" name="list_type" id="add_alert_list">
+            <label for="add_alert_list">Добавить для отслеживания</label>
+            <div id="alert_table"></div>
+            <div id="price_table" style="display: none">
                 Добавить бумаги из
                 <select id="add_list_type">
                     <option value="0" selected></option>
