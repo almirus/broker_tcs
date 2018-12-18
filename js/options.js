@@ -1,6 +1,7 @@
 'use strict';
 
 import {
+    INTERVAL_TO_CHECK,
     LOGIN_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
@@ -12,7 +13,6 @@ import {
     OPTION_SESSION,
     port,
     TICKER_LIST,
-    INTERVAL_TO_CHECK,
 } from "/js/constants.mjs";
 
 const debounce = (func, delay) => {
@@ -66,7 +66,7 @@ port.onMessage.addListener(function (msg) {
                 document.getElementById('error_message').innerHTML = '';
             } else {
                 document.getElementById('message').innerText = '';
-                document.getElementById('error_message').innerHTML = 'Сессия истекла. <a target="_blank" href="' + LOGIN_URL + '">Залогиниться</a>';
+                document.getElementById('error_message').innerHTML = `Сессия истекла. <a target="_blank" href="${LOGIN_URL}">Залогиниться</a>`;
             }
             // дизейблим пункты связанные с получением данных онлайн
             let op = document.getElementById("add_list_type").getElementsByTagName("option");
@@ -171,49 +171,47 @@ function create_portfolio_table(data) {
     data.forEach(function (element, i) {
         let tr = document.createElement('tr');
         let td1 = document.createElement('td');
-        td1.innerHTML = element.symbol.showName + '<br>' + '<strong>' + element.symbol.ticker + '</strong>';
+        td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
         let td2 = document.createElement('td');
-        td2.innerHTML =
-            '<div data-ticker="' + element.ticker + '" class="onlineAverage" title="Последняя цена">' + element.prices.last.value + '</div>' +
-            '<div data-ticker="' + element.ticker + '" class="onlineBuy"  title="Цена покупки">' +
-            element.prices.buy.value.toLocaleString('ru-RU', {
+        td2.innerHTML = `<div data-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
+            `<div data-ticker="${element.symbol.ticker}" class="onlineBuy"  title="Цена покупки">
+            ${element.prices.buy.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.prices.buy.currency
-            }) + '</div>' +
-            '<div data-ticker="' + element.ticker + '" class="onlineSell"  title="Цена продажи">' + element.prices.sell.value + '</div>';
+            })}</div><div data-ticker="${element.symbol.ticker}" class="onlineSell"  title="Цена продажи">${element.prices.sell.value}</div>`;
         let td3 = document.createElement('td');
-        td3.innerHTML = element.earnings.absolute.value.toLocaleString('ru-RU', {
+        td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.earnings.absolute.currency
-        }) + '<br>' + element.earnings.relative.toLocaleString('ru-RU', {
+        })}<br>${element.earnings.relative.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
-        });
+        })}</div>`;
         td3.className = element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
         let td4 = document.createElement('td');
-        td4.innerHTML = element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
+        td4.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.averagePositionPrice.currency
-        });
+        })}</div>`;
 
         let td5 = document.createElement('td');
-        td5.innerHTML = element.symbol.lotSize;
+        td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize}</div>`;
 
         let td6 = document.createElement('td');
-        td6.innerHTML = element.symbol.currentAmount.value.toLocaleString('ru-RU', {
+        td6.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.currentAmount.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
-        });
+        })}</div>`;
 
         let td7 = document.createElement('td');
         td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
-        td7.innerHTML = element.symbol.expectedYield.value.toLocaleString('ru-RU', {
+        td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.expectedYield.currency
-        }) + '<br>' + (element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
+        })}<br>${(element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
-        });
+        })}</div>`;
 
         tr.appendChild(td1);
         tr.appendChild(td2);
@@ -261,7 +259,7 @@ function create_table(data) {
         data.forEach(function (element) {
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
-            td1.innerHTML = element.symbol.showName + '<br>' + '<strong>' + element.symbol.ticker + '</strong>';
+            td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
             td2.appendChild(document.createTextNode(element.prices.last.value + element.prices.last.currency));
             td2.className = 'tickerCol';
@@ -275,7 +273,7 @@ function create_table(data) {
             td4.className = 'tickerCol';
             let td5 = document.createElement('td');
             td5.className = 'tickerCol';
-            td5.innerHTML = '<input type="button" class="addTicker" data-showname="' + element.symbol.showName + '" data-ticker="' + element.symbol.ticker + '" value="Добавить">';
+            td5.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
             let td6 = document.createElement('td');
             td6.className = 'tickerCol';
             td6.innerHTML = '<input type="datetime-local" title="Если не установлено то бесрочно">';
@@ -319,12 +317,12 @@ function create_alert_table() {
             data[TICKER_LIST].forEach(function (element, i) {
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
-                td1.innerHTML = element.showName + '<br>' + '<strong>' + element.ticker + '</strong>';
+                td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
                 let td2 = document.createElement('td');
                 td2.innerHTML =
-                    '<div data-ticker="' + element.ticker + '" class="onlineAverage" title="Последняя цена">' + element.online_average_price + '</div>' +
-                    '<div data-ticker="' + element.ticker + '" class="onlineBuy"  title="Цена покупки">' + element.online_buy_price + element.currency + '</div>' +
-                    '<div data-ticker="' + element.ticker + '" class="onlineSell"  title="Цена продажи">' + element.online_sell_price + '</div>';
+                    `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>` +
+                    `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">${element.online_buy_price}${element.currency}</div>` +
+                    `<div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">${element.online_sell_price}</div>`;
                 let td3 = document.createElement('td');
                 td3.innerHTML = element.sell_price;
                 td3.className = 'onlineBuy';
@@ -336,7 +334,7 @@ function create_alert_table() {
                 let alert_date = new Date(Date.parse(element.best_before));
                 td5.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бесрочно';
                 let td6 = document.createElement('td');
-                td6.innerHTML = '<input class="deleteTicker" data-index="' + i + '" type="button" value="X" title="Удалить">';
+                td6.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tr.appendChild(td3);

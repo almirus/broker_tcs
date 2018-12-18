@@ -42,7 +42,7 @@ function redirect_to_page(url, open_new = false) {
 /**
  * проверяем что сессия жива
  * @param {string} sessionId значение
- * @return {Promise<Response | never | boolean>} можно использовать или нет
+ * @return {Promise<Response  | boolean>} можно использовать или нет
  */
 function sessionIsAlive(sessionId) {
     return fetch(INFO_URL + sessionId)
@@ -107,7 +107,9 @@ function getAllSum() {
         getTCSsession().then(function (session_id) {
             fetch(PORTFOLIO_URL + session_id)
                 .then(function (response) {
-                    return response.json()
+                    if (response.status === 502) {
+                        return {status: 502, text: 'Сервис брокера недоступен'};
+                    } else return response.json()
                 }).then(function (json) {
 
                 resolve({
@@ -137,9 +139,10 @@ function updatePopup() {
         let time_str = {timestamp: date.toLocaleDateString() + ' ' + date.toLocaleTimeString()};
         getAllSum().then(function (sums) {
             resolve(Object.assign({}, {result: "updatePopup"}, time_str, sums));
-        }).catch(() => {
+        }).catch(e => {
             console.log('can\'t resolve sums');
-            reject(undefined);
+            alert('Сервис брокера недоступен');
+            reject(e);
         })
     })
 }
@@ -320,11 +323,11 @@ function getSymbolInfo(ticker, session_id) {
                     resolve(res);
                 } else {
                     console.log(`Сервис информации о бумаге ${ticker} недоступен`);
-                    reject(undefined)
+                    reject(res)
                 }
             }).catch(e => {
             console.log(e);
-            reject(undefined);
+            reject(e);
         })
     })
 }
@@ -342,11 +345,11 @@ function checkTicker(item) {
                 resolve({buy: buy, sell: sell});
             }).catch(e => {
                 console.log(e);
-                reject(undefined);
+                reject(e);
             })
         }).catch(e => {
             console.log(e);
-            reject(undefined);
+            reject(e);
         });
     })
 }
