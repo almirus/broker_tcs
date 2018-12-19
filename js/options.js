@@ -1,6 +1,7 @@
 'use strict';
 
 import {
+    ALERT_TICKER_LIST,
     INTERVAL_TO_CHECK,
     LOGIN_URL,
     OPTION_ALERT,
@@ -11,8 +12,8 @@ import {
     OPTION_COSMETICS,
     OPTION_REDIRECT,
     OPTION_SESSION,
-    SYMBOL_LINK,
     port,
+    SYMBOL_LINK,
     TICKER_LIST,
 } from "/js/constants.mjs";
 
@@ -75,6 +76,37 @@ port.onMessage.addListener(function (msg) {
                 op[i].disabled = !msg.sessionId
             }
             break;
+        case 'updatePopup':
+            //document.getElementById('timestamp').innerText=msg.timestamp;
+            document.getElementById('sum').innerText = msg.totalAmountPortfolio.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: 'RUB'
+            });
+            ;
+
+            if (msg.expectedYield > 0) document.getElementById('all').classList.add("onlineBuy");
+            else document.getElementById('all').classList.add("onlineSell");
+            document.getElementById('earnedAll').innerText = msg.expectedYield.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: 'RUB'
+            });
+            document.getElementById('earnedAllPercent').innerText = msg.expectedYieldRelative.toLocaleString('ru-RU', {
+                style: 'percent',
+                minimumFractionDigits: 2
+            });
+
+            if (msg.expectedYieldPerDay > 0) document.getElementById('day').classList.add("onlineBuy");
+            else document.getElementById('day').classList.add("onlineSell");
+            document.getElementById('earnedToday').innerText = msg.expectedYieldPerDay.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: 'RUB'
+            });
+            document.getElementById('earnedTodayPercent').innerText = msg.expectedYieldPerDayRelative.toLocaleString('ru-RU', {
+                style: 'percent',
+                minimumFractionDigits: 2
+            });
+
+            break;
     }
 });
 
@@ -88,7 +120,7 @@ function setAddButtonHandler() {
             let buy_price = button.parentElement.parentElement.cells.item(3).getElementsByTagName('input')[0].value;
             let sell_price = button.parentElement.parentElement.cells.item(2).getElementsByTagName('input')[0].value;
             let date = button.parentElement.parentElement.cells.item(4).getElementsByTagName('input')[0].value;
-            let alert = {
+            let alert_data = {
                 ticker: ticker,
                 showName: showName,
                 buy_price: buy_price,
@@ -99,10 +131,11 @@ function setAddButtonHandler() {
 
             chrome.storage.sync.get([TICKER_LIST], function (data) {
                 let alert_data = data[TICKER_LIST] || [];
-                alert_data.push(alert);
+                alert_data.push(alert_data);
                 port.postMessage({method: "updatePrices"});
                 chrome.storage.sync.set({[TICKER_LIST]: alert_data}, function () {
                     console.log('Save ticker ' + JSON.stringify(alert_data));
+                    alert('Добавлено');
                 })
             });
 
@@ -475,6 +508,9 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY], function (result) {
 document.getElementById(OPTION_ALERT_TODAY_VALUE).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_ALERT_TODAY_VALUE]: e.target.value}, function () {
         console.log('Alert_today_value option set to ' + e.target.value);
+    });
+    chrome.storage.local.set({[ALERT_TICKER_LIST]: {}}, () => {
+        console.log('reset relative ');
     })
 });
 // подгружаем настройки
@@ -499,6 +535,9 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], function (result) {
 document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL]: e.target.value}, function () {
         console.log('Alert_today_value_per_symbol option set to ' + e.target.value);
+    })
+    chrome.storage.local.set({[ALERT_TICKER_LIST]: {}}, () => {
+        console.log('reset relative ');
     })
 });
 // подгружаем настройки
@@ -531,6 +570,7 @@ create_alert_table();
 port.postMessage({method: "getSession"});
 port.postMessage({method: "updatePrices"});
 port.postMessage({method: "getPortfolio"});
+port.postMessage({method: "updateHeader"});
 
 // запускаем фоновый пинг сервера + в нем все проверки
 chrome.alarms.create("updatePortfolio", {
@@ -540,5 +580,6 @@ chrome.alarms.create("updatePortfolio", {
 chrome.alarms.onAlarm.addListener(function (alarm) {
     if (alarm.name === "updatePortfolio") {
         port.postMessage({method: "getPortfolio"});
+        port.postMessage({method: "updateHeader"});
     }
 });
