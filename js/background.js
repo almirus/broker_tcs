@@ -1,6 +1,7 @@
 'use strict';
 
 import {
+    ALERT_TICKER_LIST,
     BUY_LINK,
     FAVORITE_URL,
     HOST_URL,
@@ -338,10 +339,10 @@ function checkTicker(item) {
             getPriceInfo(item.ticker, session_id).then(function (res) {
                 let sell = 0, buy = 0;
                 let last_price = res.payload.last.value;
-                let sell_price = res.payload.buy.value;
-                let buy_price = res.payload.sell.value;
-                if (item.sell_price && (last_price / 1) >= item.sell_price / 1) sell = 1;
-                if (item.buy_price && (last_price / 1) <= item.buy_price / 1) buy = 1;
+                let sell_price = res.payload.sell.value;
+                let buy_price = res.payload.buy.value;
+                sell = (item.sell_price && (sell_price / 1) >= (item.sell_price / 1));
+                buy = (item.buy_price && (buy_price / 1) <= (item.buy_price / 1));
                 resolve({buy: buy, sell: sell});
             }).catch(e => {
                 console.log(e);
@@ -438,6 +439,25 @@ function checkPortfolioAlerts() {
     })
 }
 
+function getOldRelative(ticker) {
+    return new Promise(function (resolve) {
+        chrome.storage.local.get([ALERT_TICKER_LIST], function (data) {
+            let alert_data = data[ALERT_TICKER_LIST] || {};
+            console.log('get relative ' + alert_data[ticker]);
+            resolve(alert_data[ticker]);
+        })
+    });
+}
+
+function setOldRelative(ticker, relative) {
+    chrome.storage.local.get([ALERT_TICKER_LIST], function (data) {
+        data[ticker] = relative;
+        chrome.storage.local.set({[ALERT_TICKER_LIST]: data}, () => {
+            console.log('save relative ' + JSON.stringify(data));
+        })
+    })
+}
+
 function checkSymbolsAlerts() {
     chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], function (result) {
         if (result[OPTION_ALERT_TODAY_PER_SYMBOL]) {
@@ -449,36 +469,39 @@ function checkSymbolsAlerts() {
                         list_symbols.stocks.forEach(function (item, i, alertList) {
                             getPriceInfo(item.symbol.ticker, session_id).then(function (res) {
                                 let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
-                                if (earnings_relative / 1 >= (alert_value / 1)) {
-                                    chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
-                                        type: 'basic',
-                                        iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
-                                        title: `Доходность ${item.symbol.ticker} достигла ${alert_value}% и составила ${earnings_relative}%`,
-                                        message: 'Проверьте свой портфель',
-                                        requireInteraction: true,
-                                        buttons: [
-                                            {title: 'Купить'},
-                                            {title: 'Продать'},
-                                            {title: 'Больше не показывать'},
-                                        ],
-                                        priority: 0
-                                    });
-                                }
-                                if (earnings_relative / 1 <= -(alert_value / 1)) {
-                                    chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
-                                        type: 'basic',
-                                        iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
-                                        title: `Доходность ${item.symbol.ticker} достигла -${alert_value}% и составила ${earnings_relative}%`,
-                                        message: 'Проверьте свой портфель',
-                                        requireInteraction: true,
-                                        buttons: [
-                                            {title: 'Купить'},
-                                            {title: 'Продать'},
-                                            {title: 'Больше не показывать'},
-                                        ],
-                                        priority: 0
-                                    });
-                                }
+                                getOldRelative(item.symbol.ticker).then(old_relative => {
+                                    if (earnings_relative - Math.abs(old_relative||0) >= alert_value) {
+                                        chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
+                                            type: 'basic',
+                                            iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
+                                            title: `Доходность ${item.symbol.ticker} достигла ${alert_value}% и составила ${earnings_relative}%`,
+                                            message: `Будет показано снова, если повторно изменится на ${alert_value}%`,
+                                            requireInteraction: true,
+                                            buttons: [
+                                                {title: 'Купить/Продать (редирект на страницу)'},
+                                                //{title: 'Больше не показывать'},
+                                            ],
+                                            priority: 0
+                                        });
+                                        // сохраняем достигнутую доходность
+                                        setOldRelative(item.symbol.ticker, earnings_relative);
+                                    }
+                                    if (earnings_relative + Math.abs(old_relative||0) <= -alert_value) {
+                                        chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
+                                            type: 'basic',
+                                            iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
+                                            title: `Доходность ${item.symbol.ticker} достигла -${alert_value}% и составила ${earnings_relative}%`,
+                                            message: `Будет показано снова, если повторно изменится на ${alert_value}%`,                                            requireInteraction: true,
+                                            buttons: [
+                                                {title: 'Купить/Продать (редирект на страницу)'},
+                                                //{title: 'Больше не показывать'},
+                                            ],
+                                            priority: 0
+                                        });
+                                        // сохраняем достигнутую доходность
+                                        setOldRelative(item.symbol.ticker, earnings_relative);
+                                    }
+                                })
                             }).catch(e => {
                                 console.log(e);
                             });
@@ -608,7 +631,8 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
         redirect_to_page(LOGIN_URL)
     }
     if (notificationId.includes(OPTION_ALERT_TODAY_PER_SYMBOL)) {
-        redirect_to_page(SYMBOL_LINK + ticker[1])
+        //redirect_to_page(SYMBOL_LINK + ticker[1])
+        chrome.notifications.clear(notificationId)
     }
 });
 // листнер на клик по кнопкам в уведомлении
@@ -627,12 +651,12 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
     // нажали на кнопках в Уведомлении об изменении цены акций
     if (notificationId.includes(OPTION_ALERT_TODAY_PER_SYMBOL)) {
         chrome.notifications.clear(notificationId);
+        // перейти в акцию
         if (btnIdx === 0) {
-            redirect_to_page(BUY_LINK + ticker[1], true)
+            redirect_to_page(SYMBOL_LINK + ticker[1], true)
+            // больше не показывать
         } else if (btnIdx === 1) {
             redirect_to_page(SELL_LINK + ticker[1], true)
-        } else {
-            // ставим метку больше не показывать
         }
     }
 });

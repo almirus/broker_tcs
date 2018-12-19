@@ -11,6 +11,7 @@ import {
     OPTION_COSMETICS,
     OPTION_REDIRECT,
     OPTION_SESSION,
+    SYMBOL_LINK,
     port,
     TICKER_LIST,
 } from "/js/constants.mjs";
@@ -145,10 +146,10 @@ function create_portfolio_table(data) {
     th2.innerHTML = 'текущие цены брокера';
     th2.className = 'sorting';
     let th3 = document.createElement('th');
-    th3.innerHTML = 'изменение за день';
+    th3.innerHTML = 'средняя цена покупки';
     th3.className = 'sorting';
     let th4 = document.createElement('th');
-    th4.appendChild(document.createTextNode('средняя цена покупки'));
+    th4.appendChild(document.createTextNode('изменение за день'));
     th4.className = 'sorting';
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('кол-во'));
@@ -171,7 +172,7 @@ function create_portfolio_table(data) {
     data.forEach(function (element, i) {
         let tr = document.createElement('tr');
         let td1 = document.createElement('td');
-        td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
+        td1.innerHTML = `${element.symbol.showName}<br><a title="Открыть на странице брокера" href="${SYMBOL_LINK}${element.symbol.ticker}" target="_blank" <strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             `<div data-ticker="${element.symbol.ticker}" class="onlineBuy"  title="Цена покупки">
@@ -179,20 +180,23 @@ function create_portfolio_table(data) {
                 style: 'currency',
                 currency: element.prices.buy.currency
             })}</div><div data-ticker="${element.symbol.ticker}" class="onlineSell"  title="Цена продажи">${element.prices.sell.value}</div>`;
+
         let td3 = document.createElement('td');
-        td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
+        td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.symbol.averagePositionPrice.currency
+        })}</div>`;
+
+        let td4 = document.createElement('td');
+        td4.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.earnings.absolute.currency
         })}<br>${element.earnings.relative.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
         })}</div>`;
-        td3.className = element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
-        let td4 = document.createElement('td');
-        td4.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.averagePositionPrice.currency
-        })}</div>`;
+        td4.className = element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+
 
         let td5 = document.createElement('td');
         td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize}</div>`;
@@ -301,9 +305,9 @@ function create_alert_table() {
     let th2 = document.createElement('th');
     th2.innerHTML = 'текущие цены <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
     let th3 = document.createElement('th');
-    th3.appendChild(document.createTextNode('продажа по достижению цены'));
+    th3.appendChild(document.createTextNode('продажа по'));
     let th4 = document.createElement('th');
-    th4.appendChild(document.createTextNode('покупка по достижению цены'));
+    th4.appendChild(document.createTextNode('покупка по'));
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('заявка активна до'));
     tr.appendChild(th1);

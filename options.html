@@ -38,23 +38,30 @@
             <input type="checkbox" value="0" name="alert_today" id="alert_today">
             <label for="alert_today">Оповещать, если в течении дня <strong>стоимость портфеля</strong> поменялась на
                 ±<input class="textInput" type="number"
-                        title="Установить доходность при котором будет выведено уведомление"
+                        title="Установить доходность, при достижении которой будет выведено уведомление"
                         name="alert_today_value"
                         id="alert_today_value"
                         maxlength="3"
                         min="0">%</label>
             <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Выдает уведомление, если стоимость всего портфеля поменялась в течении дня на более чем на указанную величину">
+                 title="Выдает уведомление, если стоимость всего портфеля поменялась в течении дня на более чем на указанную величину&#013;Нажмите цифру чтобы изменить">
             <br>
             <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_today_per_symbol">
             <label for="alert_today_per_symbol">Оповещать, если в течении дня <strong>стоимость любой купленной позиции</strong> поменялась на
                 ±<input class="textInput" type="number"
-                        title="Установить доходность при котором будет выведено уведомление"
+                        title="Установить доходность, при достижении которой будет выведено уведомление"
                         name="alert_today_value_per_symbol"
                         id="alert_today_value_per_symbol" maxlength="3"
                         min="0">%</label>
             <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Выдает уведомление, если стоимость любой позиции в портфеле поменялась в течении дня на указанную величину">
+                 title="Выдает уведомление, если стоимость любой позиции в портфеле поменялась в течении дня на указанную величину&#013;Нажмите цифру чтобы изменить">
+            <!--
+            <br>
+            <input type="checkbox" value="0" name="convert_to_rub" id="convert_to_rub">
+            <label for="convert_to_rub">Показывать итоговые суммы в рублях</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="Итоговые суммы будут приведены в рублях">
+                 -->
             <p>Версия приложения <span id="app_version">~</span></p>
         </fieldset>
         <fieldset class="table">
@@ -87,7 +94,7 @@
             <label for="add_alert_list">Добавить для отслеживания</label>
             <div id="alert_table"></div>
             <div id="price_table" style="display: none">
-                Добавить бумаги из
+                <label for="add_list_type">Добавить бумаги из</label>
                 <select id="add_list_type">
                     <option value="0" selected></option>
                     <option value="1">вручную</option>
