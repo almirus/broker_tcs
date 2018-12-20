@@ -120,7 +120,7 @@ function setAddButtonHandler() {
             let buy_price = button.parentElement.parentElement.cells.item(3).getElementsByTagName('input')[0].value;
             let sell_price = button.parentElement.parentElement.cells.item(2).getElementsByTagName('input')[0].value;
             let date = button.parentElement.parentElement.cells.item(4).getElementsByTagName('input')[0].value;
-            let alert_data = {
+            let alert_symbol = {
                 ticker: ticker,
                 showName: showName,
                 buy_price: buy_price,
@@ -131,10 +131,12 @@ function setAddButtonHandler() {
 
             chrome.storage.sync.get([TICKER_LIST], function (data) {
                 let alert_data = data[TICKER_LIST] || [];
-                alert_data.push(alert_data);
+                alert_data.push(alert_symbol);
+                let new_alert_date = alert_data.filter(item => !!item);
+
                 port.postMessage({method: "updatePrices"});
-                chrome.storage.sync.set({[TICKER_LIST]: alert_data}, function () {
-                    console.log('Save ticker ' + JSON.stringify(alert_data));
+                chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
+                    console.log('Save ticker ' + JSON.stringify(new_alert_date));
                     alert('Добавлено');
                 })
             });
@@ -294,6 +296,7 @@ function create_table(data) {
     table.appendChild(tr);
     if (data && data.length > 0) {
         data.forEach(function (element) {
+
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
             td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;

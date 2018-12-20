@@ -359,12 +359,8 @@ function deleteFromAlert(ticker) {
     console.log('delete alert for ' + ticker);
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
-        let new_alert_date = alert_data.slice();
-        alert_data.forEach(function (item, i) {
-            if (item.ticker === ticker) {
-                new_alert_date.splice(i, 1);
-            }
-        });
+        let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker));
+
         chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
             console.log('Save ticker ' + JSON.stringify(new_alert_date));
         })
@@ -412,7 +408,7 @@ function checkPortfolioAlerts() {
                             chrome.notifications.create(OPTION_ALERT_TODAY, {
                                 type: 'basic',
                                 iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
-                                title: `Доходность резко повысилась более чем на ${alert_value}%`,
+                                title: `Дневная доходность повысилась более чем на ${alert_value}%`,
                                 message: 'Проверьте свой портфель',
                                 requireInteraction: true,
                                 buttons: [
@@ -427,7 +423,7 @@ function checkPortfolioAlerts() {
                             chrome.notifications.create(OPTION_ALERT_TODAY, {
                                 type: 'basic',
                                 iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
-                                title: `Доходность резко снизилась более чем на ${alert_value}%`,
+                                title: `Дневная доходность снизилась более чем на ${alert_value}%`,
                                 message: 'Проверьте свой портфель',
                                 requireInteraction: true,
                                 buttons: [
@@ -458,8 +454,9 @@ function getOldRelative(ticker) {
 
 function setOldRelative(ticker, relative) {
     chrome.storage.local.get([ALERT_TICKER_LIST], function (data) {
-        data[ALERT_TICKER_LIST][ticker] = relative;
-        chrome.storage.local.set({[ALERT_TICKER_LIST]: data[ALERT_TICKER_LIST]}, () => {
+        let relative_list = data[ALERT_TICKER_LIST]||{};
+        relative_list[ticker] = relative;
+        chrome.storage.local.set({[ALERT_TICKER_LIST]: relative_list}, () => {
             console.log('save relative ' + JSON.stringify(data));
         })
     })
@@ -482,7 +479,7 @@ function checkSymbolsAlerts() {
                                             type: 'basic',
                                             iconUrl: '/icons/profits_72px_1204282_easyicon.net.png',
                                             title: `Доходность ${item.symbol.ticker} достигла ${alert_value}% и составила ${earnings_relative}%`,
-                                            message: `Будет показано снова, если повторно изменится на ${alert_value}%`,
+                                            message: 'Проверьте свой портфель',
                                             requireInteraction: true,
                                             buttons: [
                                                 {title: 'Купить/Продать (редирект на страницу)'},
@@ -498,7 +495,7 @@ function checkSymbolsAlerts() {
                                             type: 'basic',
                                             iconUrl: '/icons/loss_72px_1204272_easyicon.net.png',
                                             title: `Доходность ${item.symbol.ticker} достигла -${alert_value}% и составила ${earnings_relative}%`,
-                                            message: `Будет показано снова, если повторно изменится на ${alert_value}%`,
+                                            message: 'Проверьте свой портфель',
                                             requireInteraction: true,
                                             buttons: [
                                                 {title: 'Купить/Продать (редирект на страницу)'},
