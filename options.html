@@ -8,11 +8,46 @@
     <script type="module" src="js/tinysort.min.js"></script>
 </head>
 <body>
-<form>
-    <div class="fieldsetRow equal">
+<div class="fieldsetRow">
+    <div class="leftColumn">
+        <h4>Стоимость порфеля</h4>
+        <span id="sum">~</span>
+        <h4>Доход всего</h4>
+        <span id="all"><span id="earnedAll">~</span><span class="percent" id="earnedAllPercent">~</span></span>
+        <h4>Доход за сегодня</h4>
+        <span id="day"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span>
+        <fieldset class="table" title="Ваш портфель обновляется раз в минуту">
+            <legend>Портфель</legend>
+            <div id="portfolio"></div>
+        </fieldset>
+    </div>
+    <div class="rightColumn">
         <fieldset class="table">
+            <legend>Информация</legend>
             <div id="error_message"></div>
             <div id="message"></div>
+            <a class="toggle" href="#info">Версия приложения <span id="app_version">~</span></a>
+            <div class="toggle-content" id="info">
+                <p><strong>Данное приложение неофициальное.</strong> Написано для себя, в виду отсутствия
+                    необходимого
+                    функционала в TCS Broker.</p>
+                <p>Алгоритм очень простой: Каждую минуту приложение обращается к сервису брокера и получает
+                    актуальную
+                    информацию о выбранных бумагах в списке для отслеживания.
+                    И при достижении указанной цены, выдает оповещение на экран и опционально открывает страницу
+                    покупки/продажи. В любом случае <strong>приложение ничего само не продает и не покупает</strong>,
+                    более того такой возможности не предоставляет сам брокер, так как любые операции должны
+                    подтверждаться
+                    СМС.
+                </p>
+                <p>
+                    Исходный код приложения доступен <a target="_blank" href="https://github.com/almirus/broker_tcs">тут</a>.
+                    <a href="mailto:al-open@yandex.ru?subject=TCS Broker">Вопросы, предложения</a>
+                </p>
+            </div>
+        </fieldset>
+        <fieldset class="table">
+
             <legend>Основные настройки</legend>
             <input type="checkbox" value="0" name="redirect" id="redirect">
             <label for="redirect">При истечении сессии редиректить на страницу логина, иначе показывать иконкой</label>
@@ -47,7 +82,8 @@
                  title="Выдает уведомление, если стоимость всего портфеля поменялась в течении дня на более чем на указанную величину&#013;Нажмите цифру чтобы изменить">
             <br>
             <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_today_per_symbol">
-            <label for="alert_today_per_symbol">Оповещать, если в течении дня <strong>стоимость любой купленной позиции</strong> поменялась на
+            <label for="alert_today_per_symbol">Оповещать, если в течении дня <strong>стоимость любой купленной
+                позиции</strong> поменялась на
                 ±<input class="textInput" type="number"
                         title="Установить доходность, при достижении которой будет выведено уведомление"
                         name="alert_today_value_per_symbol"
@@ -62,38 +98,6 @@
             <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                  title="Итоговые суммы будут приведены в рублях">
                  -->
-            <p>Версия приложения <span id="app_version">~</span></p>
-        </fieldset>
-        <fieldset class="table">
-            <legend>Информация</legend>
-            <p><strong>Данное приложение неофициальное.</strong> Написано для себя, в виду отсутствия необходимого
-                функционала в TCS Broker.</p>
-            <p>Алгоритм очень простой: Каждую минуту приложение обращается к сервису брокера и получает актуальную
-                информацию о выбранных бумагах в списке для отслеживания.
-                И при достижении указанной цены, выдает оповещение на экран и опционально открывает страницу
-                покупки/продажи. В любом случае <strong>приложение ничего само не продает и не покупает</strong>,
-                более того такой возможности не предоставляет сам брокер, так как любые операции должны подтверждаться
-                СМС.
-            </p>
-            <p>
-                Исходный код приложения доступен <a target="_blank" href="https://github.com/almirus/broker_tcs">тут</a>.
-                <a href="mailto:al-open@yandex.ru?subject=TCS Broker">Вопросы, предложения</a>
-            </p>
-        </fieldset>
-    </div>
-    <div class="header">
-        <h4>Стоимость</h4>
-        <span id="sum">~</span>
-        <h4>Доход всего</h4>
-        <span id="all"><span id="earnedAll">~</span><span class="percent" id="earnedAllPercent">~</span></span>
-        <h4>Доход за сегодня</h4>
-        <span id="day"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span>
-    </div>
-    <div class="fieldsetRow">
-        <fieldset class="table" title="Ваш портфель обновляется раз в минуту">
-            <legend>Портфель</legend>
-
-            <div id="portfolio"></div>
         </fieldset>
         <fieldset class="table">
             <legend>Добавить оповещения об изменении цены</legend>
@@ -116,6 +120,6 @@
 
         </fieldset>
     </div>
-</form>
+</div>
 </body>
 </html>

@@ -38,7 +38,6 @@
 
 div.fieldsetRow {
     display: flex;
-    align-items: baseline;
 }
 
 div.equal {
@@ -51,17 +50,15 @@ fieldset legend {
     font-weight: bold;
 }
 
-fieldset.table {
-    width: 50%;
-}
-
 .priceTable {
     width: 100%;
 }
-img.help{
+
+img.help {
     padding-left: 3px;
     height: 13px;
 }
+
 input.textInput:focus {
     border: none;
     outline: 0;
@@ -71,7 +68,7 @@ input.textInput:focus {
 
 input.textInput:not(:focus) {
     outline: 0;
-    width:15px;
+    width: 15px;
     border-top: 0;
     border-left: 0;
     border-right: 0;
@@ -86,31 +83,57 @@ input.textInput::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
-h4{
+
+h4 {
     margin-bottom: 0;
     margin-top: 0;
 }
-.percent{
+
+.percent {
     vertical-align: super;
     font-size: 80%;
     padding-left: 5px;
 }
+
 th.sorting {
-    padding-right:18px !important;
+    padding-right: 18px !important;
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAQAAADYWf5HAAAAkElEQVQoz7XQMQ5AQBCF4dWQSJxC5wwax1Cq1e7BAdxD5SL+Tq/QCM1oNiJidwox0355mXnG/DrEtIQ6azioNZQxI0ykPhTQIwhCR+BmBYtlK7kLJYwWCcJA9M4qdrZrd8pPjZWPtOqdRQy320YSV17OatFC4euts6z39GYMKRPCTKY9UnPQ6P+GtMRfGtPnBCiqhAeJPmkqAAAAAElFTkSuQmCC") no-repeat center right;
 }
+
 th.sorting_asc {
-    padding-right:18px !important;
+    padding-right: 18px !important;
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAZ0lEQVQ4y2NgGLKgquEuFxBPAGI2ahhWCsS/gDibUoO0gPgxEP8H4ttArEyuQYxAPBdqEAxPBImTY5gjEL9DM+wTENuQahAvEO9DMwiGdwAxOymGJQLxTyD+jgWDxCMZRsEoGAVoAADeemwtPcZI2wAAAABJRU5ErkJggg==") no-repeat center right;
 }
+
 th.sorting_desc {
-    padding-right:18px !important;
+    padding-right: 18px !important;
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAZUlEQVQ4y2NgGAWjYBSggaqGu5FA/BOIv2PBIPFEUgxjB+IdQPwfC94HxLykus4GiD+hGfQOiB3J8SojEE9EM2wuSJzcsFMG4ttQgx4DsRalkZENxL+AuJQaMcsGxBOAmGvopk8AVz1sLZgg0bsAAAAASUVORK5CYII=") no-repeat center right;
 }
 
-.header h4{
+.leftColumn {
+    width: 50%;
+}
+
+.rightColumn {
+    width: 50%;
+}
+
+.leftColumn h4 {
     display: inline-flex;
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: center;
+}
+
+p.info {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.toggle-content {
+    display: none;
+}
+
+.toggle-content.is-visible {
+    display: block;
 }

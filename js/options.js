@@ -17,6 +17,32 @@ import {
     TICKER_LIST,
 } from "/js/constants.mjs";
 
+let show = function (elem) {
+    elem.classList.add('is-visible');
+};
+
+let hide = function (elem) {
+    elem.classList.remove('is-visible');
+};
+
+let toggle = function (elem) {
+    elem.classList.toggle('is-visible');
+};
+
+document.addEventListener('click', function (event) {
+
+    if (!event.target.classList.contains('toggle')) return;
+
+    event.preventDefault();
+
+    let content = document.querySelector(event.target.hash);
+    if (!content) return;
+
+    // Toggle the content
+    toggle(content);
+
+}, false);
+
 const debounce = (func, delay) => {
     let inDebounce;
     return function () {
@@ -82,7 +108,6 @@ port.onMessage.addListener(function (msg) {
                 style: 'currency',
                 currency: 'RUB'
             });
-            ;
 
             if (msg.expectedYield > 0) document.getElementById('all').classList.add("onlineBuy");
             else document.getElementById('all').classList.add("onlineSell");

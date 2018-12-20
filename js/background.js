@@ -125,7 +125,12 @@ function getAllSum() {
                 reject(undefined);
             })
         }).catch(function () {
-            redirect_to_page(LOGIN_URL);
+            chrome.storage.sync.get([OPTION_REDIRECT], function (result) {
+                console.log('get redirect option');
+                if (result[OPTION_REDIRECT]) {
+                    redirect_to_page(LOGIN_URL);
+                }
+            });
         })
     })
 }
@@ -337,12 +342,12 @@ function checkTicker(item) {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
             getPriceInfo(item.ticker, session_id).then(function (res) {
-                let sell = 0, buy = 0;
+
                 let last_price = res.payload.last.value;
                 let sell_price = res.payload.sell.value;
                 let buy_price = res.payload.buy.value;
-                sell = (item.sell_price && (sell_price / 1) >= (item.sell_price / 1));
-                buy = (item.buy_price && (buy_price / 1) <= (item.buy_price / 1));
+                let sell = !!item.sell_price && (sell_price  >= item.sell_price / 1);
+                let buy = !!item.buy_price && (buy_price <= item.buy_price / 1);
                 resolve({buy: buy, sell: sell});
             }).catch(e => {
                 console.log(e);
