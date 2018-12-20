@@ -8,14 +8,16 @@
     <script type="module" src="js/tinysort.min.js"></script>
 </head>
 <body>
+<div class="header">
+    <h4>Стоимость порфеля</h4>
+    <span id="sum">~</span>
+    <h4>Доход всего</h4>
+    <span id="all"><span id="earnedAll">~</span><span class="percent" id="earnedAllPercent">~</span></span>
+    <h4>Доход за сегодня</h4>
+    <span id="day"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span>
+</div>
 <div class="fieldsetRow">
     <div class="leftColumn">
-        <h4>Стоимость порфеля</h4>
-        <span id="sum">~</span>
-        <h4>Доход всего</h4>
-        <span id="all"><span id="earnedAll">~</span><span class="percent" id="earnedAllPercent">~</span></span>
-        <h4>Доход за сегодня</h4>
-        <span id="day"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span>
         <fieldset class="table" title="Ваш портфель обновляется раз в минуту">
             <legend>Портфель</legend>
             <div id="portfolio"></div>
@@ -41,7 +43,8 @@
                     СМС.
                 </p>
                 <p>
-                    Исходный код приложения доступен <a target="_blank" href="https://github.com/almirus/broker_tcs">тут</a>.
+                    Исходный код приложения доступен <a target="_blank"
+                                                        href="https://github.com/almirus/broker_tcs">тут</a>.
                     <a href="mailto:al-open@yandex.ru?subject=TCS Broker">Вопросы, предложения</a>
                 </p>
             </div>

@@ -109,7 +109,9 @@ th.sorting_desc {
     padding-right: 18px !important;
     background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByUDbMAAAAZUlEQVQ4y2NgGAWjYBSggaqGu5FA/BOIv2PBIPFEUgxjB+IdQPwfC94HxLykus4GiD+hGfQOiB3J8SojEE9EM2wuSJzcsFMG4ttQgx4DsRalkZENxL+AuJQaMcsGxBOAmGvopk8AVz1sLZgg0bsAAAAASUVORK5CYII=") no-repeat center right;
 }
-
+.header{
+    width: 100%;
+}
 .leftColumn {
     width: 50%;
 }
@@ -118,7 +120,7 @@ th.sorting_desc {
     width: 50%;
 }
 
-.leftColumn h4 {
+.header h4 {
     display: inline-flex;
     flex-direction: column;
     flex-wrap: wrap;
