@@ -563,7 +563,7 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], function (result) {
 document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL]: e.target.value}, function () {
         console.log('Alert_today_value_per_symbol option set to ' + e.target.value);
-    })
+    });
     chrome.storage.local.set({[ALERT_TICKER_LIST]: {}}, () => {
         console.log('reset relative ');
     })
