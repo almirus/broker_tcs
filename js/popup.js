@@ -10,8 +10,10 @@ port.onMessage.addListener(function(msg) {
     switch (msg.result) {
         case 'updatePopup':
             document.getElementById('timestamp').innerText=msg.timestamp;
-            document.getElementById('sum').innerText=msg.totalAmountPortfolio.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' });;
-
+            document.getElementById('sum').innerText = msg.totalAmountPortfolio.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: 'RUB'
+            });
             if (msg.expectedYield>0)document.getElementById('all').classList.add("positive");
             else document.getElementById('all').classList.add("negative");
             document.getElementById('earnedAll').innerText=msg.expectedYield.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' });

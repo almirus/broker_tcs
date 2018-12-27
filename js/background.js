@@ -13,6 +13,7 @@ import {
     OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
     OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
+    OPTION_CONVERT_TO_RUB,
     OPTION_REDIRECT,
     OPTION_SESSION,
     PING_URL,
@@ -23,8 +24,9 @@ import {
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
+    USER_URL,
+    CURRENCY_URL,
 } from "/js/constants.mjs";
-
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -120,8 +122,8 @@ function getAllSum() {
                     expectedYieldPerDay: json.payload.expectedYieldPerDay.value,
                     expectedYieldPerDayRelative: json.payload.expectedYieldPerDayRelative / 100,
                 });
-            }).catch(function (ex) {
-                console.log('parsing failed', ex);
+            }).catch(ex => {
+                console.log('portfolio parsing failed', ex);
                 reject(undefined);
             })
         }).catch(function () {
@@ -129,6 +131,8 @@ function getAllSum() {
                 console.log('get redirect option');
                 if (result[OPTION_REDIRECT]) {
                     redirect_to_page(LOGIN_URL);
+                } else {
+                    reject(false);
                 }
             });
         })
@@ -147,8 +151,36 @@ function updatePopup() {
             resolve(Object.assign({}, {result: "updatePopup"}, time_str, sums));
         }).catch(e => {
             console.log('can\'t resolve sums');
-            alert('Сервис брокера недоступен');
             reject(e);
+        })
+    })
+}
+
+/**
+ * получаем данные об авторизованном пользователе
+ * @return {object} данные для отображения на форме
+ */
+function getUserInfo() {
+    return new Promise(function (resolve, reject) {
+        getTCSsession().then(function (session_id) {
+            fetch(USER_URL + session_id)
+                .then(function (response) {
+                    return response.json()
+                }).then(function (json) {
+                resolve(
+                    {
+                        result: "updateUserInfo",
+                        riskProfile: json.payload.riskProfile,
+                        approvedW8: json.payload.approvedW8 ? 'Да' : 'Нет',
+                        employee: json.payload.employee,
+                        qualStatus: json.payload.qualStatus ? 'квалифицированный' : 'неквалифицированный',
+                    });
+            }).catch(ex => {
+                console.log('userInfo parsing failed', ex);
+                reject(undefined);
+            })
+        }).catch(function () {
+            reject(false);
         })
     })
 }
@@ -207,37 +239,51 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    fetch(PORTFOLIO_URL + session_id)
-                        .then(function (response) {
-                            return response.json()
-                        }).then(async function (json) {
-                        console.log('list of portfolio');
-                        let return_data = [];
-                        for (const element of json.payload.data) {
-                            await getSymbolInfo(element.ticker, session_id).then(function (symbol) {
-                                return_data.push({
-                                    prices: symbol.payload.prices,
-                                    earnings: symbol.payload.earnings,
-                                    symbol: {
-                                        ticker: element.ticker,
-                                        showName: symbol.payload.symbol.description,
-                                        lotSize: element.currentBalance,
-                                        expectedYieldRelative: element.expectedYieldRelative,
-                                        expectedYield: element.expectedYield,
-                                        currentPrice: element.currentPrice,
-                                        currentAmount: element.currentAmount,
-                                        averagePositionPrice: element.averagePositionPrice || {},
-                                    },
-                                    exchangeStatus: element.exchangeStatus
-                                });
-                            }).catch(e => {
-                                console.log(e);
-                            });
-                        }
-                        resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
-                    }).catch(function (ex) {
-                        console.log('parsing failed', ex);
-                        reject(undefined);
+
+                    getPriceInfo("USDRUB", session_id).then(ticker => {
+                        chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
+                            console.log('get session option');
+                            fetch(PORTFOLIO_URL + session_id)
+                                .then(function (response) {
+                                    return response.json()
+                                }).then(async function (json) {
+                                console.log('list of portfolio');
+                                let return_data = [];
+                                for (const element of json.payload.data) {
+                                    await getSymbolInfo(element.ticker, session_id).then(function (symbol) {
+                                        let current_amount = element.currentAmount;
+                                        let expected_yield = element.expectedYield;
+                                        if (result[OPTION_CONVERT_TO_RUB] && current_amount.currency === 'USD') {
+                                            current_amount.value = current_amount.value * ticker.payload.last.value;
+                                            current_amount.currency = 'RUB';
+                                            expected_yield.value = expected_yield.value * ticker.payload.last.value;
+                                            expected_yield.currency = 'RUB';
+                                        }
+                                        return_data.push({
+                                            prices: symbol.payload.prices,
+                                            earnings: symbol.payload.earnings,
+                                            symbol: {
+                                                ticker: element.ticker,
+                                                showName: symbol.payload.symbol.description,
+                                                lotSize: element.currentBalance,
+                                                expectedYieldRelative: element.expectedYieldRelative,
+                                                expectedYield: expected_yield,
+                                                currentPrice: element.currentPrice,
+                                                currentAmount: current_amount,
+                                                averagePositionPrice: element.averagePositionPrice || {},
+                                            },
+                                            exchangeStatus: element.exchangeStatus
+                                        });
+                                    }).catch(e => {
+                                        console.log(e);
+                                    });
+                                }
+                                resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                            }).catch(function (ex) {
+                                console.log('parsing failed', ex);
+                                reject(undefined);
+                            })
+                        });
                     })
                 }
             }
@@ -280,14 +326,14 @@ function findTicker(search, session_id) {
     )
 }
 
-function getPriceInfo(ticker, session_id) {
+function getPriceInfo(tickerName, session_id) {
     return new Promise(function (resolve, reject) {
-        console.log(`Get price for ${ticker}`);
-        if (ticker) {
+        console.log(`Get price for ${tickerName}`);
+        if (tickerName) {
             // POST
-            fetch(PRICE_URL + session_id, {
+            fetch((tickerName.includes('RUB') ? CURRENCY_URL : PRICE_URL) + session_id, {
                 method: "POST",
-                body: JSON.stringify({ticker: ticker}),
+                body: JSON.stringify({ticker: tickerName}),
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
@@ -299,7 +345,7 @@ function getPriceInfo(ticker, session_id) {
                     if (res.status.toLocaleUpperCase() === 'OK') {
                         resolve(res);
                     } else {
-                        console.log(`Сервис цен недоступен для ${ticker}`);
+                        console.log(`Сервис цен недоступен для ${tickerName}`);
                         reject(undefined)
                     }
                 }).catch(e => {
@@ -410,13 +456,13 @@ function checkPortfolioAlerts() {
                     getOldRelative('portfolio').then(old_relative => {
                         let portfolio_relative = Math.abs(sums.expectedYieldPerDayRelative - (old_relative || 0));
                         console.log(`check portfolio for yield ${old_relative * 100}<>${alert_value}`);
-                        if (portfolio_relative>=alert_value/100){
+                        if (portfolio_relative >= alert_value / 100) {
                             let icon = sums.expectedYieldPerDayRelative < (old_relative || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
                             let sign = sums.expectedYieldPerDayRelative < (old_relative || 0) ? '-' : '+';
                             chrome.notifications.create(OPTION_ALERT_TODAY, {
                                 type: 'basic',
                                 iconUrl: icon,
-                                title: `Дневная доходность изменилась более чем на ${sign}${alert_value}% и составила ${sums.expectedYieldPerDayRelative*100}`,
+                                title: `Дневная доходность изменилась более чем на ${sign}${alert_value}% и составила ${sums.expectedYieldPerDayRelative * 100}`,
                                 message: 'Проверьте свой портфель',
                                 requireInteraction: true,
                                 buttons: [
@@ -603,6 +649,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log(e);
                 });
                 break;
+            case 'getUserInfo':
+                getUserInfo().then(function (user_data) {
+                    console.log("send message getuserInfo .....");
+                    port.postMessage(user_data);
+                });
+                break;
             default:
                 port.postMessage('unknown request');
         }
@@ -651,6 +703,14 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
     }
 });
 
+async function getRate(fromTo) {
+    await getTCSsession().then(async function (session_id) {
+        await getPriceInfo(fromTo, session_id).then(ticker => {
+            return ticker.payload.last.value;
+        })
+    });
+}
+
 // запускаем фоновый пинг сервера + в нем все проверки
 chrome.alarms.create("pingServer", {
     delayInMinutes: INTERVAL_TO_CHECK,
@@ -664,10 +724,11 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
             if (result[OPTION_SESSION]) {
                 console.log('ping server');
                 getTCSsession().then(function (session_id) {
+
                     fetch(PING_URL + session_id).then(function (response) {
                         checkAlerts();          // достижение цены по бумагам в списке отслеживания
                         checkPortfolioAlerts(); // резкая смена доходности портфеля
-                        checkSymbolsAlerts();   // резкая смена доходности портфеля
+                        checkSymbolsAlerts();   // резкая смена доходности бумаг в портфеле
                         updateAlertPrices();    // обновляем цены в интерфейсе настроек
                         // возвращаем обычную иконку
                         chrome.browserAction.setIcon({path: "/icons/icon16.png"});

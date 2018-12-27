@@ -12,6 +12,7 @@ export const SELL_LINK = 'https://www.tinkoff.ru/invest/sell/';
 export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/stocks/';
 export const PING_URL = 'https://api.tinkoff.ru/v1/ping?sessionid=';
 export const PRICE_URL = 'https://api.tinkoff.ru/trading/stocks/price?sessionId=';
+export const CURRENCY_URL = 'https://api.tinkoff.ru/trading/currency/price?sessionId=';
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/stocks/get?sessionId=';
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
@@ -26,6 +27,7 @@ export const OPTION_ALERT_TODAY = 'alert_today';
 export const OPTION_ALERT_TODAY_VALUE = 'alert_today_value';
 export const OPTION_ALERT_TODAY_PER_SYMBOL = 'alert_today_per_symbol';
 export const OPTION_ALERT_TODAY_VALUE_PER_SYMBOL = 'alert_today_value_per_symbol';
+export const OPTION_CONVERT_TO_RUB = 'convert_to_rub';
 export const TICKER_LIST = 'tickerList';
 export const ALERT_TICKER_LIST = 'alertTickerList';
 

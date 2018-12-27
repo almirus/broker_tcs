@@ -9,6 +9,7 @@ import {
     OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
     OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
+    OPTION_CONVERT_TO_RUB,
     OPTION_COSMETICS,
     OPTION_REDIRECT,
     OPTION_SESSION,
@@ -17,19 +18,12 @@ import {
     TICKER_LIST,
 } from "/js/constants.mjs";
 
-let show = function (elem) {
-    elem.classList.add('is-visible');
-};
-
-let hide = function (elem) {
-    elem.classList.remove('is-visible');
-};
-
-let toggle = function (elem) {
-    elem.classList.toggle('is-visible');
-};
 
 document.addEventListener('click', function (event) {
+
+    let toggle = function (elem) {
+        elem.classList.toggle('is-visible');
+    };
 
     if (!event.target.classList.contains('toggle')) return;
 
@@ -38,7 +32,6 @@ document.addEventListener('click', function (event) {
     let content = document.querySelector(event.target.hash);
     if (!content) return;
 
-    // Toggle the content
     toggle(content);
 
 }, false);
@@ -131,6 +124,12 @@ port.onMessage.addListener(function (msg) {
                 minimumFractionDigits: 2
             });
 
+            break;
+        case 'updateUserInfo':
+            document.getElementById('riskProfile').innerText = msg.riskProfile;
+            document.getElementById('qualStatus').innerText = msg.qualStatus;
+            document.getElementById('approvedW8').innerText = msg.approvedW8;
+            document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка - "Мое увОжение!"<br>' : '';
             break;
     }
 });
@@ -582,6 +581,20 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
         }
     }
 });
+
+// сохраняем применение Конвертировать в рубли
+
+document.getElementById(OPTION_CONVERT_TO_RUB).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_CONVERT_TO_RUB]: e.target.checked}, function () {
+        console.log('convert_to_rub option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
+    console.log('get convert_to_rub option');
+    document.getElementById(OPTION_CONVERT_TO_RUB).checked = result[OPTION_CONVERT_TO_RUB] === true;
+});
+
 // запрашиваем права на выдачу уведомлений
 if (window.Notification && Notification.permission !== "granted") {
     Notification.requestPermission(function (status) {
@@ -599,6 +612,7 @@ port.postMessage({method: "getSession"});
 port.postMessage({method: "updatePrices"});
 port.postMessage({method: "getPortfolio"});
 port.postMessage({method: "updateHeader"});
+port.postMessage({method: "getUserInfo"});
 
 // запускаем фоновый пинг сервера + в нем все проверки
 chrome.alarms.create("updatePortfolio", {
