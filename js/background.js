@@ -393,8 +393,8 @@ function checkTicker(item) {
                 let sell_price = res.payload.sell.value;
                 let buy_price = res.payload.buy.value;
                 let sell = !!item.sell_price && (sell_price >= item.sell_price / 1);
-                let buy = !!item.buy_price && (buy_price >= item.buy_price / 1);
-                resolve({buy: buy, sell: sell});
+                let buy = !!item.buy_price && (buy_price <= item.buy_price / 1);
+                resolve({buy: buy, sell: sell, value: buy ? buy_price : sell_price});
             }).catch(e => {
                 console.log(e);
                 reject(e);
@@ -557,8 +557,8 @@ function checkAlerts() {
                         chrome.notifications.create('buy|' + item.ticker, {
                             type: 'basic',
                             iconUrl: '/icons/buy-2-64.png',
-                            title: 'Цена достигла',
-                            message: `Цена ${item.ticker} достигла цены покупки ${item.buy_price}`,
+                            title: `Сработала проверка на покупку по ${item.buy_price}`,
+                            message: `Цена ${item.ticker} достигла цены покупки ${response.value}`,
                             requireInteraction: true,
                             priority: 0
                         });
@@ -573,8 +573,8 @@ function checkAlerts() {
                         chrome.notifications.create('sell|' + item.ticker, {
                             type: 'basic',
                             iconUrl: "/icons/sell-2-64.png",
-                            title: 'Цена достигла',
-                            message: `Цена ${item.ticker} достигла цены продажи ${item.sell_price}`,
+                            title: `Сработала проверка на продажу по ${item.sell_price}`,
+                            message: `Цена ${item.ticker} достигла цены продажи ${response.value}`,
                             requireInteraction: true,
                             priority: 0
                         });

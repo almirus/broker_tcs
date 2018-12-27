@@ -329,11 +329,11 @@ function create_table(data) {
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
-            td3.innerHTML = '<input class="tickerPrice buy" type="number" >';
+            td3.innerHTML = '<input class="tickerPrice buy" type="number" placeholder="продать >=">';
             td3.className = 'tickerCol';
             let td4 = document.createElement('td');
             //td4.innerHTML = element.prices.sell.value + element.prices.sell.currency + '<br>' + '<input class="tickerPrice sell" type="number">';
-            td4.innerHTML = '<input class="tickerPrice sell" type="number">';
+            td4.innerHTML = '<input class="tickerPrice sell" type="number" placeholder="купить  <=">';
             td4.className = 'tickerCol';
             let td5 = document.createElement('td');
             td5.className = 'tickerCol';
