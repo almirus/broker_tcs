@@ -217,7 +217,7 @@ function create_portfolio_table(data) {
     th6.appendChild(document.createTextNode('текущая стоимость'));
     th6.className = 'sorting';
     let th7 = document.createElement('th');
-    th7.appendChild(document.createTextNode('доход на данный момент'));
+    th7.appendChild(document.createTextNode('доход на тек. момент'));
     th7.className = 'sorting';
     tr.appendChild(th1);
     tr.appendChild(th2);
@@ -357,27 +357,28 @@ function create_table(data) {
 
 // рендер таблицы с акциями ранее сохраненные
 function create_alert_table() {
-    let table = document.createElement('table');
-    table.className = 'alertPriceTable';
-    let tr = document.createElement('tr');
-    let th1 = document.createElement('th');
-    th1.appendChild(document.createTextNode('название'));
-    let th2 = document.createElement('th');
-    th2.innerHTML = 'текущие цены <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
-    let th3 = document.createElement('th');
-    th3.appendChild(document.createTextNode('продажа по'));
-    let th4 = document.createElement('th');
-    th4.appendChild(document.createTextNode('покупка по'));
-    let th5 = document.createElement('th');
-    th5.appendChild(document.createTextNode('заявка активна до'));
-    tr.appendChild(th1);
-    tr.appendChild(th2);
-    tr.appendChild(th3);
-    tr.appendChild(th4);
-    tr.appendChild(th5);
-    table.appendChild(tr);
     chrome.storage.sync.get([TICKER_LIST], function (data) {
+        let table;
         if (data[TICKER_LIST] && data[TICKER_LIST].length > 0) {
+            table = document.createElement('table');
+            table.className = 'alertPriceTable';
+            let tr = document.createElement('tr');
+            let th1 = document.createElement('th');
+            th1.appendChild(document.createTextNode('название'));
+            let th2 = document.createElement('th');
+            th2.innerHTML = 'текущие цены <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
+            let th3 = document.createElement('th');
+            th3.appendChild(document.createTextNode('продажа по'));
+            let th4 = document.createElement('th');
+            th4.appendChild(document.createTextNode('покупка по'));
+            let th5 = document.createElement('th');
+            th5.appendChild(document.createTextNode('заявка активна до'));
+            tr.appendChild(th1);
+            tr.appendChild(th2);
+            tr.appendChild(th3);
+            tr.appendChild(th4);
+            tr.appendChild(th5);
+            table.appendChild(tr);
             data[TICKER_LIST].forEach(function (element, i) {
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
@@ -411,12 +412,13 @@ function create_alert_table() {
                 //setRefreshHandler();
 
             })
+        } else {
+            table = document.createElement('h5');
+            table.innerText = 'Список для отслеживания пуст, добавьте, нажав "Добавить для отслеживания"';
         }
+        document.getElementById('alert_table').innerText = '';
+        document.getElementById('alert_table').appendChild(table);
     });
-    document.getElementById('alert_table').innerText = '';
-
-    document.getElementById('alert_table').appendChild(table);
-
 }
 
 // подгрузка списка акций по типу

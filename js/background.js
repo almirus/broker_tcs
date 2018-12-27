@@ -173,7 +173,7 @@ function getUserInfo() {
                         riskProfile: json.payload.riskProfile ? json.payload.riskProfile : 'еще не определен',
                         approvedW8: json.payload.approvedW8 ? 'подписана' : 'не подписана',
                         employee: json.payload.employee,
-                        qualStatus: json.payload.qualStatus ? 'квалифицированный' : 'еще неквалифицированный',
+                        qualStatus: json.payload.qualStatus ? 'есть' : 'еще нет',
                     });
             }).catch(ex => {
                 console.log('userInfo parsing failed', ex);
