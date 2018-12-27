@@ -3,6 +3,7 @@
 import {
     ALERT_TICKER_LIST,
     BUY_LINK,
+    CURRENCY_URL,
     FAVORITE_URL,
     HOST_URL,
     INFO_URL,
@@ -25,7 +26,6 @@ import {
     SYMBOL_URL,
     TICKER_LIST,
     USER_URL,
-    CURRENCY_URL,
 } from "/js/constants.mjs";
 
 function redirect_to_page(url, open_new = false) {
@@ -170,10 +170,10 @@ function getUserInfo() {
                 resolve(
                     {
                         result: "updateUserInfo",
-                        riskProfile: json.payload.riskProfile,
-                        approvedW8: json.payload.approvedW8 ? 'Да' : 'Нет',
+                        riskProfile: json.payload.riskProfile ? json.payload.riskProfile : 'еще не определен',
+                        approvedW8: json.payload.approvedW8 ? 'подписана' : 'не подписана',
                         employee: json.payload.employee,
-                        qualStatus: json.payload.qualStatus ? 'квалифицированный' : 'неквалифицированный',
+                        qualStatus: json.payload.qualStatus ? 'квалифицированный' : 'еще неквалифицированный',
                     });
             }).catch(ex => {
                 console.log('userInfo parsing failed', ex);
@@ -393,7 +393,7 @@ function checkTicker(item) {
                 let sell_price = res.payload.sell.value;
                 let buy_price = res.payload.buy.value;
                 let sell = !!item.sell_price && (sell_price >= item.sell_price / 1);
-                let buy = !!item.buy_price && (buy_price <= item.buy_price / 1);
+                let buy = !!item.buy_price && (buy_price >= item.buy_price / 1);
                 resolve({buy: buy, sell: sell});
             }).catch(e => {
                 console.log(e);
