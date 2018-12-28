@@ -19,7 +19,7 @@ import {
 } from "/js/constants.mjs";
 
 
-document.addEventListener('click', function (event) {
+document.getElementById('toggle_info').addEventListener('click', function (event) {
 
     let toggle = function (elem) {
         elem.classList.toggle('is-visible');
@@ -408,9 +408,7 @@ function create_alert_table() {
                 tr.appendChild(td6);
 
                 table.appendChild(tr);
-                setDeleteButtonHandler();
                 //setRefreshHandler();
-
             })
         } else {
             table = document.createElement('h5');
@@ -418,6 +416,7 @@ function create_alert_table() {
         }
         document.getElementById('alert_table').innerText = '';
         document.getElementById('alert_table').appendChild(table);
+        setDeleteButtonHandler();
     });
 }
 
@@ -610,6 +609,7 @@ if (window.Notification && Notification.permission !== "granted") {
     document.getElementById('app_version').innerText = manifestData.version;
 })();
 create_alert_table();
+
 port.postMessage({method: "getSession"});
 port.postMessage({method: "updatePrices"});
 port.postMessage({method: "getPortfolio"});

@@ -540,7 +540,7 @@ function checkAlerts() {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
         alert_data.forEach(function (item) {
-            if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !item.exchangeStatus.includes('Close')) {
+            if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus==='Close')) {
                 // или дата не установлена или больше текущей => проверка не просрочилась и биржа не закрыта
                 console.log(`check alert for ${item.ticker}`);
                 checkTicker(item).then(function (response) {
