@@ -34,7 +34,7 @@ function redirect_to_page(url, open_new = false) {
         if (!open_new && tabs.length) {
             // если был открыт - обновляем
             chrome.tabs.reload(tabs[0].id);
-            chrome.tabs.update(tabs[0].id, {selected: true, url: url});
+            chrome.tabs.update(tabs[0].id, {highlighted: true, url: url});
         } else {
             // иначе - открываем заново
             chrome.tabs.create({active: true, url: url});
@@ -127,14 +127,7 @@ function getAllSum() {
                 reject(undefined);
             })
         }).catch(function () {
-            chrome.storage.sync.get([OPTION_REDIRECT], function (result) {
-                console.log('get redirect option');
-                if (result[OPTION_REDIRECT]) {
-                    redirect_to_page(LOGIN_URL);
-                } else {
-                    reject(false);
-                }
-            });
+            redirect_to_page(LOGIN_URL);
         })
     })
 }
@@ -173,7 +166,7 @@ function getUserInfo() {
                         riskProfile: json.payload.riskProfile ? json.payload.riskProfile : 'еще не определен',
                         approvedW8: json.payload.approvedW8 ? 'подписана' : 'не подписана',
                         employee: json.payload.employee,
-                        qualStatus: json.payload.qualStatus ? 'есть' : 'еще нет',
+                        qualStatus: json.payload.qualStatus ? 'есть статус' : 'еще нет статуса',
                     });
             }).catch(ex => {
                 console.log('userInfo parsing failed', ex);
@@ -239,7 +232,6 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-
                     getPriceInfo("USDRUB", session_id).then(ticker => {
                         chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
                             console.log('get session option');
@@ -272,7 +264,7 @@ function getListStock(name) {
                                                 currentAmount: current_amount,
                                                 averagePositionPrice: element.averagePositionPrice || {},
                                             },
-                                            exchangeStatus: element.exchangeStatus
+                                            exchangeStatus: symbol.payload.exchangeStatus
                                         });
                                     }).catch(e => {
                                         console.log(e);
@@ -548,8 +540,8 @@ function checkAlerts() {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
         alert_data.forEach(function (item) {
-            if (!item.best_before || Date.parse(item.best_before) > new Date()) {
-                // или дата не установлена или больше текущей => проверка не просрочилась
+            if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !item.exchangeStatus.includes('Close')) {
+                // или дата не установлена или больше текущей => проверка не просрочилась и биржа не закрыта
                 console.log(`check alert for ${item.ticker}`);
                 checkTicker(item).then(function (response) {
                     console.log('Пытаемся проверить ' + item.ticker + ' на продажу по ' + item.sell_price + ' и покупку по ' + item.buy_price);
@@ -592,6 +584,8 @@ function checkAlerts() {
             } else {
                 // просрочилась проверка
                 if (Date.parse(item.best_before) < new Date()) deleteFromAlert(item.ticker);
+                console.log(`Stock is ${item.exchangeStatus}`);
+
             }
         })
     });
