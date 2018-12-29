@@ -262,7 +262,7 @@ function getListStock(name) {
                                                 expectedYield: expected_yield,
                                                 currentPrice: element.currentPrice,
                                                 currentAmount: current_amount,
-                                                averagePositionPrice: element.averagePositionPrice || {},
+                                                averagePositionPrice: element.averagePositionPrice || {value:0,currency:element.currentPrice.currency},
                                             },
                                             exchangeStatus: symbol.payload.exchangeStatus
                                         });

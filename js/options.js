@@ -241,10 +241,13 @@ function create_portfolio_table(data) {
             })}</div><div data-ticker="${element.symbol.ticker}" class="onlineSell"  title="Цена продажи">${element.prices.sell.value}</div>`;
 
         let td3 = document.createElement('td');
-        td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.averagePositionPrice.currency
-        })}</div>`;
+        if (element.symbol.averagePositionPrice.value === 0)
+            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка в данных у брокера</div>`;
+        else
+            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: element.symbol.averagePositionPrice.currency
+            })}</div>`;
 
         let td4 = document.createElement('td');
         td4.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
