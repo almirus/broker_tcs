@@ -242,7 +242,7 @@ function getListStock(name) {
                                 console.log('list of portfolio');
                                 let return_data = [];
                                 for (const element of json.payload.data) {
-                                    await getSymbolInfo(element.ticker, session_id).then(function (symbol) {
+                                    await getSymbolInfo(element.ticker, element.securityType, session_id).then(function (symbol) {
                                         let current_amount = element.currentAmount;
                                         let expected_yield = element.expectedYield;
                                         if (result[OPTION_CONVERT_TO_RUB] && current_amount.currency === 'USD') {
@@ -349,10 +349,11 @@ function getPriceInfo(tickerName, session_id) {
 
 }
 
-function getSymbolInfo(ticker, session_id) {
+function getSymbolInfo(ticker, securityType, session_id) {
     return new Promise(function (resolve, reject) {
         // POST
-        fetch(SYMBOL_URL + session_id, {
+        securityType = securityType.toLowerCase()+'s';
+        fetch(SYMBOL_URL.replace('${securityType}',securityType) + session_id, {
             method: "POST",
             body: JSON.stringify({ticker: ticker}),
             headers: {
