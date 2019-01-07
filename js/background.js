@@ -262,7 +262,10 @@ function getListStock(name) {
                                                 expectedYield: expected_yield,
                                                 currentPrice: element.currentPrice,
                                                 currentAmount: current_amount,
-                                                averagePositionPrice: element.averagePositionPrice || {value:0,currency:element.currentPrice.currency},
+                                                averagePositionPrice: element.averagePositionPrice || {
+                                                    value: 0,
+                                                    currency: element.currentPrice.currency
+                                                },
                                             },
                                             exchangeStatus: symbol.payload.exchangeStatus
                                         });
@@ -352,8 +355,8 @@ function getPriceInfo(tickerName, session_id) {
 function getSymbolInfo(ticker, securityType, session_id) {
     return new Promise(function (resolve, reject) {
         // POST
-        securityType = securityType.toLowerCase()+'s';
-        fetch(SYMBOL_URL.replace('${securityType}',securityType) + session_id, {
+        securityType = securityType.toLowerCase() + 's';
+        fetch(SYMBOL_URL.replace('${securityType}', securityType) + session_id, {
             method: "POST",
             body: JSON.stringify({ticker: ticker}),
             headers: {
@@ -501,34 +504,35 @@ function checkSymbolsAlerts() {
                     chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result) {
                         let alert_value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
                         list_symbols.stocks.forEach(function (item, i, alertList) {
-                            getPriceInfo(item.symbol.ticker, session_id).then(function (res) {
-                                let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
-                                getOldRelative(item.symbol.ticker).then(old_relative => {
-                                    let symbol_relative = Math.abs(earnings_relative - (old_relative || 0));
-                                    console.log(`check portfolio symbols ${item.symbol.ticker} for yield ${symbol_relative} <> ${alert_value}`);
-                                    if (symbol_relative >= alert_value) {
-                                        let icon = earnings_relative < (old_relative || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
-                                        let sign = earnings_relative < (old_relative || 0) ? '-' : '+';
-                                        chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
-                                            type: 'basic',
-                                            iconUrl: icon,
-                                            title: `Доходность ${item.symbol.ticker} изменилась на ${sign}${alert_value}% и составила ${earnings_relative}%`,
-                                            message: 'Проверьте свой портфель',
-                                            requireInteraction: true,
-                                            buttons: [
-                                                {title: 'Купить/Продать (редирект на страницу)'},
-                                                //{title: 'Больше не показывать'},
-                                            ],
-                                            priority: 0
-                                        });
-                                        // сохраняем достигнутую доходность
-                                        setOldRelative(item.symbol.ticker, earnings_relative);
-                                    }
-                                })
-                            }).catch(e => {
-                                console.log(e);
-                            });
-
+                            if (!(item.exchangeStatus === 'Close'))
+                                getPriceInfo(item.symbol.ticker, session_id).then(function (res) {
+                                    let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
+                                    getOldRelative(item.symbol.ticker).then(old_relative => {
+                                        let symbol_relative = Math.abs(earnings_relative - (old_relative || 0));
+                                        console.log(`check portfolio symbols ${item.symbol.ticker} for yield ${symbol_relative} <> ${alert_value}`);
+                                        if (symbol_relative >= alert_value) {
+                                            let icon = earnings_relative < (old_relative || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
+                                            let sign = earnings_relative < (old_relative || 0) ? '-' : '+';
+                                            chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
+                                                type: 'basic',
+                                                iconUrl: icon,
+                                                title: `Доходность ${item.symbol.ticker} изменилась на ${sign}${alert_value}% и составила ${earnings_relative}%`,
+                                                message: 'Проверьте свой портфель',
+                                                requireInteraction: true,
+                                                buttons: [
+                                                    {title: 'Купить/Продать (редирект на страницу)'},
+                                                    //{title: 'Больше не показывать'},
+                                                ],
+                                                priority: 0
+                                            });
+                                            // сохраняем достигнутую доходность
+                                            setOldRelative(item.symbol.ticker, earnings_relative);
+                                        }
+                                    })
+                                }).catch(e => {
+                                    console.log(e);
+                                });
+                            else console.log(`stock for ${item.symbol.ticker} is close`)
                         });
                     })
                 });
@@ -541,7 +545,7 @@ function checkAlerts() {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
         alert_data.forEach(function (item) {
-            if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus==='Close')) {
+            if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus === 'Close')) {
                 // или дата не установлена или больше текущей => проверка не просрочилась и биржа не закрыта
                 console.log(`check alert for ${item.ticker}`);
                 checkTicker(item).then(function (response) {

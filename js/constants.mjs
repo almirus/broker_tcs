@@ -8,6 +8,8 @@ export const PORTFOLIO_URL = 'https://api.tinkoff.ru/trading/portfolio/purchased
 export const ALL_ACCOUNTS = 'https://api.tinkoff.ru/trading/portfolio/all_accounts?sessionId=';
 export const BUY_LINK = 'https://www.tinkoff.ru/invest/buy/';
 export const SELL_LINK = 'https://www.tinkoff.ru/invest/sell/';
+export const EVENTS_LINK = 'https://www.tinkoff.ru/invest/stocks/${symbol}/events/';
+export const PROGNOS_LINK = 'https://www.tinkoff.ru/invest/stocks/${symbol}/prognosis/';
 //export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/broker_account/stock/';
 export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/stocks/';
 export const PING_URL = 'https://api.tinkoff.ru/v1/ping?sessionid=';
@@ -37,31 +39,37 @@ export let port = chrome.runtime.connect({
 });
 
 export class Price {
-    constructor(value, currency){
-        this.value=value;
-        this.currency=currency;
+    constructor(value, currency) {
+        this.value = value;
+        this.currency = currency;
     }
 }
-export class Symbol{
-    constructor (){
+
+export class Symbol {
+    constructor() {
 
     }
 }
+
 export class AlertList {
-    add(symbol){
+    add(symbol) {
         this.symbol.push(symbol);
     }
-    remove(symbolName){
+
+    remove(symbolName) {
 
     }
-    update(){
+
+    update() {
 
     }
-    render(){
+
+    render() {
 
     }
 }
-export class Portfolio extends AlertList{
+
+export class Portfolio extends AlertList {
 
 
 }
