@@ -245,7 +245,9 @@ function getListStock(name) {
                                     await getSymbolInfo(element.ticker, element.securityType, session_id).then(function (symbol) {
                                         let current_amount = element.currentAmount;
                                         let expected_yield = element.expectedYield;
+                                        let earning_today = symbol.payload.earnings.absolute.value * element.currentBalance;
                                         if (result[OPTION_CONVERT_TO_RUB] && current_amount.currency === 'USD') {
+                                            earning_today = earning_today * ticker.payload.last.value;
                                             current_amount.value = current_amount.value * ticker.payload.last.value;
                                             current_amount.currency = 'RUB';
                                             expected_yield.value = expected_yield.value * ticker.payload.last.value;
@@ -262,6 +264,7 @@ function getListStock(name) {
                                                 expectedYield: expected_yield,
                                                 currentPrice: element.currentPrice,
                                                 currentAmount: current_amount,
+                                                earningToday: earning_today,
                                                 averagePositionPrice: element.averagePositionPrice || {
                                                     value: 0,
                                                     currency: element.currentPrice.currency
