@@ -135,6 +135,16 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('approvedW8').innerText = msg.approvedW8;
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка - "Мое увОжение!"<br>' : '';
             break;
+        case 'cashData':
+            let cash_str = 'Остаток на счете ТКС ';
+            for (let cash in msg.cash.payload.data) {
+                cash_str += '<strong>'+msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: msg.cash.payload.data[cash].currency
+                })+'</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
+            }
+            document.getElementById('cash').innerHTML = cash_str;
+            break;
     }
 });
 
@@ -243,7 +253,7 @@ function create_portfolio_table(data) {
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
 
-        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" src="${img_status}"><a title="Открыть на странице брокера" href="${SYMBOL_LINK}${element.symbol.ticker}" target="_blank" <strong>${element.symbol.ticker}</strong></a>`;
+        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" src="${img_status}"><a title="Открыть на странице брокера" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"> <strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
@@ -390,20 +400,23 @@ function create_alert_table() {
             table.className = 'alertPriceTable';
             let tr = document.createElement('tr');
             let th1 = document.createElement('th');
-            th1.appendChild(document.createTextNode('название'));
+            //th1.appendChild(document.createTextNode('название'));
             let th2 = document.createElement('th');
-            th2.innerHTML = 'текущие цены <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
+            th2.innerHTML = 'цены брокера <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
             let th3 = document.createElement('th');
-            th3.appendChild(document.createTextNode('продажа по'));
+            th3.appendChild(document.createTextNode('измн. за день'));
             let th4 = document.createElement('th');
-            th4.appendChild(document.createTextNode('покупка по'));
+            th4.appendChild(document.createTextNode('продажа по'));
             let th5 = document.createElement('th');
-            th5.appendChild(document.createTextNode('заявка активна до'));
+            th5.appendChild(document.createTextNode('покупка по'));
+            let th6 = document.createElement('th');
+            th6.appendChild(document.createTextNode('заявка активна до'));
             tr.appendChild(th1);
             tr.appendChild(th2);
             tr.appendChild(th3);
             tr.appendChild(th4);
             tr.appendChild(th5);
+            tr.appendChild(th6);
             table.appendChild(tr);
             data[TICKER_LIST].forEach(function (element, i) {
                 let tr = document.createElement('tr');
@@ -415,23 +428,34 @@ function create_alert_table() {
                     `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">${element.online_buy_price}${element.currency}</div>` +
                     `<div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">${element.online_sell_price}</div>`;
                 let td3 = document.createElement('td');
-                td3.innerHTML = element.sell_price;
-                td3.className = 'onlineBuy';
+                td3.innerHTML = `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: element.earnings.absolute.currency
+                })}</div>
+                <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
+                    style: 'percent',
+                    maximumSignificantDigits: 2
+                })}</strong></div>`;
+                td3.className = element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
                 let td4 = document.createElement('td');
-                td4.innerHTML = element.buy_price;
-                td4.className = 'onlineSell';
+                td4.innerHTML = `<strong>${element.sell_price}</strong>`;
+                td4.className = 'onlineBuy';
                 let td5 = document.createElement('td');
-                td5.className = '';
-                let alert_date = new Date(Date.parse(element.best_before));
-                td5.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бесрочно';
+                td5.innerHTML = `<strong>${element.buy_price}</strong>`;
+                td5.className = 'onlineSell';
                 let td6 = document.createElement('td');
-                td6.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
+                td6.className = '';
+                let alert_date = new Date(Date.parse(element.best_before));
+                td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бесрочно';
+                let td7 = document.createElement('td');
+                td7.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tr.appendChild(td3);
                 tr.appendChild(td4);
                 tr.appendChild(td5);
                 tr.appendChild(td6);
+                tr.appendChild(td7);
 
                 table.appendChild(tr);
                 //setRefreshHandler();
@@ -641,6 +665,8 @@ port.postMessage({method: "updatePrices"});
 port.postMessage({method: "getPortfolio"});
 port.postMessage({method: "updateHeader"});
 port.postMessage({method: "getUserInfo"});
+port.postMessage({method: "getAvailableCash"});
+
 
 // запускаем фоновый пинг сервера + в нем все проверки
 chrome.alarms.create("updatePortfolio", {
@@ -651,5 +677,6 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     if (alarm.name === "updatePortfolio") {
         port.postMessage({method: "getPortfolio"});
         port.postMessage({method: "updateHeader"});
+        port.postMessage({method: "getAvailableCash"});
     }
 });

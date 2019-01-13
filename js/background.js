@@ -3,6 +3,7 @@
 import {
     ALERT_TICKER_LIST,
     BUY_LINK,
+    CURRENCY_LIMIT_URL,
     CURRENCY_URL,
     FAVORITE_URL,
     HOST_URL,
@@ -242,7 +243,8 @@ function getListStock(name) {
                                 console.log('list of portfolio');
                                 let return_data = [];
                                 for (const element of json.payload.data) {
-                                    await getSymbolInfo(element.ticker, element.securityType, session_id).then(function (symbol) {
+                                    let securityType = element.securityType.toLowerCase() + 's';
+                                    await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
                                         let current_amount = element.currentAmount;
                                         let expected_yield = element.expectedYield;
                                         let earning_today = symbol.payload.earnings.absolute.value * element.currentBalance;
@@ -257,6 +259,7 @@ function getListStock(name) {
                                             prices: symbol.payload.prices,
                                             earnings: symbol.payload.earnings,
                                             symbol: {
+                                                securityType: securityType,
                                                 ticker: element.ticker,
                                                 showName: symbol.payload.symbol.description,
                                                 lotSize: element.currentBalance,
@@ -324,6 +327,39 @@ function findTicker(search, session_id) {
     )
 }
 
+function getAvailableCash() {
+    return new Promise(function (resolve, reject) {
+        console.log('try to get available cash');
+        getTCSsession().then(function (session_id) {
+                // POST
+                fetch(CURRENCY_LIMIT_URL + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        brokerAccountType: "Tinkoff"
+                    }),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(function (res) {
+                    return res.json();
+                })
+                    .then(function (res) {
+                        if (res.status.toLocaleUpperCase() === 'OK') {
+                            resolve(res);
+                        } else {
+                            console.log('Сервис поиска недоступен');
+                            reject(undefined)
+                        }
+                    }).catch(e => {
+                    console.log(e);
+                    reject(undefined);
+                })
+            }
+        )
+    })
+}
+
 function getPriceInfo(tickerName, session_id) {
     return new Promise(function (resolve, reject) {
         console.log(`Get price for ${tickerName}`);
@@ -358,7 +394,7 @@ function getPriceInfo(tickerName, session_id) {
 function getSymbolInfo(ticker, securityType, session_id) {
     return new Promise(function (resolve, reject) {
         // POST
-        securityType = securityType.toLowerCase() + 's';
+
         fetch(SYMBOL_URL.replace('${securityType}', securityType) + session_id, {
             method: "POST",
             body: JSON.stringify({ticker: ticker}),
@@ -430,6 +466,7 @@ function updateAlertPrices() {
                         sell_price: item.sell_price,
                         best_before: item.best_before,
                         active: item.active,
+                        earnings: res.payload.earnings,
 
                         exchangeStatus: res.payload.exchangeStatus,
                         currency: res.payload.last.currency,
@@ -655,6 +692,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getUserInfo().then(function (user_data) {
                     console.log("send message getuserInfo .....");
                     port.postMessage(user_data);
+                });
+                break;
+            case 'getAvailableCash':
+                getAvailableCash().then(function (cash_data) {
+                    console.log("send message cash_data .....");
+                    port.postMessage(Object.assign({}, {result: "cashData"}, {cash: cash_data}));
                 });
                 break;
             default:

@@ -11,13 +11,14 @@ export const SELL_LINK = 'https://www.tinkoff.ru/invest/sell/';
 export const EVENTS_LINK = 'https://www.tinkoff.ru/invest/stocks/${symbol}/events/';
 export const PROGNOS_LINK = 'https://www.tinkoff.ru/invest/stocks/${symbol}/prognosis/';
 //export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/broker_account/stock/';
-export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/stocks/';
+export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/${securityType}/';
 export const PING_URL = 'https://api.tinkoff.ru/v1/ping?sessionid=';
 export const PRICE_URL = 'https://api.tinkoff.ru/trading/stocks/price?sessionId=';
 export const CURRENCY_URL = 'https://api.tinkoff.ru/trading/currency/price?sessionId=';
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/${securityType}/get?sessionId=';
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
+export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';
 
 export const INTERVAL_TO_CHECK = 1;//min
