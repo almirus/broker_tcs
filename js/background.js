@@ -327,7 +327,7 @@ function findTicker(search, session_id) {
     )
 }
 
-function getAvailableCash() {
+function getAvailableCash(brokerName) {
     return new Promise(function (resolve, reject) {
         console.log('try to get available cash');
         getTCSsession().then(function (session_id) {
@@ -335,7 +335,7 @@ function getAvailableCash() {
                 fetch(CURRENCY_LIMIT_URL + session_id, {
                     method: "POST",
                     body: JSON.stringify({
-                        brokerAccountType: "Tinkoff"
+                        brokerAccountType: brokerName
                     }),
                     headers: {
                         'Accept': 'application/json',
@@ -454,34 +454,37 @@ function deleteFromAlert(ticker) {
 }
 
 function updateAlertPrices() {
-    chrome.storage.sync.get([TICKER_LIST], function (data) {
-        let alert_data = data[TICKER_LIST] || [];
-        alert_data.forEach(function (item, i, alertList) {
-            getTCSsession().then(function (session_id) {
-                getPriceInfo(item.ticker, session_id).then(function (res) {
-                    alertList[i] = {
-                        ticker: item.ticker,
-                        showName: item.showName,
-                        buy_price: item.buy_price,
-                        sell_price: item.sell_price,
-                        best_before: item.best_before,
-                        active: item.active,
-                        earnings: res.payload.earnings,
-
-                        exchangeStatus: res.payload.exchangeStatus,
-                        currency: res.payload.last.currency,
-                        online_average_price: res.payload.last.value,
-                        online_buy_price: res.payload.buy.value,
-                        online_sell_price: res.payload.sell.value,
-                    };
-                    chrome.storage.sync.set({[TICKER_LIST]: alertList}, function () {
-                        //console.log('Save ticker ' + JSON.stringify(allertList));
+    return new Promise(function (resolve, reject) {
+        getTCSsession().then(function (session_id) {
+            chrome.storage.sync.get([TICKER_LIST], function (data) {
+                let alert_data = data[TICKER_LIST] || [];
+                let i = 0;
+                for (const item of alert_data) {
+                    //alert_data.forEach(function (item, i, alertList) {
+                    getPriceInfo(item.ticker, session_id).then(function (res) {
+                        alert_data[i] = {
+                            ticker: item.ticker,
+                            showName: item.showName,
+                            buy_price: item.buy_price,
+                            sell_price: item.sell_price,
+                            best_before: item.best_before,
+                            active: item.active,
+                            earnings: res.payload.earnings,
+                            exchangeStatus: res.payload.exchangeStatus,
+                            currency: res.payload.last.currency,
+                            online_average_price: res.payload.last.value,
+                            online_buy_price: res.payload.buy.value,
+                            online_sell_price: res.payload.sell.value,
+                        };
+                        i++;
                     })
-                })
+                }
+                resolve(Object.assign({}, {result: "listAlerts"}, {stocks: alert_data}));
             })
         })
     })
 }
+
 
 function checkPortfolioAlerts() {
     chrome.storage.sync.get([OPTION_ALERT_TODAY], function (result) {
@@ -645,7 +648,7 @@ chrome.runtime.onConnect.addListener(function (port) {
             case 'updateAlertPrices':
                 updateAlertPrices().then(function (alert_list) {
                     console.log("send message tickerInfo .....");
-                    port.postMessage(Object.assign({}, {result: "updatePrice"}, {stocks: alert_list}));
+                    port.postMessage(alert_list);
                 });
                 break;
             case 'getPriceInfo':
@@ -694,10 +697,16 @@ chrome.runtime.onConnect.addListener(function (port) {
                     port.postMessage(user_data);
                 });
                 break;
-            case 'getAvailableCash':
-                getAvailableCash().then(function (cash_data) {
+            case 'getAvailableCashTCS':
+                getAvailableCash('Tinkoff').then(function (cash_data) {
                     console.log("send message cash_data .....");
-                    port.postMessage(Object.assign({}, {result: "cashData"}, {cash: cash_data}));
+                    port.postMessage(Object.assign({}, {result: "cashDataTCS"}, {cash: cash_data}));
+                });
+                break;
+            case 'getAvailableCashBCS':
+                getAvailableCash('Bcs').then(function (cash_data) {
+                    console.log("send message cash_data .....");
+                    port.postMessage(Object.assign({}, {result: "cashDataBCS"}, {cash: cash_data}));
                 });
                 break;
             default:
@@ -774,7 +783,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                         checkAlerts();          // достижение цены по бумагам в списке отслеживания
                         checkPortfolioAlerts(); // резкая смена доходности портфеля
                         checkSymbolsAlerts();   // резкая смена доходности бумаг в портфеле
-                        updateAlertPrices();    // обновляем цены в интерфейсе настроек
+                        //updateAlertPrices();    // обновляем цены в интерфейсе настроек
                         // возвращаем обычную иконку
                         chrome.browserAction.setIcon({path: "/icons/icon16.png"});
                         chrome.browserAction.setTitle({title: 'TCS Broker'});

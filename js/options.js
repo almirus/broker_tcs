@@ -82,6 +82,9 @@ port.onMessage.addListener(function (msg) {
         case 'listPortfolio':
             create_portfolio_table(msg.stocks);
             break;
+        case 'listAlerts':
+            create_table(msg.stocks);
+            break;
         case 'tickerInfo':
             create_table(msg.stocks);
             break;
@@ -135,15 +138,25 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('approvedW8').innerText = msg.approvedW8;
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка - "Мое увОжение!"<br>' : '';
             break;
-        case 'cashData':
+        case 'cashDataTCS':
             let cash_str = 'Остаток на счете ТКС ';
             for (let cash in msg.cash.payload.data) {
-                cash_str += '<strong>'+msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
+                cash_str += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: msg.cash.payload.data[cash].currency
-                })+'</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
+                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
             }
-            document.getElementById('cash').innerHTML = cash_str;
+            document.getElementById('cashTCS').innerHTML = cash_str;
+            break;
+        case 'cashDataBCS':
+            let cash_str_bcs = 'Остаток на счете БКС ';
+            for (let cash in msg.cash.payload.data) {
+                cash_str_bcs += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: msg.cash.payload.data[cash].currency
+                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
+            }
+            document.getElementById('cashBCS').innerHTML = cash_str_bcs;
             break;
     }
 });
@@ -662,10 +675,12 @@ create_alert_table();
 
 port.postMessage({method: "getSession"});
 port.postMessage({method: "updatePrices"});
+port.postMessage({method: "updateAlertPrices"});
 port.postMessage({method: "getPortfolio"});
 port.postMessage({method: "updateHeader"});
 port.postMessage({method: "getUserInfo"});
-port.postMessage({method: "getAvailableCash"});
+port.postMessage({method: "getAvailableCashTCS"});
+port.postMessage({method: "getAvailableCashBCS"});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
@@ -675,8 +690,10 @@ chrome.alarms.create("updatePortfolio", {
 });
 chrome.alarms.onAlarm.addListener(function (alarm) {
     if (alarm.name === "updatePortfolio") {
+        port.postMessage({method: "updateAlertPrices"});
         port.postMessage({method: "getPortfolio"});
         port.postMessage({method: "updateHeader"});
-        port.postMessage({method: "getAvailableCash"});
+        port.postMessage({method: "getAvailableCashTCS"});
+        port.postMessage({method: "getAvailableCashBCS"});
     }
 });
