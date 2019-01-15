@@ -248,8 +248,6 @@ function create_portfolio_table(data) {
     th7.appendChild(document.createTextNode('доход на тек. момент'));
     th7.className = 'sorting';
 
-    let th8 = document.createElement('th');
-
     tr.appendChild(th1);
     tr.appendChild(th2);
     tr.appendChild(th3);
@@ -257,7 +255,6 @@ function create_portfolio_table(data) {
     tr.appendChild(th5);
     tr.appendChild(th6);
     tr.appendChild(th7);
-    tr.appendChild(th8);
     table.appendChild(tr);
 
     data.forEach(function (element, i) {
@@ -278,6 +275,7 @@ function create_portfolio_table(data) {
             <div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell.value}</a>
             </div>`;
+        let prognosis_link = element.contentMarker.prognosis ? `(<a href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Посмотреть прогноз цены">прогноз</a>)`:'';
 
         let td3 = document.createElement('td');
         let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
@@ -287,7 +285,7 @@ function create_portfolio_table(data) {
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.averagePositionPrice.currency
-            })}</a></div>`;
+            })}</a> ${prognosis_link}</div>`;
         let td4 = document.createElement('td');
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
@@ -322,9 +320,8 @@ function create_portfolio_table(data) {
             style: 'percent',
             maximumSignificantDigits: 2
         })}</div>`;
-        let prognos_link = PROGNOS_LINK.replace('${symbol}', element.symbol.ticker);
-        let td8 = document.createElement('td');
-        td8.innerHTML = `<a href="${prognos_link}" target="_blank" title="Прогноз цены, может отсутствовать">Прогноз</a><br>`;
+
+
         tr.appendChild(td1);
         tr.appendChild(td2);
         tr.appendChild(td3);
@@ -332,7 +329,7 @@ function create_portfolio_table(data) {
         tr.appendChild(td5);
         tr.appendChild(td6);
         tr.appendChild(td7);
-        tr.appendChild(td8);
+
 
         table.appendChild(tr);
     });
@@ -668,7 +665,6 @@ if (window.Notification && Notification.permission !== "granted") {
 create_alert_table();
 
 port.postMessage({method: "getSession"});
-port.postMessage({method: "updatePrices"});
 port.postMessage({method: "updateAlertPrices"});
 port.postMessage({method: "getPortfolio"});
 port.postMessage({method: "updateHeader"});

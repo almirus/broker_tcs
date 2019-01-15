@@ -258,6 +258,7 @@ function getListStock(name) {
                                         return_data.push({
                                             prices: symbol.payload.prices,
                                             earnings: symbol.payload.earnings,
+                                            contentMarker: symbol.payload.contentMarker,
                                             symbol: {
                                                 securityType: securityType,
                                                 ticker: element.ticker,
