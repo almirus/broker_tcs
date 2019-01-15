@@ -423,7 +423,6 @@ function checkTicker(item) {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
             getPriceInfo(item.ticker, session_id).then(function (res) {
-
                 let last_price = res.payload.last.value;
                 let sell_price = res.payload.sell.value;
                 let buy_price = res.payload.buy.value;
@@ -456,12 +455,12 @@ function deleteFromAlert(ticker) {
 function updateAlertPrices() {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
-            chrome.storage.sync.get([TICKER_LIST], function (data) {
+            chrome.storage.sync.get([TICKER_LIST], async function (data) {
                 let alert_data = data[TICKER_LIST] || [];
                 let i = 0;
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
-                    getPriceInfo(item.ticker, session_id).then(function (res) {
+                    await getPriceInfo(item.ticker, session_id).then(function (res) {
                         alert_data[i] = {
                             ticker: item.ticker,
                             showName: item.showName,

@@ -83,7 +83,7 @@ port.onMessage.addListener(function (msg) {
             create_portfolio_table(msg.stocks);
             break;
         case 'listAlerts':
-            create_table(msg.stocks);
+            create_alert_table(msg.stocks);
             break;
         case 'tickerInfo':
             create_table(msg.stocks);
@@ -207,6 +207,7 @@ function setDeleteButtonHandler() {
                 alert_data.splice(index, 1);
                 chrome.storage.sync.set({[TICKER_LIST]: alert_data}, function () {
                     console.log('Save ticker ' + JSON.stringify(alert_data));
+                    create_alert_table();
                 })
             });
         });
@@ -266,7 +267,7 @@ function create_portfolio_table(data) {
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
 
-        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" src="${img_status}"><a title="Открыть на странице брокера" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"> <strong>${element.symbol.ticker}</strong></a>`;
+        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" src="${img_status}"><a title="Открыть на странице брокера" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
@@ -405,7 +406,7 @@ function create_table(data) {
 }
 
 // рендер таблицы с акциями ранее сохраненные
-function create_alert_table() {
+function create_alert_table(data_list) {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let table;
         if (data[TICKER_LIST] && data[TICKER_LIST].length > 0) {
@@ -431,7 +432,8 @@ function create_alert_table() {
             tr.appendChild(th5);
             tr.appendChild(th6);
             table.appendChild(tr);
-            data[TICKER_LIST].forEach(function (element, i) {
+            let list_for_iteration = data_list || data[TICKER_LIST];
+            list_for_iteration.forEach(function (element, i) {
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
                 td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
@@ -480,7 +482,7 @@ function create_alert_table() {
         document.getElementById('alert_table').innerText = '';
         document.getElementById('alert_table').appendChild(table);
         setDeleteButtonHandler();
-    });
+    })
 }
 
 // подгрузка списка акций по типу
@@ -637,14 +639,6 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result)
     document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
 });
 
-// перерисовываем таблицу с уведомлениями при изменении Storage
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-    for (let key in changes) {
-        if (key === TICKER_LIST) {
-            debounce(create_alert_table(), 1000);
-        }
-    }
-});
 
 // сохраняем применение Конвертировать в рубли
 
@@ -695,5 +689,14 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         port.postMessage({method: "updateHeader"});
         port.postMessage({method: "getAvailableCashTCS"});
         port.postMessage({method: "getAvailableCashBCS"});
+    }
+});
+
+// перерисовываем таблицу с уведомлениями при изменении Storage
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+    for (let key in changes) {
+        if (key === TICKER_LIST) {
+            debounce(create_alert_table(), 1000);
+        }
     }
 });

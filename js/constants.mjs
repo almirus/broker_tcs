@@ -21,6 +21,9 @@ export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';
 
+//{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
+export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
+
 export const INTERVAL_TO_CHECK = 1;//min
 export const OPTION_COSMETICS = 'cosmetic';
 export const OPTION_SESSION = 'session';
