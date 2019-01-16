@@ -263,8 +263,9 @@ function create_portfolio_table(data) {
         let img_status = '/icons/pre.png';
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
-
-        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" src="${img_status}"><a title="Открыть на странице брокера" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
+        let otc = element.symbol.isOTC ? '<img class="symbol_status" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">':'';
+        let etf = element.symbol.symbolType==='ETF' ? '<img class="symbol_status" alt="ETF" title="ETF" src="/icons/etf.png">':'';
+        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" title="Биржа открыта с ${element.symbol.marketStartTime}\r\nБиржа закрыта с ${element.symbol.marketEndTime}" src="${img_status}">${otc}${etf}<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = element.prices ? `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
@@ -290,12 +291,12 @@ function create_portfolio_table(data) {
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.earnings.absolute.currency
-        }) : '-'}</div>
+        }) : ''}</div>
         <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${element.earnings ? element.earnings.relative.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
-        }) : '-'}</strong></div>
-        <div title="Доход за день">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
+        }) : ''}</strong></div>
+        <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
         }):''}</div>`;

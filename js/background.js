@@ -260,6 +260,10 @@ function getListStock(name) {
                                             earnings: symbol.payload.earnings,
                                             contentMarker: symbol.payload.contentMarker,
                                             symbol: {
+                                                symbolType: symbol.payload.symbol.symbolType,
+                                                isOTC: symbol.payload.symbol.isOTC,
+                                                marketEndTime: symbol.payload.symbol.marketEndTime,
+                                                marketStartTime: symbol.payload.symbol.marketStartTime,
                                                 securityType: securityType,
                                                 ticker: element.ticker,
                                                 showName: symbol.payload.symbol.description || symbol.payload.symbol.showName,
