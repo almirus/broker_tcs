@@ -477,8 +477,8 @@ function updateAlertPrices() {
                             exchangeStatus: res.payload.exchangeStatus,
                             currency: res.payload.last.currency,
                             online_average_price: res.payload.last.value,
-                            online_buy_price: res.payload.buy.value,
-                            online_sell_price: res.payload.sell.value,
+                            online_buy_price: res.payload.buy ? res.payload.buy.value : '',
+                            online_sell_price: res.payload.sell ? res.payload.sell.value : '',
                         };
                         i++;
                     })

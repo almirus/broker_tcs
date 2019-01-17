@@ -263,8 +263,8 @@ function create_portfolio_table(data) {
         let img_status = '/icons/pre.png';
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
-        let otc = element.symbol.isOTC ? '<img class="symbol_status" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">':'';
-        let etf = element.symbol.symbolType==='ETF' ? '<img class="symbol_status" alt="ETF" title="ETF" src="/icons/etf.png">':'';
+        let otc = element.symbol.isOTC ? '<img class="symbol_status" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
+        let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbol_status" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
         td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" title="Биржа открыта с ${element.symbol.marketStartTime}\r\nБиржа закрыта с ${element.symbol.marketEndTime}" src="${img_status}">${otc}${etf}<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = element.prices ? `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
@@ -299,7 +299,7 @@ function create_portfolio_table(data) {
         <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
-        }):''}</div>`;
+        }) : ''}</div>`;
         td4.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
 
 
@@ -441,15 +441,15 @@ function create_alert_table(data_list) {
                     `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">${element.online_buy_price}${element.currency}</div>` +
                     `<div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">${element.online_sell_price}</div>`;
                 let td3 = document.createElement('td');
-                td3.innerHTML = `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
+                td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: element.earnings.absolute.currency
                 })}</div>
                 <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
                     style: 'percent',
                     maximumSignificantDigits: 2
-                })}</strong></div>`;
-                td3.className = element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+                })}</strong></div>` : '';
+                td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
                 let td4 = document.createElement('td');
                 td4.innerHTML = `<strong>${element.sell_price}</strong>`;
                 td4.className = 'onlineBuy';
