@@ -136,7 +136,7 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('riskProfile').innerText = msg.riskProfile;
             document.getElementById('qualStatus').innerText = msg.qualStatus;
             document.getElementById('approvedW8').innerText = msg.approvedW8;
-            document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка - "Мое увОжение!"<br>' : '';
+            document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
             break;
         case 'cashDataTCS':
             let cash_str = 'Остаток на счете ТКС ';
@@ -260,6 +260,8 @@ function create_portfolio_table(data) {
     data.forEach(function (element, i) {
         let tr = document.createElement('tr');
         let td1 = document.createElement('td');
+        td1.className = 'maxWidth';
+
         let img_status = '/icons/pre.png';
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
@@ -276,7 +278,7 @@ function create_portfolio_table(data) {
             <div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '';
-        let prognosis_link = element.contentMarker.prognosis ? `(<a href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Посмотреть прогноз цены">прогноз</a>)` : '';
+        let prognosis_link = element.contentMarker.prognosis ? `<br>(<a href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Посмотреть прогноз цены">прогноз</a>)` : '';
 
         let td3 = document.createElement('td');
         let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
@@ -286,7 +288,7 @@ function create_portfolio_table(data) {
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.averagePositionPrice.currency
-            })}</a> ${prognosis_link}</div>`;
+            })}</a>${prognosis_link}</div>`;
         let td4 = document.createElement('td');
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
@@ -371,6 +373,7 @@ function create_table(data) {
 
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
+            td1.className = 'maxWidth';
             td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
             td2.appendChild(document.createTextNode(element.prices.last.value + element.prices.last.currency));
@@ -434,6 +437,7 @@ function create_alert_table(data_list) {
             list_for_iteration.forEach(function (element, i) {
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
+                td1.className = 'maxWidth';
                 td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
                 let td2 = document.createElement('td');
                 td2.innerHTML =

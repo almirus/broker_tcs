@@ -427,7 +427,7 @@ function getSymbolInfo(ticker, securityType, session_id) {
 function checkTicker(item) {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
-            getPriceInfo(item.ticker, session_id).then(function (res) {
+            getPriceInfo(item.ticker, undefined, session_id).then(function (res) {
                 let last_price = res.payload.last.value;
                 let sell_price = res.payload.sell.value;
                 let buy_price = res.payload.buy.value;
@@ -516,6 +516,9 @@ function checkPortfolioAlerts() {
                             // сохраняем достигнутую доходность
                             setOldRelative('portfolio', sums.expectedYieldPerDayRelative);
                         }
+                    }).catch(e=>{
+                        setOldRelative('portfolio', sums.expectedYieldPerDayRelative);
+                        console.log('save new expectedYieldPerDayRelative')
                     })
                 })
             })

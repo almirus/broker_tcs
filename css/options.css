@@ -146,3 +146,6 @@ p.info {
     margin-bottom: -0.35em;
     padding-right: 2px;
 }
+.maxWidth{
+    max-width: 120px;
+}
