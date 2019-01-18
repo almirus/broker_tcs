@@ -13,7 +13,7 @@ export const PROGNOS_LINK = 'https://www.tinkoff.ru/invest/stocks/${symbol}/prog
 //export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/broker_account/stock/';
 export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/${securityType}/';
 export const PING_URL = 'https://api.tinkoff.ru/v1/ping?sessionid=';
-export const PRICE_URL = 'https://api.tinkoff.ru/trading/stocks/price?sessionId=';
+export const PRICE_URL = 'https://api.tinkoff.ru/trading/${securityType}/price?sessionId=';
 export const CURRENCY_URL = 'https://api.tinkoff.ru/trading/currency/price?sessionId=';
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/${securityType}/get?sessionId=';
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';

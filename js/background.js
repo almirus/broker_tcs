@@ -233,7 +233,7 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    getPriceInfo("USDRUB", session_id).then(ticker => {
+                    getPriceInfo("USDRUB", undefined, session_id).then(ticker => {
                         chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
                             console.log('get session option');
                             fetch(PORTFOLIO_URL + session_id)
@@ -365,12 +365,12 @@ function getAvailableCash(brokerName) {
     })
 }
 
-function getPriceInfo(tickerName, session_id) {
+function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
     return new Promise(function (resolve, reject) {
         console.log(`Get price for ${tickerName}`);
         if (tickerName) {
             // POST
-            fetch((tickerName.includes('RUB') ? CURRENCY_URL : PRICE_URL) + session_id, {
+            fetch((tickerName.includes('RUB') ? CURRENCY_URL : PRICE_URL.replace('${securityType}', securityType)) + session_id, {
                 method: "POST",
                 body: JSON.stringify({ticker: tickerName}),
                 headers: {
@@ -465,7 +465,7 @@ function updateAlertPrices() {
                 let i = 0;
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
-                    await getPriceInfo(item.ticker, session_id).then(function (res) {
+                    await getPriceInfo(item.ticker, undefined, session_id).then(function (res) {
                         alert_data[i] = {
                             ticker: item.ticker,
                             showName: item.showName,
@@ -524,11 +524,12 @@ function checkPortfolioAlerts() {
 }
 
 function getOldRelative(ticker) {
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
         chrome.storage.local.get([ALERT_TICKER_LIST], function (data) {
             let alert_data = data[ALERT_TICKER_LIST] || {};
             console.log(`get relative for ${ticker}=${alert_data[ticker]}`);
-            resolve(alert_data[ticker]);
+            if (alert_data[ticker]) resolve(alert_data[ticker]);
+            else reject(undefined);
         })
     });
 }
@@ -552,7 +553,7 @@ function checkSymbolsAlerts() {
                         let alert_value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
                         list_symbols.stocks.forEach(function (item, i, alertList) {
                             if (!(item.exchangeStatus === 'Close'))
-                                getPriceInfo(item.symbol.ticker, session_id).then(function (res) {
+                                getPriceInfo(item.symbol.ticker, item.symbol.securityType, session_id).then(function (res) {
                                     let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
                                     getOldRelative(item.symbol.ticker).then(old_relative => {
                                         let symbol_relative = Math.abs(earnings_relative - (old_relative || 0));
@@ -575,9 +576,13 @@ function checkSymbolsAlerts() {
                                             // сохраняем достигнутую доходность
                                             setOldRelative(item.symbol.ticker, earnings_relative);
                                         }
+                                    }).catch(e => {
+                                        console.log(`item ${item.symbol.ticker} is absent in alertList ${e}`);
+                                        // не нашли в списке с доходностью, добавляем
+                                        setOldRelative(item.symbol.ticker, earnings_relative);
                                     })
                                 }).catch(e => {
-                                    console.log(e);
+                                    console.log(`price for ${item.symbol.ticker} unavailable ${e}`);
                                 });
                             else console.log(`stock for ${item.symbol.ticker} is close`)
                         });
