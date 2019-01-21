@@ -27,6 +27,7 @@ import {
     SYMBOL_URL,
     TICKER_LIST,
     USER_URL,
+    USD_RUB
 } from "/js/constants.mjs";
 
 function redirect_to_page(url, open_new = false) {
@@ -187,16 +188,16 @@ function getListStock(name) {
     return new Promise(function (resolve, reject) {
         console.log('try to get list');
         getTCSsession().then(function (session_id) {
-            if (name === "USDRUB") {
+            if (name === USD_RUB) {
                 let return_data = [];
                 let usdInfo = {};
-                getPriceInfo("USDRUB", undefined, session_id).then(function (result) {
+                getPriceInfo(USD_RUB, undefined, session_id).then(function (result) {
                     usdInfo.prices = result.payload;
                     usdInfo.exchangeStatus = result.payload.exchangeStatus ;
                     }
                 ).then(function () {
                     usdInfo.symbol = {
-                        ticker: "USDRUB",
+                        ticker: USD_RUB,
                             showName: "Доллар США",
                             lotSize: 1,
                     };
@@ -253,7 +254,7 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    getPriceInfo("USDRUB", undefined, session_id).then(ticker => {
+                    getPriceInfo(USD_RUB, undefined, session_id).then(ticker => {
                         chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
                             console.log('get session option');
                             fetch(PORTFOLIO_URL + session_id)
@@ -263,7 +264,7 @@ function getListStock(name) {
                                 console.log('list of portfolio');
                                 let return_data = [];
                                 for (const element of json.payload.data) {
-                                    if (element.ticker === "USDRUB") continue;
+                                    if (element.ticker === USD_RUB) continue;
                                     let securityType = element.securityType.toLowerCase() + 's';
                                     await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
                                         let current_amount = element.currentAmount;

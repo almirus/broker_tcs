@@ -37,6 +37,7 @@ export const OPTION_CONVERT_TO_RUB = 'convert_to_rub';
 export const TICKER_LIST = 'tickerList';
 export const ALERT_TICKER_LIST = 'alertTickerList';
 
+export const USD_RUB = 'USDRUB';
 
 export let port = chrome.runtime.connect({
     name: "tcs_trader"
