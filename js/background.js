@@ -262,6 +262,10 @@ function getListStock(name) {
                                             symbol: {
                                                 symbolType: symbol.payload.symbol.symbolType,
                                                 isOTC: symbol.payload.symbol.isOTC,
+                                                sessionOpen: symbol.payload.symbol.sessionOpen,
+                                                sessionClose: symbol.payload.symbol.sessionClose,
+                                                premarketStartTime:  symbol.payload.symbol.premarketStartTime,
+                                                premarketEndTime:  symbol.payload.symbol.premarketEndTime,
                                                 marketEndTime: symbol.payload.symbol.marketEndTime,
                                                 marketStartTime: symbol.payload.symbol.marketStartTime,
                                                 securityType: securityType,

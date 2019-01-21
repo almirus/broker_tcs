@@ -263,11 +263,19 @@ function create_portfolio_table(data) {
         td1.className = 'maxWidth';
 
         let img_status = '/icons/pre.png';
+        let session_open = (element.symbol.marketStartTime || 'нет информации');
+        let session_close = (element.symbol.marketEndTime || 'нет информации');
+        if (element.symbol.premarketStartTime !== element.symbol.premarketEndTime) {
+            session_open += ' премаркет с ' + element.symbol.premarketStartTime;
+            session_close += ' премаркет до ' + element.symbol.premarketEndTime
+        }
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
         let otc = element.symbol.isOTC ? '<img class="symbol_status" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
         let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbol_status" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
-        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" title="Биржа открыта с ${element.symbol.marketStartTime}\r\nБиржа закрыта с ${element.symbol.marketEndTime}" src="${img_status}">${otc}${etf}<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
+        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" 
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}
+        <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = element.prices ? `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
@@ -391,7 +399,7 @@ function create_table(data) {
             td5.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
             let td6 = document.createElement('td');
             td6.className = 'tickerCol';
-            td6.innerHTML = '<input type="datetime-local" title="Если не установлено то бесрочно">';
+            td6.innerHTML = '<input type="datetime-local" title="Если не установлено то бессрочно">';
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -463,7 +471,7 @@ function create_alert_table(data_list) {
                 let td6 = document.createElement('td');
                 td6.className = '';
                 let alert_date = new Date(Date.parse(element.best_before));
-                td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бесрочно';
+                td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
                 let td7 = document.createElement('td');
                 td7.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
                 tr.appendChild(td1);
