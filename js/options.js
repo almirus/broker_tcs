@@ -450,8 +450,12 @@ function create_alert_table(data_list) {
                 let td2 = document.createElement('td');
                 td2.innerHTML =
                     `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>` +
-                    `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">${element.online_buy_price}${element.currency}</div>` +
-                    `<div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">${element.online_sell_price}</div>`;
+                    `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">` +
+                        `<a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}${element.currency}</a>` +
+                    `</div>` +
+                    `<div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">` +
+                        `<a class="onlineSell" href="${SELL_LINK}${element.ticker}" target="_blank" title="Продать">${element.online_sell_price}</a>` +
+                    `</div>`;
                 let td3 = document.createElement('td');
                 td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
                     style: 'currency',
