@@ -281,9 +281,9 @@ function create_portfolio_table(data) {
         }
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
-        let otc = element.symbol.isOTC ? '<img class="symbol_status" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
-        let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbol_status" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
-        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" 
+        let otc = element.symbol.isOTC ? '<img class="symbolStatus" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
+        let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbolStatus" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
+        td1.innerHTML = `${element.symbol.showName}<br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');

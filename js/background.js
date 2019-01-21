@@ -26,8 +26,8 @@ import {
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
-    USER_URL,
-    USD_RUB
+    USD_RUB,
+    USER_URL
 } from "/js/constants.mjs";
 
 function redirect_to_page(url, open_new = false) {
@@ -192,14 +192,14 @@ function getListStock(name) {
                 let return_data = [];
                 let usdInfo = {};
                 getPriceInfo(USD_RUB, undefined, session_id).then(function (result) {
-                    usdInfo.prices = result.payload;
-                    usdInfo.exchangeStatus = result.payload.exchangeStatus ;
+                        usdInfo.prices = result.payload;
+                        usdInfo.exchangeStatus = result.payload.exchangeStatus;
                     }
                 ).then(function () {
                     usdInfo.symbol = {
                         ticker: USD_RUB,
-                            showName: "Доллар США",
-                            lotSize: 1,
+                        showName: "Доллар США",
+                        lotSize: 1,
                     };
                     return_data.push(usdInfo);
                     resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
@@ -207,8 +207,7 @@ function getListStock(name) {
                     console.log('parsing failed', ex);
                     reject(undefined);
                 })
-            }
-            else if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
+            } else if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
                 findTicker(name, session_id)
                     .then(function (json) {
                         console.log('found list');
@@ -286,8 +285,8 @@ function getListStock(name) {
                                                 isOTC: symbol.payload.symbol.isOTC,
                                                 sessionOpen: symbol.payload.symbol.sessionOpen,
                                                 sessionClose: symbol.payload.symbol.sessionClose,
-                                                premarketStartTime:  symbol.payload.symbol.premarketStartTime,
-                                                premarketEndTime:  symbol.payload.symbol.premarketEndTime,
+                                                premarketStartTime: symbol.payload.symbol.premarketStartTime,
+                                                premarketEndTime: symbol.payload.symbol.premarketEndTime,
                                                 marketEndTime: symbol.payload.symbol.marketEndTime,
                                                 marketStartTime: symbol.payload.symbol.marketStartTime,
                                                 securityType: securityType,
@@ -379,7 +378,7 @@ function getAvailableCash(brokerName) {
                         if (res.status.toLocaleUpperCase() === 'OK') {
                             resolve(res);
                         } else {
-                            console.log('Сервис поиска недоступен');
+                            console.log(`${res.payload.message} - ${brokerName}`);
                             reject(undefined)
                         }
                     }).catch(e => {
@@ -542,7 +541,7 @@ function checkPortfolioAlerts() {
                             // сохраняем достигнутую доходность
                             setOldRelative('portfolio', sums.expectedYieldPerDayRelative);
                         }
-                    }).catch(e=>{
+                    }).catch(e => {
                         setOldRelative('portfolio', sums.expectedYieldPerDayRelative);
                         console.log('save new expectedYieldPerDayRelative')
                     })
@@ -739,19 +738,25 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getAvailableCash('Tinkoff').then(function (cash_data) {
                     console.log("send message cash_data .....");
                     port.postMessage(Object.assign({}, {result: "cashDataTCS"}, {cash: cash_data}));
+                }).catch(e=>{
+                    console.log('Nothing to send')
                 });
                 break;
             case 'getAvailableCashBCS':
                 getAvailableCash('Bcs').then(function (cash_data) {
                     console.log("send message cash_data .....");
                     port.postMessage(Object.assign({}, {result: "cashDataBCS"}, {cash: cash_data}));
-                });
+                }).catch(e=>{
+                    console.log('Nothing to send')
+                });;
                 break;
             case 'getAvailableCashIIS':
                 getAvailableCash('TinkoffIis').then(function (cash_data) {
                     console.log("send message cash_data .....");
                     port.postMessage(Object.assign({}, {result: "cashDataIIS"}, {cash: cash_data}));
-                });
+                }).catch(e=>{
+                    console.log('Nothing to send')
+                });;
                 break;
             default:
                 port.postMessage('unknown request');
