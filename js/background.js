@@ -263,6 +263,7 @@ function getListStock(name) {
                                 console.log('list of portfolio');
                                 let return_data = [];
                                 for (const element of json.payload.data) {
+                                    if (element.ticker === "USDRUB") continue;
                                     let securityType = element.securityType.toLowerCase() + 's';
                                     await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
                                         let current_amount = element.currentAmount;
