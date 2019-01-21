@@ -187,7 +187,27 @@ function getListStock(name) {
     return new Promise(function (resolve, reject) {
         console.log('try to get list');
         getTCSsession().then(function (session_id) {
-            if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
+            if (name === "USDRUB") {
+                let return_data = [];
+                let usdInfo = {};
+                getPriceInfo("USDRUB", undefined, session_id).then(function (result) {
+                    usdInfo.prices = result.payload;
+                    usdInfo.exchangeStatus = result.payload.exchangeStatus ;
+                    }
+                ).then(function () {
+                    usdInfo.symbol = {
+                        ticker: "USDRUB",
+                            showName: "Доллар США",
+                            lotSize: 1,
+                    };
+                    return_data.push(usdInfo);
+                    resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                }).catch(function (ex) {
+                    console.log('parsing failed', ex);
+                    reject(undefined);
+                })
+            }
+            else if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
                 findTicker(name, session_id)
                     .then(function (json) {
                         console.log('found list');
