@@ -747,6 +747,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                     port.postMessage(Object.assign({}, {result: "cashDataBCS"}, {cash: cash_data}));
                 });
                 break;
+            case 'getAvailableCashIIS':
+                getAvailableCash('TinkoffIis').then(function (cash_data) {
+                    console.log("send message cash_data .....");
+                    port.postMessage(Object.assign({}, {result: "cashDataIIS"}, {cash: cash_data}));
+                });
+                break;
             default:
                 port.postMessage('unknown request');
         }

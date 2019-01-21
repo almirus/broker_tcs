@@ -158,6 +158,16 @@ port.onMessage.addListener(function (msg) {
             }
             document.getElementById('cashBCS').innerHTML = cash_str_bcs;
             break;
+        case 'cashDataIIS':
+            let cash_str_iis = 'Остаток на счете ИИС ';
+            for (let cash in msg.cash.payload.data) {
+                cash_str_iis += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: msg.cash.payload.data[cash].currency
+                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
+            }
+            document.getElementById('cashIIS').innerHTML = cash_str_iis;
+            break;
     }
 });
 
@@ -688,6 +698,7 @@ port.postMessage({method: "updateHeader"});
 port.postMessage({method: "getUserInfo"});
 port.postMessage({method: "getAvailableCashTCS"});
 port.postMessage({method: "getAvailableCashBCS"});
+port.postMessage({method: "getAvailableCashIIS"});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
@@ -702,6 +713,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         port.postMessage({method: "updateHeader"});
         port.postMessage({method: "getAvailableCashTCS"});
         port.postMessage({method: "getAvailableCashBCS"});
+        port.postMessage({method: "getAvailableCashIIS"});
     }
 });
 
