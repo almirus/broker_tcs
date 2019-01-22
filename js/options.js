@@ -292,7 +292,7 @@ function create_portfolio_table(data) {
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.prices.buy.currency,
-                maximumSignificantDigits: element.prices.buy.value < 0.01 ? 4 : 2
+                minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
             }) : ''}</a></div>
             <div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
@@ -312,7 +312,7 @@ function create_portfolio_table(data) {
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.earnings.absolute.currency,
-            maximumSignificantDigits: element.earnings.absolute.value < 0.01 ? 4 : 2
+            minimumFractionDigits: element.earnings.absolute.value < 0.1 ? 4 : 2
         }) : ''}</div>
         <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${element.earnings ? element.earnings.relative.toLocaleString('ru-RU', {
             style: 'percent',
@@ -481,7 +481,7 @@ function create_alert_table(data_list) {
                 td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: element.earnings.absolute.currency,
-                    maximumSignificantDigits: element.earnings.absolute.value < 0.01 ? 4 : 2
+                    minimumFractionDigits: element.earnings.absolute.value < 0.1 ? 4 : 2
                 })}</div>
                 <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
                     style: 'percent',
