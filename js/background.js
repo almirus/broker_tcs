@@ -4,7 +4,8 @@ import {
     ALERT_TICKER_LIST,
     BUY_LINK,
     CURRENCY_LIMIT_URL,
-    CURRENCY_URL,
+    CURRENCY_PRICE_URL,
+    CURRENCY_SYMBOL_URL,
     FAVORITE_URL,
     HOST_URL,
     INFO_URL,
@@ -26,7 +27,8 @@ import {
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
-    USER_URL,
+    USD_RUB,
+    USER_URL
 } from "/js/constants.mjs";
 
 function redirect_to_page(url, open_new = false) {
@@ -187,7 +189,26 @@ function getListStock(name) {
     return new Promise(function (resolve, reject) {
         console.log('try to get list');
         getTCSsession().then(function (session_id) {
-            if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
+            if (name === USD_RUB) {
+                let return_data = [];
+                let usdInfo = {};
+                getPriceInfo(USD_RUB, undefined, session_id).then(function (result) {
+                        usdInfo.prices = result.payload;
+                        usdInfo.exchangeStatus = result.payload.exchangeStatus;
+                    }
+                ).then(function () {
+                    usdInfo.symbol = {
+                        ticker: USD_RUB,
+                        showName: "Доллар США",
+                        lotSize: 1,
+                    };
+                    return_data.push(usdInfo);
+                    resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                }).catch(function (ex) {
+                    console.log('parsing failed', ex);
+                    reject(undefined);
+                })
+            } else if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
                 findTicker(name, session_id)
                     .then(function (json) {
                         console.log('found list');
@@ -233,7 +254,7 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    getPriceInfo("USDRUB", undefined, session_id).then(ticker => {
+                    getPriceInfo(USD_RUB, undefined, session_id).then(ticker => {
                         chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
                             console.log('get session option');
                             fetch(PORTFOLIO_URL + session_id)
@@ -243,6 +264,7 @@ function getListStock(name) {
                                 console.log('list of portfolio');
                                 let return_data = [];
                                 for (const element of json.payload.data) {
+                                    //if (element.ticker === USD_RUB) continue;
                                     let securityType = element.securityType.toLowerCase() + 's';
                                     await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
                                         let current_amount = element.currentAmount;
@@ -264,8 +286,8 @@ function getListStock(name) {
                                                 isOTC: symbol.payload.symbol.isOTC,
                                                 sessionOpen: symbol.payload.symbol.sessionOpen,
                                                 sessionClose: symbol.payload.symbol.sessionClose,
-                                                premarketStartTime:  symbol.payload.symbol.premarketStartTime,
-                                                premarketEndTime:  symbol.payload.symbol.premarketEndTime,
+                                                premarketStartTime: symbol.payload.symbol.premarketStartTime,
+                                                premarketEndTime: symbol.payload.symbol.premarketEndTime,
                                                 marketEndTime: symbol.payload.symbol.marketEndTime,
                                                 marketStartTime: symbol.payload.symbol.marketStartTime,
                                                 securityType: securityType,
@@ -357,7 +379,7 @@ function getAvailableCash(brokerName) {
                         if (res.status.toLocaleUpperCase() === 'OK') {
                             resolve(res);
                         } else {
-                            console.log('Сервис поиска недоступен');
+                            console.log(`${res.payload.message} - ${brokerName}`);
                             reject(undefined)
                         }
                     }).catch(e => {
@@ -374,7 +396,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
         console.log(`Get price for ${tickerName}`);
         if (tickerName) {
             // POST
-            fetch((tickerName.includes('RUB') ? CURRENCY_URL : PRICE_URL.replace('${securityType}', securityType)) + session_id, {
+            fetch((tickerName.includes('RUB') ? CURRENCY_PRICE_URL : PRICE_URL.replace('${securityType}', securityType)) + session_id, {
                 method: "POST",
                 body: JSON.stringify({ticker: tickerName}),
                 headers: {
@@ -400,13 +422,13 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
 
 }
 
-function getSymbolInfo(ticker, securityType, session_id) {
+function getSymbolInfo(tickerName, securityType, session_id) {
     return new Promise(function (resolve, reject) {
         // POST
 
-        fetch(SYMBOL_URL.replace('${securityType}', securityType) + session_id, {
+        fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + session_id, {
             method: "POST",
-            body: JSON.stringify({ticker: ticker}),
+            body: JSON.stringify({ticker: tickerName}),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -418,7 +440,7 @@ function getSymbolInfo(ticker, securityType, session_id) {
                 if (res.status.toLocaleUpperCase() === 'OK') {
                     resolve(res);
                 } else {
-                    console.log(`Сервис информации о бумаге ${ticker} недоступен`);
+                    console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
                     reject(res)
                 }
             }).catch(e => {
@@ -433,8 +455,9 @@ function checkTicker(item) {
         getTCSsession().then(function (session_id) {
             getPriceInfo(item.ticker, undefined, session_id).then(function (res) {
                 let last_price = res.payload.last.value;
-                let sell_price = res.payload.sell.value;
-                let buy_price = res.payload.buy.value;
+                // у внебержевых отсутствуют sell buy цены - берем last
+                let sell_price = res.payload.sell ? res.payload.sell.value : last_price;
+                let buy_price = res.payload.buy ? res.payload.buy.value : last_price;
                 let sell = !!item.sell_price && (sell_price >= item.sell_price / 1);
                 let buy = !!item.buy_price && (buy_price <= item.buy_price / 1);
                 resolve({buy: buy, sell: sell, value: buy ? buy_price : sell_price});
@@ -449,12 +472,12 @@ function checkTicker(item) {
     })
 }
 
-function deleteFromAlert(ticker) {
+function deleteFromAlert(ticker, sell_price, buy_price) {
     console.log('delete alert for ' + ticker);
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
-        let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker));
-
+        // фильтруем по совпадению имени и установленной цене
+        let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker && (item.sell_price === sell_price || item.buy_price === buy_price)));
         chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
             console.log('Save ticker ' + JSON.stringify(new_alert_date));
         })
@@ -520,7 +543,7 @@ function checkPortfolioAlerts() {
                             // сохраняем достигнутую доходность
                             setOldRelative('portfolio', sums.expectedYieldPerDayRelative);
                         }
-                    }).catch(e=>{
+                    }).catch(e => {
                         setOldRelative('portfolio', sums.expectedYieldPerDayRelative);
                         console.log('save new expectedYieldPerDayRelative')
                     })
@@ -604,42 +627,28 @@ function checkAlerts() {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let alert_data = data[TICKER_LIST] || [];
         alert_data.forEach(function (item) {
-            if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus === 'Close')) {
+            // пока не работает проверка на статус биржи, раньше бралась из Storage сейчас там ее нет
+            if ((!item.best_before || Date.parse(item.best_before) > new Date())) {
+            //if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus === 'Close')) {
                 // или дата не установлена или больше текущей => проверка не просрочилась и биржа не закрыта
                 console.log(`check alert for ${item.ticker}`);
                 checkTicker(item).then(function (response) {
                     console.log('Пытаемся проверить ' + item.ticker + ' на продажу по ' + item.sell_price + ' и покупку по ' + item.buy_price);
-                    if (response.buy) {
-                        chrome.notifications.create('buy|' + item.ticker, {
+                    if (response.buy || response.sell) {
+                        chrome.notifications.create(response.buy ? 'buy|' : 'sell|' + item.ticker, {
                             type: 'basic',
-                            iconUrl: '/icons/buy-2-64.png',
-                            title: `Сработала проверка на покупку по ${item.buy_price}`,
-                            message: `Цена ${item.ticker} достигла цены покупки ${response.value}`,
+                            iconUrl: response.buy ? '/icons/buy-2-64.png' : '/icons/sell-2-64.png',
+                            title: response.buy ? `Сработала проверка на покупку по ${item.buy_price}` : `Сработала проверка на продажу по ${item.sell_price}`,
+                            message: response.buy ? `Цена ${item.ticker} достигла цены покупки ${response.value}` : `Цена ${item.ticker} достигла цены продажи ${response.value}`,
                             requireInteraction: true,
                             priority: 0
                         });
                         chrome.storage.sync.get([OPTION_ALERT], function (result) {
                             if (result[OPTION_ALERT])
-                                redirect_to_page(BUY_LINK + item.ticker + '/', true);
+                                redirect_to_page((response.buy ? BUY_LINK : SELL_LINK) + item.ticker + '/', true);
                         });
-                        deleteFromAlert(item.ticker);
-                        console.log('Проверка сработала по покупке ' + item.ticker + ' за ' + item.buy_price);
-                    }
-                    if (response.sell) {
-                        chrome.notifications.create('sell|' + item.ticker, {
-                            type: 'basic',
-                            iconUrl: "/icons/sell-2-64.png",
-                            title: `Сработала проверка на продажу по ${item.sell_price}`,
-                            message: `Цена ${item.ticker} достигла цены продажи ${response.value}`,
-                            requireInteraction: true,
-                            priority: 0
-                        });
-                        chrome.storage.sync.get([OPTION_ALERT], function (result) {
-                            if (result[OPTION_ALERT])
-                                redirect_to_page(SELL_LINK + item.ticker + '/', true);
-                        });
-                        deleteFromAlert(item.ticker);
-                        console.log('Проверка сработала по продаже ' + item.ticker + ' за ' + item.sell_price);
+                        deleteFromAlert(item.ticker, item.sell_price, item.buy_price);
+                        console.log(response.buy ? `Проверка сработала по покупке ${item.ticker} за ${item.buy_price}` : `Проверка сработала по продаже ${item.ticker} за ${item.buy_price}`);
                     }
 
                 }).catch(e => {
@@ -647,7 +656,7 @@ function checkAlerts() {
                 })
             } else {
                 // просрочилась проверка
-                if (Date.parse(item.best_before) < new Date()) deleteFromAlert(item.ticker);
+                if (Date.parse(item.best_before) < new Date()) deleteFromAlert(item.ticker, item.sell_price, item.buy_price);
                 console.log(`Stock is ${item.exchangeStatus}`);
 
             }
@@ -717,13 +726,27 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getAvailableCash('Tinkoff').then(function (cash_data) {
                     console.log("send message cash_data .....");
                     port.postMessage(Object.assign({}, {result: "cashDataTCS"}, {cash: cash_data}));
+                }).catch(e => {
+                    console.log('Nothing to send')
                 });
                 break;
             case 'getAvailableCashBCS':
                 getAvailableCash('Bcs').then(function (cash_data) {
                     console.log("send message cash_data .....");
                     port.postMessage(Object.assign({}, {result: "cashDataBCS"}, {cash: cash_data}));
+                }).catch(e => {
+                    console.log('Nothing to send')
                 });
+                ;
+                break;
+            case 'getAvailableCashIIS':
+                getAvailableCash('TinkoffIis').then(function (cash_data) {
+                    console.log("send message cash_data .....");
+                    port.postMessage(Object.assign({}, {result: "cashDataIIS"}, {cash: cash_data}));
+                }).catch(e => {
+                    console.log('Nothing to send')
+                });
+                ;
                 break;
             default:
                 port.postMessage('unknown request');

@@ -158,6 +158,16 @@ port.onMessage.addListener(function (msg) {
             }
             document.getElementById('cashBCS').innerHTML = cash_str_bcs;
             break;
+        case 'cashDataIIS':
+            let cash_str_iis = 'Остаток на счете ИИС ';
+            for (let cash in msg.cash.payload.data) {
+                cash_str_iis += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: msg.cash.payload.data[cash].currency
+                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
+            }
+            document.getElementById('cashIIS').innerHTML = cash_str_iis;
+            break;
     }
 });
 
@@ -188,7 +198,7 @@ function setAddButtonHandler() {
                 port.postMessage({method: "updatePrices"});
                 chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
                     console.log('Save ticker ' + JSON.stringify(new_alert_date));
-                    alert('Добавлено');
+                    alert('Добавлено в список отслеживания');
                 })
             });
 
@@ -271,9 +281,9 @@ function create_portfolio_table(data) {
         }
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
-        let otc = element.symbol.isOTC ? '<img class="symbol_status" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
-        let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbol_status" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
-        td1.innerHTML = `${element.symbol.showName}<br><img class="symbol_status" alt="Статус биржи" 
+        let otc = element.symbol.isOTC ? '<img class="symbolStatus" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
+        let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbolStatus" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
+        td1.innerHTML = `${element.symbol.showName}<br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
@@ -281,7 +291,8 @@ function create_portfolio_table(data) {
             `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
                 style: 'currency',
-                currency: element.prices.buy.currency
+                currency: element.prices.buy.currency,
+                maximumSignificantDigits: element.prices.buy.value < 0.01 ? 4 : 2
             }) : ''}</a></div>
             <div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
@@ -300,7 +311,8 @@ function create_portfolio_table(data) {
         let td4 = document.createElement('td');
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
-            currency: element.earnings.absolute.currency
+            currency: element.earnings.absolute.currency,
+            maximumSignificantDigits: element.earnings.absolute.value < 0.01 ? 4 : 2
         }) : ''}</div>
         <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${element.earnings ? element.earnings.relative.toLocaleString('ru-RU', {
             style: 'percent',
@@ -418,6 +430,7 @@ function create_table(data) {
 function create_alert_table(data_list) {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let table;
+
         if (data[TICKER_LIST] && data[TICKER_LIST].length > 0) {
             table = document.createElement('table');
             table.className = 'alertPriceTable';
@@ -443,19 +456,31 @@ function create_alert_table(data_list) {
             table.appendChild(tr);
             let list_for_iteration = data_list || data[TICKER_LIST];
             list_for_iteration.forEach(function (element, i) {
+                // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
+                if (!data_list){
+                    element.online_average_price = 'Оновление';
+                    element.online_buy_price ='';
+                    element.currency ='';
+                    element.online_sell_price='';
+                }
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
                 td1.className = 'maxWidth';
                 td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
                 let td2 = document.createElement('td');
                 td2.innerHTML =
-                    `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>` +
-                    `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">${element.online_buy_price}${element.currency}</div>` +
-                    `<div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">${element.online_sell_price}</div>`;
+                    `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>
+                    <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
+                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}${element.currency}</a>
+                    </div>
+                    <div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">
+                    <a class="onlineSell" href="${SELL_LINK}${element.ticker}" target="_blank" title="Продать">${element.online_sell_price}</a>
+                    </div>`;
                 let td3 = document.createElement('td');
                 td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
                     style: 'currency',
-                    currency: element.earnings.absolute.currency
+                    currency: element.earnings.absolute.currency,
+                    maximumSignificantDigits: element.earnings.absolute.value < 0.01 ? 4 : 2
                 })}</div>
                 <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
                     style: 'percent',
@@ -684,6 +709,7 @@ port.postMessage({method: "updateHeader"});
 port.postMessage({method: "getUserInfo"});
 port.postMessage({method: "getAvailableCashTCS"});
 port.postMessage({method: "getAvailableCashBCS"});
+port.postMessage({method: "getAvailableCashIIS"});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
@@ -698,6 +724,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         port.postMessage({method: "updateHeader"});
         port.postMessage({method: "getAvailableCashTCS"});
         port.postMessage({method: "getAvailableCashBCS"});
+        port.postMessage({method: "getAvailableCashIIS"});
     }
 });
 
