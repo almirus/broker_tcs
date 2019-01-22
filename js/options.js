@@ -462,6 +462,7 @@ function create_alert_table(data_list) {
                     element.online_buy_price ='';
                     element.currency ='';
                     element.online_sell_price='';
+                    element.earnings = undefined;
                 }
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
