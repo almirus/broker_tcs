@@ -450,17 +450,21 @@ function create_alert_table(data_list) {
             th5.appendChild(document.createTextNode('покупка по'));
             let th6 = document.createElement('th');
             th6.appendChild(document.createTextNode('заявка активна до'));
+            let th7 = document.createElement('th');
+            th7.appendChild(document.createTextNode('Осталось до цели'));
             tr.appendChild(th1);
             tr.appendChild(th2);
             tr.appendChild(th3);
             tr.appendChild(th4);
             tr.appendChild(th5);
             tr.appendChild(th6);
+            tr.appendChild(th7);
             table.appendChild(tr);
             let list_for_iteration = data_list || data[TICKER_LIST];
-            list_for_iteration.sort(sortAlertRow);
-            list_for_iteration.forEach(function (element, i) {
-                console.log(element.ticker + " - " + giveLessDiffToTarget(element));
+            list_for_iteration = list_for_iteration.sort(sortAlertRow);
+            list_for_iteration.sort(sortAlertRow).forEach(function (element, i) {
+                let opacity_rate = giveLessDiffToTarget(element);
+                console.log(element.ticker + " - " + opacity_rate);
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
                 if (!data_list){
                     element.online_average_price = 'Обновление';
@@ -504,7 +508,13 @@ function create_alert_table(data_list) {
                 let alert_date = new Date(Date.parse(element.best_before));
                 td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
                 let td7 = document.createElement('td');
-                td7.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
+                td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
+                    style: 'percent',
+                    maximumSignificantDigits: 2
+                })}</strong>`;
+                td7.className = '';
+                let td8 = document.createElement('td');
+                td8.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tr.appendChild(td3);
@@ -512,6 +522,8 @@ function create_alert_table(data_list) {
                 tr.appendChild(td5);
                 tr.appendChild(td6);
                 tr.appendChild(td7);
+                tr.appendChild(td8);
+                tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
 
                 table.appendChild(tr);
                 //setRefreshHandler();
