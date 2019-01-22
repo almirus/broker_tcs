@@ -21,6 +21,7 @@ import {
     SYMBOL_LINK,
     TICKER_LIST
 } from "/js/constants.mjs";
+import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -457,7 +458,9 @@ function create_alert_table(data_list) {
             tr.appendChild(th6);
             table.appendChild(tr);
             let list_for_iteration = data_list || data[TICKER_LIST];
+            list_for_iteration.sort(sortAlertRow);
             list_for_iteration.forEach(function (element, i) {
+                console.log(element.ticker + " - " + giveLessDiffToTarget(element));
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
                 if (!data_list){
                     element.online_average_price = 'Обновление';
