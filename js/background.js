@@ -21,6 +21,7 @@ import {
     OPTION_SESSION,
     PING_URL,
     PORTFOLIO_URL,
+    ALL_ACCOUNTS,
     PRICE_URL,
     SEARCH_URL,
     SELL_LINK,
@@ -111,25 +112,30 @@ function getAllSum() {
     return new Promise(function (resolve, reject) {
         console.log('try to get sums');
         getTCSsession().then(function (session_id) {
-            fetch(PORTFOLIO_URL + session_id)
-                .then(function (response) {
+                fetch(ALL_ACCOUNTS + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({currency: "RUB"}),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                }).then(function (response) {
                     if (response.status === 502) {
                         return {status: 502, text: 'Сервис брокера недоступен'};
                     } else return response.json()
                 }).then(function (json) {
-
-                resolve({
-                    totalAmountPortfolio: json.payload.totalAmountPortfolio.value,
-                    expectedYield: json.payload.expectedYield.value,
-                    expectedYieldRelative: json.payload.expectedYieldRelative / 100,
-                    expectedYieldPerDay: json.payload.expectedYieldPerDay.value,
-                    expectedYieldPerDayRelative: json.payload.expectedYieldPerDayRelative / 100,
-                });
-            }).catch(ex => {
-                console.log('portfolio parsing failed', ex);
-                reject(undefined);
-            })
-        }).catch(function () {
+                    resolve({
+                        totalAmountPortfolio: json.payload.totals.totalAmount.value,
+                        expectedYield: json.payload.totals.expectedYield.value,
+                        expectedYieldRelative: json.payload.totals.expectedYieldRelative / 100,
+                        expectedYieldPerDay: json.payload.totals.expectedYieldPerDay.value,
+                        expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
+                    });
+                }).catch(ex => {
+                    console.log('portfolio parsing failed', ex);
+                    reject(undefined);
+                })
+            }).catch(function () {
             redirect_to_page(LOGIN_URL);
         })
     })
