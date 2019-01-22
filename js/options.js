@@ -233,8 +233,10 @@ function setRefreshHandler() {
 }
 */
 function create_portfolio_table(data) {
+    let old_table = document.getElementById('portfolio_table');
     let table = document.createElement('table');
-    table.className = 'alertPriceTable';
+    table.className = (old_table) ? old_table.className : 'alertPriceTable showAll';
+    table.id = 'portfolio_table';
     let tr = document.createElement('tr');
     let th1 = document.createElement('th');
     //th1.appendChild(document.createTextNode('название'));
@@ -344,7 +346,7 @@ function create_portfolio_table(data) {
             maximumSignificantDigits: 2
         })}</div>`;
 
-
+        tr.className = element.broker_type;
         tr.appendChild(td1);
         tr.appendChild(td2);
         tr.appendChild(td3);
@@ -736,4 +738,13 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             debounce(create_alert_table(), 1000);
         }
     }
+});
+
+document.getElementById('broker_portfolio_input').addEventListener('change', function (e) {
+    let table = document.getElementById('portfolio_table');
+    table.className = table.className.replace('showTinkoffIis', 'showAll');
+});
+document.getElementById('iis_portfolio_input').addEventListener('change', function (e) {
+    let table = document.getElementById('portfolio_table');
+    table.className = table.className.replace('showAll', 'showTinkoffIis');
 });

@@ -31,6 +31,7 @@ import {
     USD_RUB,
     USER_URL
 } from "/js/constants.mjs";
+import parseJSON from "/js/fetchUtils.js";
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -114,7 +115,7 @@ function getAllSum() {
         getTCSsession().then(function (session_id) {
                 fetch(ALL_ACCOUNTS + session_id, {
                     method: "POST",
-                    body: JSON.stringify({currency: "RUB"}),
+                    body: JSON.stringify({currency: 'RUB'}),
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
@@ -258,75 +259,122 @@ function getListStock(name) {
                     console.log('parsing failed', ex);
                     reject(undefined);
                 })
-            } else {
-                if (name === 2) { // портфолио
+            } else if (name === 2) { // портфолио
                     getPriceInfo(USD_RUB, undefined, session_id).then(ticker => {
                         chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
                             console.log('get session option');
-                            fetch(PORTFOLIO_URL + session_id)
-                                .then(function (response) {
-                                    return response.json()
-                                }).then(async function (json) {
-                                console.log('list of portfolio');
-                                let return_data = [];
-                                for (const element of json.payload.data) {
-                                    //if (element.ticker === USD_RUB) continue;
-                                    let securityType = element.securityType.toLowerCase() + 's';
-                                    await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
-                                        let current_amount = element.currentAmount;
-                                        let expected_yield = element.expectedYield;
-                                        let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
-                                        if (result[OPTION_CONVERT_TO_RUB] && current_amount.currency === 'USD') {
-                                            earning_today = earning_today * ticker.payload.last.value;
-                                            current_amount.value = current_amount.value * ticker.payload.last.value;
-                                            current_amount.currency = 'RUB';
-                                            expected_yield.value = expected_yield.value * ticker.payload.last.value;
-                                            expected_yield.currency = 'RUB';
-                                        }
-                                        return_data.push({
-                                            prices: symbol.payload.prices,
-                                            earnings: symbol.payload.earnings,
-                                            contentMarker: symbol.payload.contentMarker,
-                                            symbol: {
-                                                symbolType: symbol.payload.symbol.symbolType,
-                                                isOTC: symbol.payload.symbol.isOTC,
-                                                sessionOpen: symbol.payload.symbol.sessionOpen,
-                                                sessionClose: symbol.payload.symbol.sessionClose,
-                                                premarketStartTime: symbol.payload.symbol.premarketStartTime,
-                                                premarketEndTime: symbol.payload.symbol.premarketEndTime,
-                                                marketEndTime: symbol.payload.symbol.marketEndTime,
-                                                marketStartTime: symbol.payload.symbol.marketStartTime,
-                                                securityType: securityType,
-                                                ticker: element.ticker,
-                                                showName: symbol.payload.symbol.description || symbol.payload.symbol.showName,
-                                                lotSize: element.currentBalance,
-                                                expectedYieldRelative: element.expectedYieldRelative,
-                                                expectedYield: expected_yield,
-                                                currentPrice: element.currentPrice,
-                                                currentAmount: current_amount,
-                                                earningToday: earning_today,
-                                                averagePositionPrice: element.averagePositionPrice || {
-                                                    value: 0,
-                                                    currency: element.currentPrice.currency
-                                                },
-                                            },
-                                            exchangeStatus: symbol.payload.exchangeStatus
-                                        });
-                                    }).catch(e => {
-                                        console.log(e);
-                                    });
+                            let return_data = [];
+                            fetch(PORTFOLIO_URL + session_id, {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    brokerAccountType: 'All',
+                                    currency: 'RUB'
+                                }),
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
                                 }
-                                resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
-                            }).catch(function (ex) {
+                            })
+                                .then(parseJSON)
+                                .then(async function (json) {
+                                    console.log('list of portfolio');
+                                    for (const element of json.payload.data) {
+                                        //if (element.ticker === USD_RUB) continue;
+                                        let securityType = element.securityType.toLowerCase() + 's';
+                                        await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
+                                            let current_amount = element.currentAmount;
+                                            let expected_yield = element.expectedYield;
+                                            let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
+                                            if (result[OPTION_CONVERT_TO_RUB] && current_amount.currency === 'USD') {
+                                                earning_today = earning_today * ticker.payload.last.value;
+                                                current_amount.value = current_amount.value * ticker.payload.last.value;
+                                                current_amount.currency = 'RUB';
+                                                expected_yield.value = expected_yield.value * ticker.payload.last.value;
+                                                expected_yield.currency = 'RUB';
+                                            }
+                                            return_data.push(convertToReturnData(symbol, securityType, element, expected_yield, current_amount, earning_today, 'All'));
+                                        }).catch(e => {
+                                            console.log(e);
+                                        });
+                                    }
+                                    return fetch(PORTFOLIO_URL + session_id, {
+                                    method: "POST",
+                                    body: JSON.stringify({
+                                        brokerAccountType: 'TinkoffIis',
+                                        currency: 'RUB'
+                                    }),
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+                                }).then(parseJSON)
+                                .then(async function (json) {
+                                    console.log('list of portfolio');
+                                    for (const element of json.payload.data) {
+                                        //if (element.ticker === USD_RUB) continue;
+                                        let securityType = element.securityType.toLowerCase() + 's';
+                                        await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
+                                            let current_amount = element.currentAmount;
+                                            let expected_yield = element.expectedYield;
+                                            let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
+                                            if (result[OPTION_CONVERT_TO_RUB] && current_amount.currency === 'USD') {
+                                                earning_today = earning_today * ticker.payload.last.value;
+                                                current_amount.value = current_amount.value * ticker.payload.last.value;
+                                                current_amount.currency = 'RUB';
+                                                expected_yield.value = expected_yield.value * ticker.payload.last.value;
+                                                expected_yield.currency = 'RUB';
+                                            }
+                                            return_data.push(convertToReturnData(symbol, securityType, element, expected_yield, current_amount, earning_today, 'TinkoffIis'));
+                                        }).catch(e => {
+                                            console.log(e);
+                                        });
+                                    }
+                                    resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                                })
+                                .catch(function (ex) {
                                 console.log('parsing failed', ex);
                                 reject(undefined);
-                            })
+                            });
                         });
                     })
                 }
-            }
         })
     })
+}
+
+function convertToReturnData(symbol, securityType, element, expected_yield, current_amount, earning_today, broker_type) {
+    let result = {
+        prices: symbol.payload.prices,
+        earnings: symbol.payload.earnings,
+        contentMarker: symbol.payload.contentMarker,
+        symbol: {
+            symbolType: symbol.payload.symbol.symbolType,
+            isOTC: symbol.payload.symbol.isOTC,
+            sessionOpen: symbol.payload.symbol.sessionOpen,
+            sessionClose: symbol.payload.symbol.sessionClose,
+            premarketStartTime: symbol.payload.symbol.premarketStartTime,
+            premarketEndTime: symbol.payload.symbol.premarketEndTime,
+            marketEndTime: symbol.payload.symbol.marketEndTime,
+            marketStartTime: symbol.payload.symbol.marketStartTime,
+            securityType: securityType,
+            ticker: element.ticker,
+            showName: symbol.payload.symbol.description || symbol.payload.symbol.showName,
+            lotSize: element.currentBalance,
+            expectedYieldRelative: element.expectedYieldRelative,
+            expectedYield: expected_yield,
+            currentPrice: element.currentPrice,
+            currentAmount: current_amount,
+            earningToday: earning_today,
+            averagePositionPrice: element.averagePositionPrice || {
+                value: 0,
+                currency: element.currentPrice.currency
+            },
+        },
+        exchangeStatus: symbol.payload.exchangeStatus,
+        broker_type: broker_type
+    };
+    return result;
 }
 
 function findTicker(search, session_id) {

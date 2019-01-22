@@ -149,3 +149,14 @@ p.info {
 .maxWidth{
     max-width: 120px;
 }
+
+tr.All,
+tr.TinkoffIis {
+    display: none;
+}
+table.showAll > tr.All {
+    display: table-row;
+}
+table.showTinkoffIis > tr.TinkoffIis {
+    display: table-row;
+}
