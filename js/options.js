@@ -458,7 +458,7 @@ function create_alert_table(data_list) {
             list_for_iteration.forEach(function (element, i) {
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
                 if (!data_list){
-                    element.online_average_price = 'Оновление';
+                    element.online_average_price = 'Обновление';
                     element.online_buy_price ='';
                     element.currency ='';
                     element.online_sell_price='';
