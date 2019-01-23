@@ -23,6 +23,7 @@ import {
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
+import {toLocaleString, fillCashData} from "./utils/displayUtils.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -141,34 +142,13 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
             break;
         case 'cashDataTCS':
-            let cash_str = 'Остаток на счете ТКС ';
-            for (let cash in msg.cash.payload.data) {
-                cash_str += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: msg.cash.payload.data[cash].currency
-                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
-            }
-            document.getElementById('cashTCS').innerHTML = cash_str;
+            fillCashData(msg, 'Остаток на счете ТКС ', 'cashTCS');
             break;
         case 'cashDataBCS':
-            let cash_str_bcs = 'Остаток на счете БКС ';
-            for (let cash in msg.cash.payload.data) {
-                cash_str_bcs += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: msg.cash.payload.data[cash].currency
-                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
-            }
-            document.getElementById('cashBCS').innerHTML = cash_str_bcs;
+            fillCashData(msg, 'Остаток на счете БКС ', 'cashBCS');
             break;
         case 'cashDataIIS':
-            let cash_str_iis = 'Остаток на счете ИИС ';
-            for (let cash in msg.cash.payload.data) {
-                cash_str_iis += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: msg.cash.payload.data[cash].currency
-                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
-            }
-            document.getElementById('cashIIS').innerHTML = cash_str_iis;
+            fillCashData(msg, 'Остаток на счете ИИС ', 'cashIIS');
             break;
         case 'versionAPI':
             document.getElementById('versionAPI').innerText = `Версия API ${msg.version.payload.version}`;

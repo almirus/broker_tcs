@@ -419,26 +419,23 @@ function getAvailableCash(brokerName) {
                 // POST
                 fetch(CURRENCY_LIMIT_URL + session_id, {
                     method: "POST",
-                    body: JSON.stringify({
-                        brokerAccountType: brokerName
-                    }),
+                    body: JSON.stringify({brokerAccountType: brokerName}),
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                     }
                 }).then(function (res) {
                     return res.json();
-                })
-                    .then(function (res) {
-                        if (res.status.toLocaleUpperCase() === 'OK') {
-                            resolve(res);
-                        } else {
-                            console.log(`${res.payload.message} - ${brokerName}`);
-                            reject(undefined)
-                        }
-                    }).catch(e => {
-                    console.log(e);
-                    reject(undefined);
+                }).then(function (res) {
+                    if (res.status.toLocaleUpperCase() === 'OK') {
+                        resolve(res);
+                    } else {
+                        console.log(`${res.payload.message} - ${brokerName}`);
+                        reject(undefined)
+                    }
+                }).catch(e => {
+                console.log(e);
+                reject(undefined);
                 })
             }
         )
