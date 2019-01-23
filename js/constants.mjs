@@ -38,6 +38,9 @@ export const OPTION_ALERT_TODAY_VALUE_PER_SYMBOL = 'alert_today_value_per_symbol
 export const OPTION_CONVERT_TO_RUB = 'convert_to_rub';
 export const TICKER_LIST = 'tickerList';
 export const ALERT_TICKER_LIST = 'alertTickerList';
+//up to 5 API requests per minute and 500 requests per day
+export const  ALPHAVANTAGE_KEY = 'M3JMJM8U22EIIO2Y';
+export  const AV_SYMBOL_URL = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=';
 
 export const USD_RUB = 'USDRUB';
 

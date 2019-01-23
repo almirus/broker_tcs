@@ -243,7 +243,7 @@ function create_portfolio_table(data) {
     th2.innerHTML = 'цены брокера';
     th2.className = 'sorting';
     let th3 = document.createElement('th');
-    th3.innerHTML = 'вы покупали';
+    th3.innerHTML = 'средняя цена';
     th3.className = 'sorting';
     let th4 = document.createElement('th');
     th4.appendChild(document.createTextNode('измн. за день'));
