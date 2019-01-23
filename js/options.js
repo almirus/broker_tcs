@@ -306,7 +306,8 @@ function create_portfolio_table(data) {
         else
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
                 style: 'currency',
-                currency: element.symbol.averagePositionPrice.currency
+                currency: element.symbol.averagePositionPrice.currency,
+                minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
             })}</a>${prognosis_link}</div>`;
         let td4 = document.createElement('td');
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
