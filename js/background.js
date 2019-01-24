@@ -3,6 +3,7 @@
 import {
     ALERT_TICKER_LIST,
     BUY_LINK,
+    CHECK_VERSION_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
@@ -736,7 +737,6 @@ chrome.runtime.onConnect.addListener(function (port) {
                 }).catch(e => {
                     console.log('Nothing to send')
                 });
-                ;
                 break;
             case 'getAvailableCashIIS':
                 getAvailableCash('TinkoffIis').then(function (cash_data) {
@@ -745,7 +745,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                 }).catch(e => {
                     console.log('Nothing to send')
                 });
-                ;
+                break;
+            case 'getVersionAPI':
+                fetch(CHECK_VERSION_URL)
+                    .then(function (response) {
+                        return response.json()
+                    }).then(async function (json) {
+                    port.postMessage(Object.assign({}, {result: "versionAPI"}, {json}));
+                });
                 break;
             default:
                 port.postMessage('unknown request');

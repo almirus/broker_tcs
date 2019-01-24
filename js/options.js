@@ -168,6 +168,9 @@ port.onMessage.addListener(function (msg) {
             }
             document.getElementById('cashIIS').innerHTML = cash_str_iis;
             break;
+        case 'versionAPI':
+            document.getElementById('versionApi').innerText = `Версия API ${msg.payload.version}`;
+            break;
     }
 });
 
@@ -718,6 +721,7 @@ port.postMessage({method: "getUserInfo"});
 port.postMessage({method: "getAvailableCashTCS"});
 port.postMessage({method: "getAvailableCashBCS"});
 port.postMessage({method: "getAvailableCashIIS"});
+port.postMessage({method: "getVersionAPI"});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
