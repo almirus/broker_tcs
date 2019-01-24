@@ -462,7 +462,6 @@ function create_alert_table(data_list) {
             list_for_iteration = list_for_iteration.sort(sortAlertRow);
             list_for_iteration.sort(sortAlertRow).forEach(function (element, i) {
                 let opacity_rate = giveLessDiffToTarget(element);
-                console.log(element.ticker + " - " + opacity_rate);
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
                 if (!data_list){
                     element.online_average_price = 'Обновление';
