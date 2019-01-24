@@ -471,10 +471,15 @@ function create_alert_table(data_list) {
                 td1.className = 'maxWidth';
                 td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
                 let td2 = document.createElement('td');
+                element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                 td2.innerHTML =
-                    `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>
-                    <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
-                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}${element.currency}</a>
+                    //`<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>
+                    `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
+                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price.toLocaleString('ru-RU', {
+                        style: 'currency',
+                        currency: element.currency,
+                        minimumFractionDigits: element.online_buy_price < 0.1 ? 4 : 2
+                    })}</a>
                     </div>
                     <div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">
                     <a class="onlineSell" href="${SELL_LINK}${element.ticker}" target="_blank" title="Продать">${element.online_sell_price}</a>
