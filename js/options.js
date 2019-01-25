@@ -372,7 +372,7 @@ function create_portfolio_table(data) {
         });
 }
 
-// рендер таблицы с акциями
+// рендер таблицы с акциями для добавления
 function create_table(data) {
     let table = document.createElement('table');
     table.className = 'priceTable';
@@ -443,7 +443,7 @@ function create_alert_table(data_list) {
             let th1 = document.createElement('th');
             //th1.appendChild(document.createTextNode('название'));
             let th2 = document.createElement('th');
-            th2.innerHTML = 'цены брокера <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
+            th2.innerHTML = 'цены брокера';
             let th3 = document.createElement('th');
             th3.appendChild(document.createTextNode('измн. за день'));
             let th4 = document.createElement('th');
@@ -476,16 +476,18 @@ function create_alert_table(data_list) {
                 let td2 = document.createElement('td');
                 element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                 td2.innerHTML =
-                    //`<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>
-                    `<div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
-                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price.toLocaleString('ru-RU', {
+                    `<div style="float:left;margin-top: 5px" data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price.toLocaleString('ru-RU', {
                         style: 'currency',
                         currency: element.currency,
-                        minimumFractionDigits: element.online_buy_price < 0.1 ? 4 : 2
-                    })}</a>
+                        minimumFractionDigits: element.online_average_price < 0.1 ? 4 : 2
+                    })}</div>
+                    <div style="float:right;">
+                    <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
+                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}</a>
                     </div>
                     <div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">
                     <a class="onlineSell" href="${SELL_LINK}${element.ticker}" target="_blank" title="Продать">${element.online_sell_price}</a>
+                    </div>
                     </div>`;
                 let td3 = document.createElement('td');
                 td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
@@ -498,16 +500,21 @@ function create_alert_table(data_list) {
                     maximumSignificantDigits: 2
                 })}</strong></div>` : '';
                 td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
+                td3.align='right';
+
                 let td4 = document.createElement('td');
                 td4.innerHTML = `<strong>${element.sell_price}</strong>`;
                 td4.className = 'onlineBuy';
+                td4.align='right';
                 let td5 = document.createElement('td');
                 td5.innerHTML = `<strong>${element.buy_price}</strong>`;
                 td5.className = 'onlineSell';
+                td5.align='right';
                 let td6 = document.createElement('td');
                 td6.className = '';
                 let alert_date = new Date(Date.parse(element.best_before));
                 td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
+                td6.align='right'
                 let td7 = document.createElement('td');
                 td7.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
                 tr.appendChild(td1);
