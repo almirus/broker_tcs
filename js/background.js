@@ -751,7 +751,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                     .then(function (response) {
                         return response.json()
                     }).then(async function (json) {
-                    port.postMessage(Object.assign({}, {result: "versionAPI"}, {json}));
+                    port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
                 });
                 break;
             default:

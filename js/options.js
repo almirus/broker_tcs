@@ -169,7 +169,7 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('cashIIS').innerHTML = cash_str_iis;
             break;
         case 'versionAPI':
-            document.getElementById('versionApi').innerText = `Версия API ${msg.payload.version}`;
+            document.getElementById('versionAPI').innerText = `Версия API ${msg.version.payload.version}`;
             break;
     }
 });
