@@ -29,11 +29,11 @@
 }
 
 .onlineBuy {
-    color: green;
+    color: green !important;
 }
 
 .onlineSell {
-    color: red;
+    color: red !important;
 }
 
 div.fieldsetRow {
@@ -146,9 +146,21 @@ p.info {
     margin-bottom: -0.35em;
     padding-right: 2px;
 }
-.maxWidth{
+
+.maxWidth {
     max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+a:link, a:visited {
+    color: #121ff4;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+a:hover, a:active {
+    background-color: rgba(255, 255, 0, 0.27);
+    color: #f40024;
 }

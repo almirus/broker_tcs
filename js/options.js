@@ -445,6 +445,7 @@ function create_alert_table(data_list) {
             let th1 = document.createElement('th');
             //th1.appendChild(document.createTextNode('название'));
             let th2 = document.createElement('th');
+            th2.width = '100px';
             th2.innerHTML = 'цены брокера';
             let th3 = document.createElement('th');
             th3.appendChild(document.createTextNode('измн. за день'));
