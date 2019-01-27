@@ -508,25 +508,27 @@ function create_alert_table(data_list) {
                         maximumSignificantDigits: 2
                     })}</strong></div>` : '';
                     td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
-                    td3.align='right';
+                    td3.align = 'right';
                     let td4 = document.createElement('td');
                     td4.innerHTML = `<strong>${element.sell_price}</strong>`;
                     td4.className = 'onlineBuy';
-                    td4.align='right';
+                    td4.align = 'right';
                     let td5 = document.createElement('td');
                     td5.innerHTML = `<strong>${element.buy_price}</strong>`;
                     td5.className = 'onlineSell';
-                    td5.align='right';
+                    td5.align = 'right';
                     let td6 = document.createElement('td');
                     td6.className = '';
                     let alert_date = new Date(Date.parse(element.best_before));
                     td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
+                    td6.align = 'center';
                     let td7 = document.createElement('td');
                     td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
                         style: 'percent',
                         maximumSignificantDigits: 2
                     })}</strong>`;
                     td7.className = '';
+                    td7.align = 'center';
                     let td8 = document.createElement('td');
                     td8.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
                     tr.appendChild(td1);
@@ -578,9 +580,13 @@ document.getElementById('add_list_type').addEventListener('change', function (e)
 document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('alert_table').style.display = 'block';
+    document.getElementById('sort_by_nearest').style.display = 'inline';
+    document.getElementById('label_sort_by_nearest').style.display = 'inline';
 });
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('sort_by_nearest').style.display = 'none';
+    document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'block';
 });
 
