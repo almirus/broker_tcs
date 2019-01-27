@@ -15,6 +15,7 @@ import {
     OPTION_COSMETICS,
     OPTION_REDIRECT,
     OPTION_SESSION,
+    OPTION_SORT_BY_NEAREST,
     port,
     PROGNOS_LINK,
     SELL_LINK,
@@ -449,7 +450,7 @@ function create_alert_table(data_list) {
             let th6 = document.createElement('th');
             th6.appendChild(document.createTextNode('заявка активна до'));
             let th7 = document.createElement('th');
-            th7.appendChild(document.createTextNode('Осталось до цели'));
+            th7.appendChild(document.createTextNode('осталось до цели'));
             tr.appendChild(th1);
             tr.appendChild(th2);
             tr.appendChild(th3);
@@ -459,71 +460,73 @@ function create_alert_table(data_list) {
             tr.appendChild(th7);
             table.appendChild(tr);
             let list_for_iteration = data_list || data[TICKER_LIST];
-            list_for_iteration = list_for_iteration.sort(sortAlertRow);
-            list_for_iteration.sort(sortAlertRow).forEach(function (element, i) {
-                let opacity_rate = giveLessDiffToTarget(element);
-                // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
-                if (!data_list){
-                    element.online_average_price = 'Обновление';
-                    element.online_buy_price ='';
-                    element.currency ='';
-                    element.online_sell_price='';
-                    element.earnings = undefined;
-                }
-                let tr = document.createElement('tr');
-                let td1 = document.createElement('td');
-                td1.className = 'maxWidth';
-                td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
-                let td2 = document.createElement('td');
-                td2.innerHTML =
-                    `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>
+            chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
+                if (result[OPTION_SORT_BY_NEAREST]===true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
+                list_for_iteration.forEach(function (element, i) {
+                    let opacity_rate = giveLessDiffToTarget(element);
+                    // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
+                    if (!data_list) {
+                        element.online_average_price = 'Обновление';
+                        element.online_buy_price = '';
+                        element.currency = '';
+                        element.online_sell_price = '';
+                        element.earnings = undefined;
+                    }
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    td1.className = 'maxWidth';
+                    td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
+                    let td2 = document.createElement('td');
+                    td2.innerHTML =
+                        `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>
                     <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
                     <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}${element.currency}</a>
                     </div>
                     <div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">
                     <a class="onlineSell" href="${SELL_LINK}${element.ticker}" target="_blank" title="Продать">${element.online_sell_price}</a>
                     </div>`;
-                let td3 = document.createElement('td');
-                td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: element.earnings.absolute.currency,
-                    minimumFractionDigits: element.earnings.absolute.value < 0.1 ? 4 : 2
-                })}</div>
+                    let td3 = document.createElement('td');
+                    td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
+                        style: 'currency',
+                        currency: element.earnings.absolute.currency,
+                        minimumFractionDigits: element.earnings.absolute.value < 0.1 ? 4 : 2
+                    })}</div>
                 <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
-                    style: 'percent',
-                    maximumSignificantDigits: 2
-                })}</strong></div>` : '';
-                td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
-                let td4 = document.createElement('td');
-                td4.innerHTML = `<strong>${element.sell_price}</strong>`;
-                td4.className = 'onlineBuy';
-                let td5 = document.createElement('td');
-                td5.innerHTML = `<strong>${element.buy_price}</strong>`;
-                td5.className = 'onlineSell';
-                let td6 = document.createElement('td');
-                td6.className = '';
-                let alert_date = new Date(Date.parse(element.best_before));
-                td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
-                let td7 = document.createElement('td');
-                td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
-                    style: 'percent',
-                    maximumSignificantDigits: 2
-                })}</strong>`;
-                td7.className = '';
-                let td8 = document.createElement('td');
-                td8.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
-                tr.appendChild(td1);
-                tr.appendChild(td2);
-                tr.appendChild(td3);
-                tr.appendChild(td4);
-                tr.appendChild(td5);
-                tr.appendChild(td6);
-                tr.appendChild(td7);
-                tr.appendChild(td8);
-                tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
+                        style: 'percent',
+                        maximumSignificantDigits: 2
+                    })}</strong></div>` : '';
+                    td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
+                    let td4 = document.createElement('td');
+                    td4.innerHTML = `<strong>${element.sell_price}</strong>`;
+                    td4.className = 'onlineBuy';
+                    let td5 = document.createElement('td');
+                    td5.innerHTML = `<strong>${element.buy_price}</strong>`;
+                    td5.className = 'onlineSell';
+                    let td6 = document.createElement('td');
+                    td6.className = '';
+                    let alert_date = new Date(Date.parse(element.best_before));
+                    td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
+                    let td7 = document.createElement('td');
+                    td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
+                        style: 'percent',
+                        maximumSignificantDigits: 2
+                    })}</strong>`;
+                    td7.className = '';
+                    let td8 = document.createElement('td');
+                    td8.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
+                    tr.appendChild(td4);
+                    tr.appendChild(td5);
+                    tr.appendChild(td6);
+                    tr.appendChild(td7);
+                    tr.appendChild(td8);
+                    tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
 
-                table.appendChild(tr);
-                //setRefreshHandler();
+                    table.appendChild(tr);
+                    //setRefreshHandler();
+                })
             })
         } else {
             table = document.createElement('h5');
@@ -691,7 +694,6 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result)
 
 
 // сохраняем применение Конвертировать в рубли
-
 document.getElementById(OPTION_CONVERT_TO_RUB).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_CONVERT_TO_RUB]: e.target.checked}, function () {
         console.log('convert_to_rub option set to ' + e.target.checked);
@@ -701,6 +703,18 @@ document.getElementById(OPTION_CONVERT_TO_RUB).addEventListener('change', functi
 chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
     console.log('get convert_to_rub option');
     document.getElementById(OPTION_CONVERT_TO_RUB).checked = result[OPTION_CONVERT_TO_RUB] === true;
+});
+
+// сохраняем применение Сортировки
+document.getElementById(OPTION_SORT_BY_NEAREST).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_SORT_BY_NEAREST]: e.target.checked}, function () {
+        console.log('sort_bt_nearest option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
+    console.log('get sort_by_nearest option');
+    document.getElementById(OPTION_SORT_BY_NEAREST).checked = result[OPTION_SORT_BY_NEAREST] === true;
 });
 
 // запрашиваем права на выдачу уведомлений
