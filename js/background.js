@@ -3,6 +3,7 @@
 import {
     ALERT_TICKER_LIST,
     BUY_LINK,
+    CHECK_VERSION_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
@@ -264,8 +265,7 @@ function getListStock(name) {
                                 console.log('list of portfolio');
                                 let return_data = [];
                                 for (const element of json.payload.data) {
-                                    //if (element.ticker === USD_RUB) continue;
-                                    let securityType = element.securityType.toLowerCase() + 's';
+                                    let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
                                     await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
                                         let current_amount = element.currentAmount;
                                         let expected_yield = element.expectedYield;
@@ -591,7 +591,7 @@ function checkSymbolsAlerts() {
                                         if (symbol_relative >= alert_value) {
                                             let icon = earnings_relative < (old_relative || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
                                             let sign = earnings_relative < (old_relative || 0) ? '-' : '+';
-                                            chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker, {
+                                            chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker + '|' + item.symbol.securityType, {
                                                 type: 'basic',
                                                 iconUrl: icon,
                                                 title: `Доходность ${item.symbol.ticker} изменилась на ${sign}${alert_value}% и составила ${earnings_relative}%`,
@@ -629,7 +629,7 @@ function checkAlerts() {
         alert_data.forEach(function (item) {
             // пока не работает проверка на статус биржи, раньше бралась из Storage сейчас там ее нет
             if ((!item.best_before || Date.parse(item.best_before) > new Date())) {
-            //if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus === 'Close')) {
+                //if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus === 'Close')) {
                 // или дата не установлена или больше текущей => проверка не просрочилась и биржа не закрыта
                 console.log(`check alert for ${item.ticker}`);
                 checkTicker(item).then(function (response) {
@@ -737,7 +737,6 @@ chrome.runtime.onConnect.addListener(function (port) {
                 }).catch(e => {
                     console.log('Nothing to send')
                 });
-                ;
                 break;
             case 'getAvailableCashIIS':
                 getAvailableCash('TinkoffIis').then(function (cash_data) {
@@ -746,7 +745,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                 }).catch(e => {
                     console.log('Nothing to send')
                 });
-                ;
+                break;
+            case 'getVersionAPI':
+                fetch(CHECK_VERSION_URL)
+                    .then(function (response) {
+                        return response.json()
+                    }).then(async function (json) {
+                    port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
+                });
                 break;
             default:
                 port.postMessage('unknown request');
@@ -788,10 +794,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
         chrome.notifications.clear(notificationId);
         // перейти в акцию
         if (btnIdx === 0) {
-            redirect_to_page(SYMBOL_LINK + ticker[1], true)
-            // больше не показывать
-        } else if (btnIdx === 1) {
-            redirect_to_page(SELL_LINK + ticker[1], true)
+            redirect_to_page(SYMBOL_LINK.replace('${securityType}', ticker[2] || 'stocks') + ticker[1], true)
         }
     }
 });

@@ -170,6 +170,9 @@ port.onMessage.addListener(function (msg) {
             }
             document.getElementById('cashIIS').innerHTML = cash_str_iis;
             break;
+        case 'versionAPI':
+            document.getElementById('versionAPI').innerText = `Версия API ${msg.version.payload.version}`;
+            break;
     }
 });
 
@@ -245,7 +248,7 @@ function create_portfolio_table(data) {
     th2.innerHTML = 'цены брокера';
     th2.className = 'sorting';
     let th3 = document.createElement('th');
-    th3.innerHTML = 'вы покупали';
+    th3.innerHTML = 'средняя цена';
     th3.className = 'sorting';
     let th4 = document.createElement('th');
     th4.appendChild(document.createTextNode('измн. за день'));
@@ -283,10 +286,11 @@ function create_portfolio_table(data) {
         }
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
-        let otc = element.symbol.isOTC ? '<img class="symbolStatus" alt="Внебержевой инструмент" title="Внебержевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
+        let otc = element.symbol.isOTC ? '<img class="symbolStatus" alt="Внебиржевой инструмент" title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
         let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbolStatus" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
+        let currency = element.symbol.symbolType === 'Currency' ? '<img class="symbolStatus" alt="Валюта" title="Валюта" src="/icons/currency_dollar.png">' : '';
         td1.innerHTML = `${element.symbol.showName}<br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}${currency}
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = element.prices ? `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
@@ -308,7 +312,8 @@ function create_portfolio_table(data) {
         else
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
                 style: 'currency',
-                currency: element.symbol.averagePositionPrice.currency
+                currency: element.symbol.averagePositionPrice.currency,
+                minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
             })}</a>${prognosis_link}</div>`;
         let td4 = document.createElement('td');
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
@@ -369,7 +374,7 @@ function create_portfolio_table(data) {
         });
 }
 
-// рендер таблицы с акциями
+// рендер таблицы с акциями для добавления
 function create_table(data) {
     let table = document.createElement('table');
     table.className = 'priceTable';
@@ -440,7 +445,7 @@ function create_alert_table(data_list) {
             let th1 = document.createElement('th');
             //th1.appendChild(document.createTextNode('название'));
             let th2 = document.createElement('th');
-            th2.innerHTML = 'цены брокера <br><!--<input type="button" value="Обновить вручную" id="updatePrice" title="Обновить цены вручную">-->';
+            th2.innerHTML = 'цены брокера';
             let th3 = document.createElement('th');
             th3.appendChild(document.createTextNode('измн. за день'));
             let th4 = document.createElement('th');
@@ -476,14 +481,20 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
-                    let td2 = document.createElement('td');
-                    td2.innerHTML =
-                        `<div data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price}</div>
+                element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
+                td2.innerHTML =
+                    `<div style="float:left;margin-top: 5px" data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price.toLocaleString('ru-RU', {
+                        style: 'currency',
+                        currency: element.currency,
+                        minimumFractionDigits: element.online_average_price < 0.1 ? 4 : 2
+                    })}</div>
+                    <div style="float:right;">
                     <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
-                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}${element.currency}</a>
+                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}</a>
                     </div>
                     <div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">
                     <a class="onlineSell" href="${SELL_LINK}${element.ticker}" target="_blank" title="Продать">${element.online_sell_price}</a>
+                    </div>
                     </div>`;
                     let td3 = document.createElement('td');
                     td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
@@ -527,7 +538,6 @@ function create_alert_table(data_list) {
                     table.appendChild(tr);
                     //setRefreshHandler();
                 })
-            })
         } else {
             table = document.createElement('h5');
             table.innerText = 'Список для отслеживания пуст, добавьте, нажав "Добавить для отслеживания"';
@@ -739,6 +749,7 @@ port.postMessage({method: "getUserInfo"});
 port.postMessage({method: "getAvailableCashTCS"});
 port.postMessage({method: "getAvailableCashBCS"});
 port.postMessage({method: "getAvailableCashIIS"});
+port.postMessage({method: "getVersionAPI"});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
