@@ -466,7 +466,7 @@ function create_alert_table(data_list) {
             table.appendChild(tr);
             let list_for_iteration = data_list || data[TICKER_LIST];
             chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
-                if (result[OPTION_SORT_BY_NEAREST]===true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
+                if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
                 list_for_iteration.forEach(function (element, i) {
                     let opacity_rate = giveLessDiffToTarget(element);
                     // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
@@ -481,13 +481,14 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
-                element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
-                td2.innerHTML =
-                    `<div style="float:left;margin-top: 5px" data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price.toLocaleString('ru-RU', {
-                        style: 'currency',
-                        currency: element.currency,
-                        minimumFractionDigits: element.online_average_price < 0.1 ? 4 : 2
-                    })}</div>
+                    element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
+                    let td2 = document.createElement('td');
+                    td2.innerHTML =
+                        `<div style="float:left;margin-top: 5px" data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price.toLocaleString('ru-RU', {
+                            style: 'currency',
+                            currency: element.currency,
+                            minimumFractionDigits: element.online_average_price < 0.1 ? 4 : 2
+                        })}</div>
                     <div style="float:right;">
                     <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
                     <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}</a>
@@ -502,17 +503,20 @@ function create_alert_table(data_list) {
                         currency: element.earnings.absolute.currency,
                         minimumFractionDigits: element.earnings.absolute.value < 0.1 ? 4 : 2
                     })}</div>
-                <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
+                    <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
                         style: 'percent',
                         maximumSignificantDigits: 2
                     })}</strong></div>` : '';
                     td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
+                    td3.align='right';
                     let td4 = document.createElement('td');
                     td4.innerHTML = `<strong>${element.sell_price}</strong>`;
                     td4.className = 'onlineBuy';
+                    td4.align='right';
                     let td5 = document.createElement('td');
                     td5.innerHTML = `<strong>${element.buy_price}</strong>`;
                     td5.className = 'onlineSell';
+                    td5.align='right';
                     let td6 = document.createElement('td');
                     td6.className = '';
                     let alert_date = new Date(Date.parse(element.best_before));
@@ -538,6 +542,7 @@ function create_alert_table(data_list) {
                     table.appendChild(tr);
                     //setRefreshHandler();
                 })
+            })
         } else {
             table = document.createElement('h5');
             table.innerText = 'Список для отслеживания пуст, добавьте, нажав "Добавить для отслеживания"';
