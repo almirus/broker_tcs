@@ -36,6 +36,7 @@ export const OPTION_ALERT_TODAY_VALUE = 'alert_today_value';
 export const OPTION_ALERT_TODAY_PER_SYMBOL = 'alert_today_per_symbol';
 export const OPTION_ALERT_TODAY_VALUE_PER_SYMBOL = 'alert_today_value_per_symbol';
 export const OPTION_CONVERT_TO_RUB = 'convert_to_rub';
+export const OPTION_SORT_BY_NEAREST = 'sort_by_nearest';
 export const TICKER_LIST = 'tickerList';
 export const ALERT_TICKER_LIST = 'alertTickerList';
 //up to 5 API requests per minute and 500 requests per day
