@@ -33,7 +33,7 @@ import {
     USD_RUB,
     USER_URL
 } from "/js/constants.mjs";
-import {parseJSON} from "/js/fetchUtils.js";
+import {parseJSON, onlySuccess} from "/js/fetchUtils.js";
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -805,7 +805,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
                 break;
             case 'getAvailableCashIIS':
-                getAvailableCash('TinkoffIis').then(function (cash_data) {
+                getAvailableCash('TinkoffIis').then(onlySuccess)
+                .then(function (cash_data) {
                     console.log("send message cash_data .....");
                     port.postMessage(Object.assign({}, {result: "cashDataIIS"}, {cash: cash_data}));
                 }).catch(e => {
