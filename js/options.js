@@ -222,7 +222,7 @@ function setDeleteButtonHandler() {
                 let ticker = button.dataset.index;
                 chrome.storage.sync.get([TICKER_LIST], function (data) {
                     let alert_data = data[TICKER_LIST] || [];
-                    let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker ));
+                    let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker));
                     chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
                         console.log('Save ticker ' + JSON.stringify(new_alert_date));
                         //create_alert_table(alert_data);
@@ -293,20 +293,20 @@ function create_portfolio_table(data) {
         let otc = element.symbol.isOTC ? '<img class="symbolStatus" alt="Внебиржевой инструмент" title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
         let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbolStatus" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
         let currency = element.symbol.symbolType === 'Currency' ? '<img class="symbolStatus" alt="Валюта" title="Валюта" src="/icons/currency_dollar.png">' : '';
-        td1.innerHTML = `${element.symbol.showName}<br><img class="symbolStatus" alt="Статус биржи" 
+        td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}${currency}
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
-        td2.innerHTML = element.prices ? `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
-            `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
+        td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
+            (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.prices.buy.currency,
-                minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
-            }) : ''}</a></div>
-            <div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
+            style: 'currency',
+            currency: element.prices.buy.currency,
+            minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
+        }) : ''}</a></div>` : '') +
+            (element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
-            </div>` : '';
+            </div>` : '');
         let prognosis_link = element.contentMarker.prognosis ? `<br>(<a href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Посмотреть прогноз цены">прогноз</a>)` : '';
 
         let td3 = document.createElement('td');
