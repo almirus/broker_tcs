@@ -213,21 +213,25 @@ function setAddButtonHandler() {
 
 // Удаление из списка
 function setDeleteButtonHandler() {
-    Array.from(document.getElementsByClassName("deleteTicker")).forEach(function (input) {
-        input.addEventListener('click', function (e) {
-            let button = e.target;
-            let index = button.dataset.index;
-            chrome.storage.sync.get([TICKER_LIST], function (data) {
-                let alert_data = data[TICKER_LIST] || [];
-                alert_data.splice(index, 1);
-                chrome.storage.sync.set({[TICKER_LIST]: alert_data}, function () {
-                    console.log('Save ticker ' + JSON.stringify(alert_data));
-                    create_alert_table();
-                })
+    // очень не красиво, но пока так
+    setTimeout(function () {
+        let container = document.getElementById('alert_table');
+        Array.from(container.getElementsByClassName("deleteTicker")).forEach(function (input) {
+            input.addEventListener('click', function (e) {
+                let button = e.target;
+                let index = button.dataset.index;
+                chrome.storage.sync.get([TICKER_LIST], function (data) {
+                    let alert_data = data[TICKER_LIST] || [];
+                    alert_data.splice(index, 1);
+                    chrome.storage.sync.set({[TICKER_LIST]: alert_data}, function () {
+                        console.log('Save ticker ' + JSON.stringify(alert_data));
+                        create_alert_table();
+                    })
+                });
             });
-        });
+        })
+    }, 1000);
 
-    })
 }
 
 /*
@@ -550,7 +554,7 @@ function create_alert_table(data_list) {
             table = document.createElement('h5');
             table.innerText = 'Список для отслеживания пуст, добавьте, нажав "Добавить для отслеживания"';
         }
-        document.getElementById('alert_table').innerText = '';
+        document.getElementById('alert_table').innerHTML = '';
         document.getElementById('alert_table').appendChild(table);
         setDeleteButtonHandler();
     })
