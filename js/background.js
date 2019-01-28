@@ -20,6 +20,7 @@ import {
     OPTION_CONVERT_TO_RUB,
     OPTION_REDIRECT,
     OPTION_SESSION,
+    OPTION_SHOW_IIS,
     PING_URL,
     PORTFOLIO_URL,
     ALL_ACCOUNTS,
@@ -32,7 +33,7 @@ import {
     USD_RUB,
     USER_URL
 } from "/js/constants.mjs";
-import parseJSON from "/js/fetchUtils.js";
+import {parseJSON} from "/js/fetchUtils.js";
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -308,7 +309,21 @@ function getListStock(name) {
                                         'Content-Type': 'application/json'
                                     }
                                 });
-                                }).then(parseJSON)
+                                })
+                                .then(function (response) {
+                                        if (response.status >= 200 && response.status < 300) {
+                                            chrome.storage.sync.set({[OPTION_SHOW_IIS]: true}, function () {
+                                                console.log('show_iis option set to ' + true);
+                                            });
+                                            return response
+                                        } else {
+                                            chrome.storage.sync.set({[OPTION_SHOW_IIS]: false}, function () {
+                                                console.log('show_iis option set to ' + false);
+                                            });
+                                        }
+                                    }
+                                )
+                                .then(parseJSON)
                                 .then(async function (json) {
                                     console.log('list of portfolio');
                                     for (const element of json.payload.data) {

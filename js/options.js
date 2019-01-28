@@ -16,6 +16,7 @@ import {
     OPTION_REDIRECT,
     OPTION_SESSION,
     OPTION_SORT_BY_NEAREST,
+    OPTION_SHOW_IIS,
     port,
     PROGNOS_LINK,
     SELL_LINK,
@@ -83,6 +84,7 @@ port.onMessage.addListener(function (msg) {
             setAddButtonHandler();
             break;
         case 'listPortfolio':
+            show_pick_portfolio();
             create_portfolio_table(msg.stocks);
             break;
         case 'listAlerts':
@@ -539,6 +541,13 @@ function create_alert_table(data_list) {
         document.getElementById('alert_table').innerHTML = '';
         document.getElementById('alert_table').appendChild(table);
         setDeleteButtonHandler();
+    })
+}
+
+// Функция отображающая радиобатаны в зависимости от того, имеется ли у пользователя открытй счет ИИС
+function show_pick_portfolio() {
+    chrome.storage.sync.get([OPTION_SHOW_IIS], function (data) {
+        document.getElementById('pick_portfolio').style.display = data[OPTION_SHOW_IIS] ? 'block' : 'none';
     })
 }
 
