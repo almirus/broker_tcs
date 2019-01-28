@@ -213,19 +213,19 @@ function setAddButtonHandler() {
 
 // Удаление из списка
 function setDeleteButtonHandler() {
-    // очень не красиво, но пока так
+    // очень некрасиво, но пока так
     setTimeout(function () {
         let container = document.getElementById('alert_table');
         Array.from(container.getElementsByClassName("deleteTicker")).forEach(function (input) {
             input.addEventListener('click', function (e) {
                 let button = e.target;
-                let index = button.dataset.index;
+                let ticker = button.dataset.index;
                 chrome.storage.sync.get([TICKER_LIST], function (data) {
                     let alert_data = data[TICKER_LIST] || [];
-                    alert_data.splice(index, 1);
-                    chrome.storage.sync.set({[TICKER_LIST]: alert_data}, function () {
-                        console.log('Save ticker ' + JSON.stringify(alert_data));
-                        create_alert_table();
+                    let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker ));
+                    chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
+                        console.log('Save ticker ' + JSON.stringify(new_alert_date));
+                        //create_alert_table(alert_data);
                     })
                 });
             });
@@ -472,7 +472,7 @@ function create_alert_table(data_list) {
             let list_for_iteration = data_list || data[TICKER_LIST];
             chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
                 if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
-                list_for_iteration.forEach(function (element, i) {
+                list_for_iteration.forEach(function (element) {
                     let opacity_rate = giveLessDiffToTarget(element);
                     // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
                     if (!data_list) {
@@ -481,12 +481,12 @@ function create_alert_table(data_list) {
                         element.currency = '';
                         element.online_sell_price = '';
                         element.earnings = undefined;
-                    }
+                    } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                     let tr = document.createElement('tr');
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
-                    element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
+
                     let td2 = document.createElement('td');
                     td2.innerHTML =
                         `<div style="float:left;margin-top: 5px" data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price.toLocaleString('ru-RU', {
@@ -535,7 +535,7 @@ function create_alert_table(data_list) {
                     td7.className = '';
                     td7.align = 'center';
                     let td8 = document.createElement('td');
-                    td8.innerHTML = `<input class="deleteTicker" data-index="${i}" type="button" value="X" title="Удалить">`;
+                    td8.innerHTML = `<input class="deleteTicker" data-index="${element.ticker}" type="button" value="X" title="Удалить">`;
                     tr.appendChild(td1);
                     tr.appendChild(td2);
                     tr.appendChild(td3);
