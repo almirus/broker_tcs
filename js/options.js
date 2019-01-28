@@ -323,7 +323,7 @@ function create_portfolio_table(data) {
         td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.earnings.absolute.currency,
-            minimumFractionDigits: element.earnings.absolute.value < 0.1 ? 4 : 2
+            minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 1 ? 4 : 2
         }) : ''}</div>
         <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${element.earnings ? element.earnings.relative.toLocaleString('ru-RU', {
             style: 'percent',
@@ -506,7 +506,7 @@ function create_alert_table(data_list) {
                     td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
                         style: 'currency',
                         currency: element.earnings.absolute.currency,
-                        minimumFractionDigits: element.earnings.absolute.value < 0.1 ? 4 : 2
+                        minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 0.1 ? 4 : 2
                     })}</div>
                     <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
                         style: 'percent',

@@ -584,13 +584,13 @@ function checkSymbolsAlerts() {
                         list_symbols.stocks.forEach(function (item, i, alertList) {
                             if (!(item.exchangeStatus === 'Close'))
                                 getPriceInfo(item.symbol.ticker, item.symbol.securityType, session_id).then(function (res) {
-                                    let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
+                                    let earnings_relative = res.payload.earnings.relative * 100;
                                     getOldRelative(item.symbol.ticker).then(old_relative => {
                                         let symbol_relative = Math.abs(earnings_relative - (old_relative || 0));
                                         console.log(`check portfolio symbols ${item.symbol.ticker} for yield ${symbol_relative} <> ${alert_value}`);
-                                        if (symbol_relative >= alert_value) {
-                                            let icon = earnings_relative < (old_relative || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
-                                            let sign = earnings_relative < (old_relative || 0) ? '-' : '+';
+                                        if (symbol_relative >= alert_value * 1) {
+                                            let icon = earnings_relative < (old_relative * 1 || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
+                                            let sign = earnings_relative < (old_relative * 1 || 0) ? '-' : '+';
                                             chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker + '|' + item.symbol.securityType, {
                                                 type: 'basic',
                                                 iconUrl: icon,
