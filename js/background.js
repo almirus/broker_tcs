@@ -598,7 +598,7 @@ function checkPortfolioAlerts() {
                             chrome.notifications.create(OPTION_ALERT_TODAY, {
                                 type: 'basic',
                                 iconUrl: icon,
-                                title: `Дневная доходность изменилась более чем на ${sign}${alert_value}% и составила ${sums.expectedYieldPerDayRelative * 100}`,
+                                title: `Доходность портфеля изменилась на ${sign}${alert_value}% и составила ${sums.expectedYieldPerDayRelative * 100}`,
                                 message: 'Проверьте свой портфель',
                                 requireInteraction: true,
                                 buttons: [
@@ -660,7 +660,7 @@ function checkSymbolsAlerts() {
                                             chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker + '|' + item.symbol.securityType, {
                                                 type: 'basic',
                                                 iconUrl: icon,
-                                                title: `Доходность ${item.symbol.ticker} изменилась на ${sign}${alert_value}% и составила ${earnings_relative}%`,
+                                                title: `Доходность ${item.symbol.ticker} изменилась на ${sign}${alert_value}% и составила ${earnings_relative.toFixed(2)}%`,
                                                 message: 'Проверьте свой портфель',
                                                 requireInteraction: true,
                                                 buttons: [
