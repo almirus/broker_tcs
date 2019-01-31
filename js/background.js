@@ -374,7 +374,7 @@ function convertToReturnData(symbol, securityType, element, expected_yield, curr
             marketStartTime: symbol.payload.symbol.marketStartTime,
             securityType: securityType,
             ticker: element.ticker,
-            showName: symbol.payload.symbol.description || symbol.payload.symbol.showName,
+            showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
             lotSize: element.currentBalance,
             expectedYieldRelative: element.expectedYieldRelative,
             expectedYield: expected_yield,
@@ -598,7 +598,7 @@ function checkPortfolioAlerts() {
                             chrome.notifications.create(OPTION_ALERT_TODAY, {
                                 type: 'basic',
                                 iconUrl: icon,
-                                title: `Дневная доходность изменилась более чем на ${sign}${alert_value}% и составила ${sums.expectedYieldPerDayRelative * 100}`,
+                                title: `Доходность портфеля изменилась на ${sign}${alert_value}% и составила ${sums.expectedYieldPerDayRelative * 100}`,
                                 message: 'Проверьте свой портфель',
                                 requireInteraction: true,
                                 buttons: [
@@ -650,17 +650,17 @@ function checkSymbolsAlerts() {
                         list_symbols.stocks.forEach(function (item, i, alertList) {
                             if (!(item.exchangeStatus === 'Close'))
                                 getPriceInfo(item.symbol.ticker, item.symbol.securityType, session_id).then(function (res) {
-                                    let earnings_relative = (res.payload.earnings.relative * 100).toFixed(2);
+                                    let earnings_relative = res.payload.earnings.relative * 100;
                                     getOldRelative(item.symbol.ticker).then(old_relative => {
                                         let symbol_relative = Math.abs(earnings_relative - (old_relative || 0));
                                         console.log(`check portfolio symbols ${item.symbol.ticker} for yield ${symbol_relative} <> ${alert_value}`);
-                                        if (symbol_relative >= alert_value) {
-                                            let icon = earnings_relative < (old_relative || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
-                                            let sign = earnings_relative < (old_relative || 0) ? '-' : '+';
+                                        if (symbol_relative >= alert_value * 1) {
+                                            let icon = earnings_relative < (old_relative * 1 || 0) ? '/icons/loss_72px_1204272_easyicon.net.png' : '/icons/profits_72px_1204282_easyicon.net.png';
+                                            let sign = earnings_relative < (old_relative * 1 || 0) ? '-' : '+';
                                             chrome.notifications.create(OPTION_ALERT_TODAY_PER_SYMBOL + '|' + item.symbol.ticker + '|' + item.symbol.securityType, {
                                                 type: 'basic',
                                                 iconUrl: icon,
-                                                title: `Доходность ${item.symbol.ticker} изменилась на ${sign}${alert_value}% и составила ${earnings_relative}%`,
+                                                title: `Доходность ${item.symbol.ticker} изменилась на ${sign}${alert_value}% и составила ${earnings_relative.toFixed(2)}%`,
                                                 message: 'Проверьте свой портфель',
                                                 requireInteraction: true,
                                                 buttons: [
