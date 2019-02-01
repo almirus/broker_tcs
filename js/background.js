@@ -292,7 +292,7 @@ function getListStock(name) {
                                                 marketStartTime: symbol.payload.symbol.marketStartTime,
                                                 securityType: securityType,
                                                 ticker: element.ticker,
-                                                showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
+                                                showName: symbol.payload.symbol.showName || symbol.payload.symbol.descriptionf,
                                                 lotSize: element.currentBalance,
                                                 expectedYieldRelative: element.expectedYieldRelative,
                                                 expectedYield: expected_yield,
