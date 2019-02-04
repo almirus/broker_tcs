@@ -2,6 +2,7 @@
 
 import {
     ALERT_TICKER_LIST,
+    ALL_ACCOUNTS,
     BUY_LINK,
     CHECK_VERSION_URL,
     CURRENCY_LIMIT_URL,
@@ -112,7 +113,7 @@ function getAllSum() {
     return new Promise(function (resolve, reject) {
         console.log('try to get sums');
         getTCSsession().then(function (session_id) {
-            fetch(PORTFOLIO_URL + session_id)
+            fetch(ALL_ACCOUNTS + session_id)
                 .then(function (response) {
                     if (response.status === 502) {
                         return {status: 502, text: 'Сервис брокера недоступен'};
@@ -120,11 +121,11 @@ function getAllSum() {
                 }).then(function (json) {
 
                 resolve({
-                    totalAmountPortfolio: json.payload.totalAmountPortfolio.value,
-                    expectedYield: json.payload.expectedYield.value,
-                    expectedYieldRelative: json.payload.expectedYieldRelative / 100,
-                    expectedYieldPerDay: json.payload.expectedYieldPerDay.value,
-                    expectedYieldPerDayRelative: json.payload.expectedYieldPerDayRelative / 100,
+                    totalAmountPortfolio: json.payload.totals.totalAmount.value,
+                    expectedYield: json.payload.totals.expectedYield.value,
+                    expectedYieldRelative: json.payload.totals.expectedYieldRelative / 100,
+                    expectedYieldPerDay: json.payload.totals.expectedYieldPerDay.value,
+                    expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
                 });
             }).catch(ex => {
                 console.log('portfolio parsing failed', ex);
