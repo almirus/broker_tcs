@@ -23,6 +23,7 @@ import {
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
+import {toLocaleString, fillCashData} from "./utils/displayUtils.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -141,34 +142,13 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
             break;
         case 'cashDataTCS':
-            let cash_str = 'Остаток на счете ТКС ';
-            for (let cash in msg.cash.payload.data) {
-                cash_str += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: msg.cash.payload.data[cash].currency
-                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
-            }
-            document.getElementById('cashTCS').innerHTML = cash_str;
+            fillCashData(msg, 'Остаток на счете ТКС ', 'cashTCS');
             break;
         case 'cashDataBCS':
-            let cash_str_bcs = 'Остаток на счете БКС ';
-            for (let cash in msg.cash.payload.data) {
-                cash_str_bcs += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: msg.cash.payload.data[cash].currency
-                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
-            }
-            document.getElementById('cashBCS').innerHTML = cash_str_bcs;
+            fillCashData(msg, 'Остаток на счете БКС ', 'cashBCS');
             break;
         case 'cashDataIIS':
-            let cash_str_iis = 'Остаток на счете ИИС ';
-            for (let cash in msg.cash.payload.data) {
-                cash_str_iis += '<strong>' + msg.cash.payload.data[cash].currentBalance.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: msg.cash.payload.data[cash].currency
-                }) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
-            }
-            document.getElementById('cashIIS').innerHTML = cash_str_iis;
+            fillCashData(msg, 'Остаток на счете ИИС ', 'cashIIS');
             break;
         case 'versionAPI':
             document.getElementById('versionAPI').innerText = `Версия API ${msg.version.payload.version}`;
@@ -242,8 +222,10 @@ function setRefreshHandler() {
 }
 */
 function create_portfolio_table(data) {
+    let old_table = document.getElementById('portfolio_table');
     let table = document.createElement('table');
-    table.className = 'alertPriceTable';
+    table.className = (old_table) ? old_table.className : 'alertPriceTable showAll';
+    table.id = 'portfolio_table';
     let tr = document.createElement('tr');
     let th1 = document.createElement('th');
     //th1.appendChild(document.createTextNode('название'));
@@ -358,7 +340,7 @@ function create_portfolio_table(data) {
             maximumSignificantDigits: 2
         })}</div>`;
 
-
+        tr.className = element.broker_type;
         tr.appendChild(td1);
         tr.appendChild(td2);
         tr.appendChild(td3);
@@ -794,4 +776,13 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             debounce(create_alert_table(), 1000);
         }
     }
+});
+
+document.getElementById('broker_portfolio_input').addEventListener('change', function (e) {
+    let table = document.getElementById('portfolio_table');
+    table.className = table.className.replace('showTinkoffIis', 'showAll');
+});
+document.getElementById('iis_portfolio_input').addEventListener('change', function (e) {
+    let table = document.getElementById('portfolio_table');
+    table.className = table.className.replace('showAll', 'showTinkoffIis');
 });

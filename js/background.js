@@ -32,6 +32,7 @@ import {
     USD_RUB,
     USER_URL
 } from "/js/constants.mjs";
+import parseJSON from "/js/fetchUtils.js";
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {

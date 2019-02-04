@@ -164,3 +164,14 @@ a:hover, a:active {
     background-color: rgba(255, 255, 0, 0.27);
     color: #f40024;
 }
+
+tr.All,
+tr.TinkoffIis {
+    display: none;
+}
+table.showAll > tr.All {
+    display: table-row;
+}
+table.showTinkoffIis > tr.TinkoffIis {
+    display: table-row;
+}
