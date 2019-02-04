@@ -294,17 +294,19 @@ function create_portfolio_table(data) {
         let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbolStatus" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
         let currency = element.symbol.symbolType === 'Currency' ? '<img class="symbolStatus" alt="Валюта" title="Валюта" src="/icons/currency_dollar.png">' : '';
         let bond = element.symbol.symbolType === 'Bond' ? '<img class="symbolStatus" alt="Облигации" title="Облигации" src="/icons/james_bond.png">' : '';
+        let country = '';
+        if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '<img class="symbolStatus" alt="Российские акции" title="Российские акции" src="/icons/rus.png">' : '<img class="symbolStatus" alt="Зарубежные акции" title="Зарубежные акции" src="/icons/usa.png">'
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}${currency}${bond}
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${country}${otc}${etf}${currency}${bond}
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.prices.buy.currency,
-            minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
-        }) : ''}</a></div>` : '') +
+                style: 'currency',
+                currency: element.prices.buy.currency,
+                minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
+            }) : ''}</a></div>` : '') +
             (element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
