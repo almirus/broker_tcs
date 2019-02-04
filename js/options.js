@@ -293,8 +293,9 @@ function create_portfolio_table(data) {
         let otc = element.symbol.isOTC ? '<img class="symbolStatus" alt="Внебиржевой инструмент" title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
         let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbolStatus" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
         let currency = element.symbol.symbolType === 'Currency' ? '<img class="symbolStatus" alt="Валюта" title="Валюта" src="/icons/currency_dollar.png">' : '';
+        let bond = element.symbol.symbolType === 'Bond' ? '<img class="symbolStatus" alt="Облигации" title="Облигации" src="/icons/james_bond.png">' : '';
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}${currency}
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${otc}${etf}${currency}${bond}
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
