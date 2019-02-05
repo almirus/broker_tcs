@@ -173,6 +173,7 @@ function getUserInfo() {
                         approvedW8: json.payload.approvedW8 ? 'подписана' : 'не подписана',
                         employee: json.payload.employee,
                         qualStatus: json.payload.qualStatus ? 'есть статус' : 'еще нет статуса',
+                        accounts: json.payload.accounts
                     });
             }).catch(ex => {
                 console.log('userInfo parsing failed', ex);
