@@ -24,6 +24,7 @@ import {
     PING_URL,
     PORTFOLIO_URL,
     PRICE_URL,
+    PROGNOSIS_URL,
     SEARCH_URL,
     SELL_LINK,
     SYMBOL_LINK,
@@ -32,7 +33,7 @@ import {
     USD_RUB,
     USER_URL
 } from "/js/constants.mjs";
-import parseJSON from "/js/fetchUtils.js";
+
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -280,11 +281,13 @@ function getListStock(name) {
                                             expected_yield.value = expected_yield.value * ticker.payload.last.value;
                                             expected_yield.currency = 'RUB';
                                         }
+
                                         return_data.push({
                                             prices: symbol.payload.prices,
                                             earnings: symbol.payload.earnings,
                                             contentMarker: symbol.payload.contentMarker,
                                             symbol: {
+                                                consensus: symbol.payload.symbol.consensus,
                                                 symbolType: symbol.payload.symbol.symbolType,
                                                 isOTC: symbol.payload.symbol.isOTC,
                                                 sessionOpen: symbol.payload.symbol.sessionOpen,
@@ -441,7 +444,14 @@ function getSymbolInfo(tickerName, securityType, session_id) {
         })
             .then(function (res) {
                 if (res.status.toLocaleUpperCase() === 'OK') {
-                    resolve(res);
+                    if (res.payload.contentMarker.prognosis) {
+                        fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + session_id).then(json => {
+                            return json.json();
+                        }).then(prognosis => {
+                            res.payload.symbol.consensus = prognosis.payload.consensus;
+                            resolve(res);
+                        });
+                    } else resolve(res);
                 } else {
                     console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
                     reject(res)
