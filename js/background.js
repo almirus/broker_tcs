@@ -222,7 +222,7 @@ function getPortfolio(sessionId) {
                     })
             ).catch(error => {
             console.log(`cant get portfolio, because ${error}`);
-            reject({tcs: {}, iis: {}});
+            reject({tcs: [], iis: []});
         })
     })
 }
@@ -336,9 +336,8 @@ function getListStock(name) {
                 })
             } else if (name === 3) { // избранное
                 fetch(FAVORITE_URL + session_id)
-                    .then(function (response) {
-                        return response.json()
-                    }).then(function (json) {
+                    .then(response => response.json())
+                    .then(function (json) {
                     console.log('list of favorite');
                     let return_data = [];
                     json.payload.stocks.forEach(function (element) {
@@ -397,9 +396,7 @@ function findTicker(search, session_id) {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 }
-            }).then(function (res) {
-                return res.json();
-            })
+            }).then(response => response.json())
                 .then(function (res) {
                     if (res.status.toLocaleUpperCase() === 'OK') {
                         resolve(res);
@@ -429,9 +426,7 @@ function getAvailableCash(brokerName) {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                     }
-                }).then(function (res) {
-                    return res.json();
-                })
+                }).then(response => response.json())
                     .then(function (res) {
                         if (res.status.toLocaleUpperCase() === 'OK') {
                             resolve(res);
@@ -460,9 +455,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 }
-            }).then(function (res) {
-                return res.json();
-            })
+            }).then(response => response.json())
                 .then(function (res) {
                     if (res.status.toLocaleUpperCase() === 'OK') {
                         resolve(res);
@@ -490,15 +483,12 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             }
-        }).then(function (res) {
-            return res.json();
-        })
+        }).then(response => response.json())
             .then(function (res) {
                 if (res.status.toLocaleUpperCase() === 'OK') {
                     if (res.payload.contentMarker.prognosis) {
-                        fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + session_id).then(json => {
-                            return json.json();
-                        }).then(prognosis => {
+                        fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                            .then(prognosis => {
                             res.payload.symbol.consensus = prognosis.payload.consensus;
                             resolve(res);
                         });
@@ -812,9 +802,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'getVersionAPI':
                 fetch(CHECK_VERSION_URL)
-                    .then(function (response) {
-                        return response.json()
-                    }).then(async function (json) {
+                    .then(response => response.json())
+                    .then(async function (json) {
                     port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
                 });
                 break;
