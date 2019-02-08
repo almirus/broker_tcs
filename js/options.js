@@ -83,7 +83,12 @@ port.onMessage.addListener(function (msg) {
             setAddButtonHandler();
             break;
         case 'listPortfolio':
-            create_portfolio_table(msg.stocks);
+            create_portfolio_table('portfolioTCS', msg.stocks_tcs);
+            let iisStyle = 'none';
+            if (msg.stocks_tcs.length < 14 || document.getElementById('iis_portfolio_input').checked)
+                iisStyle = 'block';
+            create_portfolio_table('portfolioIIS', msg.stocks_iis);
+            document.getElementById('portfolioIIS').style = 'display:' + iisStyle;
             break;
         case 'listAlerts':
             create_alert_table(msg.stocks);
@@ -146,7 +151,21 @@ port.onMessage.addListener(function (msg) {
             let tcs = (msg.accounts.filter(item => item.accountType === 'Tinkoff' && item.hasOperations)).length > 0
                 ? '<input type="radio" value="1" name="broker_type" id="iis_portfolio_input">' +
                 '<label for="iis_portfolio_input">Портфель ИИС</label>' : '';
-            //if (iis && tcs) document.getElementById('accounts').innerHTML = iis + tcs;
+            if (iis && tcs) {
+                document.getElementById('accounts').innerHTML = iis + tcs;
+                document.getElementById('broker_portfolio_input').addEventListener('change', function () {
+                    let tableTCS = document.getElementById('portfolioTCS');
+                    let tableIIS = document.getElementById('portfolioIIS');
+                    tableTCS.style = 'display:block';
+                    tableIIS.style = 'display:none';
+                });
+                document.getElementById('iis_portfolio_input').addEventListener('change', function () {
+                    let tableTCS = document.getElementById('portfolioTCS');
+                    let tableIIS = document.getElementById('portfolioIIS');
+                    tableIIS.style = 'display:block';
+                    tableTCS.style = 'display:none';
+                });
+            }
             break;
         case 'cashDataTCS':
             fillCashData(msg, 'Остаток на счете ТКС ', 'cashTCS');
@@ -221,18 +240,11 @@ function setDeleteButtonHandler() {
 
 }
 
-/*
-function setRefreshHandler() {
-    document.getElementById('updatePrice').addEventListener('click', function () {
-        port.postMessage({method: "updatePrices"});
-    }, false);
-}
-*/
-function create_portfolio_table(data) {
-    let old_table = document.getElementById('portfolio_table');
+function create_portfolio_table(divId, data) {
+    let old_table = document.getElementById(divId + '_table');
     let table = document.createElement('table');
     table.className = (old_table) ? old_table.className : 'alertPriceTable showAll';
-    table.id = 'portfolio_table';
+    table.id = divId + '_table';
     let tr = document.createElement('tr');
     let th1 = document.createElement('th');
     //th1.appendChild(document.createTextNode('название'));
@@ -301,19 +313,19 @@ function create_portfolio_table(data) {
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
         let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell'
-        let prognosis_link = element.contentMarker.prognosis ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Преполагаемая цена. Подробнее">
+        let prognosis_link = element.contentMarker.prognosis ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
         ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.consensus.currency,
             minimumFractionDigits: element.symbol.consensus.consensus < 0.1 ? 4 : 2
         })}
-        </a><span class="percent" title="Прогнозируемый доход">
-        ${prognosis_style==='onlineBuy'?'+':'-'}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
+        </a><span class="percent" title="Прогнозируемое изменение с учетом текущей цены">
+        ${prognosis_style === 'onlineBuy' ? '+' : '-'}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
         </span>` : '';
 
         let td3 = document.createElement('td');
         td3.width = '120';
-        td3.align = 'center';
+        td3.align = 'left';
         let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
         if (element.symbol.averagePositionPrice.value === 0)
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка в данных у брокера</div>`;
@@ -372,13 +384,12 @@ function create_portfolio_table(data) {
         table.appendChild(tr);
     });
 
-    document.getElementById('portfolio').innerText = '';
+    document.getElementById(divId).innerText = '';
 
-    document.getElementById('portfolio').appendChild(table);
+    document.getElementById(divId).appendChild(table);
     tinysort(table.querySelectorAll('tr')
         , {
             selector: 'td'
-
         });
 }
 
@@ -797,12 +808,4 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     }
 });
 
-/*
-document.getElementById('broker_portfolio_input').addEventListener('change', function (e) {
-    let table = document.getElementById('portfolio_table');
-    table.className = table.className.replace('showTinkoffIis', 'showAll');
-});
-document.getElementById('iis_portfolio_input').addEventListener('change', function (e) {
-    let table = document.getElementById('portfolio_table');
-    table.className = table.className.replace('showAll', 'showTinkoffIis');
-});*/
+

@@ -187,6 +187,106 @@ function getUserInfo() {
 }
 
 /**
+ * получаем все портфолио
+ * @param sessionId
+ * @return {Promise<any>}
+ */
+function getPortfolio(sessionId) {
+    return new Promise(function (resolve, reject) {
+        fetch(PORTFOLIO_URL + sessionId, { // tcs+bcs
+            method: "POST",
+            body: JSON.stringify({
+                brokerAccountType: 'All',
+                currency: 'RUB'
+            }),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(tcs => fetch(PORTFOLIO_URL + sessionId, { //iis
+                    method: "POST",
+                    body: JSON.stringify({
+                        brokerAccountType: 'TinkoffIis',
+                        currency: 'RUB'
+                    }),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(iis => {
+                        resolve({tcs: tcs, iis: iis})
+                    })
+            ).catch(error => {
+            console.log(`cant get portfolio, because ${error}`);
+            reject({tcs: {}, iis: {}});
+        })
+    })
+}
+
+/**
+ * конвертируем и дополняем данные для портфолио
+ * @param data
+ * @param needToConvert
+ * @param ticker
+ * @param sessionId
+ * @return {Promise<Array>}
+ */
+async function convertPortfolio(data, needToConvert, ticker, sessionId) {
+    let return_data = [];
+    for (const element of data) {
+        let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
+        await getSymbolInfo(element.ticker, securityType, sessionId).then(function (symbol) {
+            let current_amount = element.currentAmount;
+            let expected_yield = element.expectedYield;
+            let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
+            if (needToConvert && current_amount.currency === 'USD') {
+                earning_today = earning_today * ticker.payload.last.value;
+                current_amount.value = current_amount.value * ticker.payload.last.value;
+                current_amount.currency = 'RUB';
+                expected_yield.value = expected_yield.value * ticker.payload.last.value;
+                expected_yield.currency = 'RUB';
+            }
+
+            return_data.push({
+                prices: symbol.payload.prices,
+                earnings: symbol.payload.earnings,
+                contentMarker: symbol.payload.contentMarker,
+                symbol: {
+                    consensus: symbol.payload.symbol.consensus,
+                    symbolType: symbol.payload.symbol.symbolType,
+                    isOTC: symbol.payload.symbol.isOTC,
+                    sessionOpen: symbol.payload.symbol.sessionOpen,
+                    sessionClose: symbol.payload.symbol.sessionClose,
+                    premarketStartTime: symbol.payload.symbol.premarketStartTime,
+                    premarketEndTime: symbol.payload.symbol.premarketEndTime,
+                    marketEndTime: symbol.payload.symbol.marketEndTime,
+                    marketStartTime: symbol.payload.symbol.marketStartTime,
+                    securityType: securityType,
+                    ticker: element.ticker,
+                    showName: symbol.payload.symbol.showName || symbol.payload.symbol.descriptionf,
+                    lotSize: element.currentBalance,
+                    expectedYieldRelative: element.expectedYieldRelative,
+                    expectedYield: expected_yield,
+                    currentPrice: element.currentPrice,
+                    currentAmount: current_amount,
+                    earningToday: earning_today,
+                    averagePositionPrice: element.averagePositionPrice || {
+                        value: 0,
+                        currency: element.currentPrice.currency
+                    },
+                },
+                exchangeStatus: symbol.payload.exchangeStatus
+            });
+        })
+    }
+    return return_data;
+}
+
+/**
  * получаем список акций
  * @return {object} данные для отображения на форме
  */
@@ -259,64 +359,15 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    getPriceInfo(USD_RUB, undefined, session_id).then(ticker => {
+                    getPriceInfo(USD_RUB, undefined, session_id).then(currency => {
                         chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
                             console.log('get session option');
-                            fetch(PORTFOLIO_URL + session_id)
-                                .then(function (response) {
-                                    return response.json()
-                                }).then(async function (json) {
+                            getPortfolio(session_id).then( function (json) {
                                 console.log('list of portfolio');
-                                let return_data = [];
-                                for (const element of json.payload.data) {
-                                    let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
-                                    await getSymbolInfo(element.ticker, securityType, session_id).then(function (symbol) {
-                                        let current_amount = element.currentAmount;
-                                        let expected_yield = element.expectedYield;
-                                        let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
-                                        if (result[OPTION_CONVERT_TO_RUB] && current_amount.currency === 'USD') {
-                                            earning_today = earning_today * ticker.payload.last.value;
-                                            current_amount.value = current_amount.value * ticker.payload.last.value;
-                                            current_amount.currency = 'RUB';
-                                            expected_yield.value = expected_yield.value * ticker.payload.last.value;
-                                            expected_yield.currency = 'RUB';
-                                        }
-
-                                        return_data.push({
-                                            prices: symbol.payload.prices,
-                                            earnings: symbol.payload.earnings,
-                                            contentMarker: symbol.payload.contentMarker,
-                                            symbol: {
-                                                consensus: symbol.payload.symbol.consensus,
-                                                symbolType: symbol.payload.symbol.symbolType,
-                                                isOTC: symbol.payload.symbol.isOTC,
-                                                sessionOpen: symbol.payload.symbol.sessionOpen,
-                                                sessionClose: symbol.payload.symbol.sessionClose,
-                                                premarketStartTime: symbol.payload.symbol.premarketStartTime,
-                                                premarketEndTime: symbol.payload.symbol.premarketEndTime,
-                                                marketEndTime: symbol.payload.symbol.marketEndTime,
-                                                marketStartTime: symbol.payload.symbol.marketStartTime,
-                                                securityType: securityType,
-                                                ticker: element.ticker,
-                                                showName: symbol.payload.symbol.showName || symbol.payload.symbol.descriptionf,
-                                                lotSize: element.currentBalance,
-                                                expectedYieldRelative: element.expectedYieldRelative,
-                                                expectedYield: expected_yield,
-                                                currentPrice: element.currentPrice,
-                                                currentAmount: current_amount,
-                                                earningToday: earning_today,
-                                                averagePositionPrice: element.averagePositionPrice || {
-                                                    value: 0,
-                                                    currency: element.currentPrice.currency
-                                                },
-                                            },
-                                            exchangeStatus: symbol.payload.exchangeStatus
-                                        });
-                                    }).catch(e => {
-                                        console.log(e);
+                                Promise.all([convertPortfolio(json.tcs.payload.data, result[OPTION_CONVERT_TO_RUB],currency, session_id), convertPortfolio(json.iis.payload.data,currency, result[OPTION_CONVERT_TO_RUB], session_id)])
+                                    .then(([tcs_data, iis_data]) => {
+                                        resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data},{stocks_iis: iis_data}));
                                     });
-                                }
-                                resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                             }).catch(function (ex) {
                                 console.log('parsing failed', ex);
                                 reject(undefined);
