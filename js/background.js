@@ -21,6 +21,7 @@ import {
     OPTION_CONVERT_TO_RUB,
     OPTION_REDIRECT,
     OPTION_SESSION,
+    ORDERS_URL,
     PING_URL,
     PORTFOLIO_URL,
     PRICE_URL,
@@ -338,21 +339,21 @@ function getListStock(name) {
                 fetch(FAVORITE_URL + session_id)
                     .then(response => response.json())
                     .then(function (json) {
-                    console.log('list of favorite');
-                    let return_data = [];
-                    json.payload.stocks.forEach(function (element) {
-                        return_data.push({
-                            prices: element.prices,
-                            symbol: {
-                                ticker: element.symbol.ticker,
-                                showName: element.symbol.showName,
-                                lotSize: element.symbol.lotSize,
-                            },
-                            exchangeStatus: element.exchangeStatus
+                        console.log('list of favorite');
+                        let return_data = [];
+                        json.payload.stocks.forEach(function (element) {
+                            return_data.push({
+                                prices: element.prices,
+                                symbol: {
+                                    ticker: element.symbol.ticker,
+                                    showName: element.symbol.showName,
+                                    lotSize: element.symbol.lotSize,
+                                },
+                                exchangeStatus: element.exchangeStatus
+                            });
                         });
-                    });
-                    resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
-                }).catch(function (ex) {
+                        resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                    }).catch(function (ex) {
                     console.log('parsing failed', ex);
                     reject(undefined);
                 })
@@ -489,9 +490,9 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                     if (res.payload.contentMarker.prognosis) {
                         fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + session_id).then(response => response.json())
                             .then(prognosis => {
-                            res.payload.symbol.consensus = prognosis.payload.consensus;
-                            resolve(res);
-                        });
+                                res.payload.symbol.consensus = prognosis.payload.consensus;
+                                resolve(res);
+                            });
                     } else resolve(res);
                 } else {
                     console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
@@ -538,33 +539,65 @@ function deleteFromAlert(ticker, sell_price, buy_price) {
     })
 }
 
+function getOrders(session_id) {
+    return new Promise(function (resolve, reject) {
+        fetch(ORDERS_URL + session_id)
+            .then(response => response.json())
+            .then(function (json) {
+                let return_data = [];
+                json.payload.orders.forEach(function (element) {
+                    return_data.push({
+                        ticker: element.ticker,
+                        showName: element.showName,
+                        buy_price: element.operationType === 'Buy' ? element.price.value : '',
+                        sell_price: element.operationType === 'Sell' ? element.price.value : '',
+                        best_before: '',
+                        active: true,
+                        timeToExpire: element.timeToExpire,
+                        orderId: element.orderId
+                    });
+                });
+                resolve(return_data)
+            })
+            .catch(error => {
+                console.log(`Cant get orders, because ${error}`);
+                reject([]);
+            })
+    })
+}
+
 function updateAlertPrices() {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
-            chrome.storage.sync.get([TICKER_LIST], async function (data) {
-                let alert_data = data[TICKER_LIST] || [];
-                let i = 0;
-                for (const item of alert_data) {
-                    //alert_data.forEach(function (item, i, alertList) {
-                    await getPriceInfo(item.ticker, undefined, session_id).then(function (res) {
-                        alert_data[i] = {
-                            ticker: item.ticker,
-                            showName: item.showName,
-                            buy_price: item.buy_price,
-                            sell_price: item.sell_price,
-                            best_before: item.best_before,
-                            active: item.active,
-                            earnings: res.payload.earnings,
-                            exchangeStatus: res.payload.exchangeStatus,
-                            currency: res.payload.last.currency,
-                            online_average_price: res.payload.last.value,
-                            online_buy_price: res.payload.buy ? res.payload.buy.value : '',
-                            online_sell_price: res.payload.sell ? res.payload.sell.value : '',
-                        };
-                        i++;
-                    })
-                }
-                resolve(Object.assign({}, {result: "listAlerts"}, {stocks: alert_data}));
+            chrome.storage.sync.get([TICKER_LIST], function (data) {
+                getOrders(session_id).then(async onlineOrders => {
+                    let alert_data = onlineOrders;
+                    let i = 0;
+                    for (const item of alert_data.concat(data[TICKER_LIST])) {
+                        //alert_data.forEach(function (item, i, alertList) {
+                        await getPriceInfo(item.ticker, undefined, session_id).then(function (res) {
+                            alert_data[i] = {
+                                ticker: item.ticker,
+                                showName: item.showName,
+                                buy_price: item.buy_price,
+                                sell_price: item.sell_price,
+                                best_before: item.best_before,
+                                active: item.active,
+                                earnings: res.payload.earnings,
+                                exchangeStatus: res.payload.exchangeStatus,
+                                currency: res.payload.last.currency,
+                                online_average_price: res.payload.last.value,
+                                online_buy_price: res.payload.buy ? res.payload.buy.value : '',
+                                online_sell_price: res.payload.sell ? res.payload.sell.value : '',
+                                orderId: item.orderId,
+                                timeToExpire: item.timeToExpire
+                            };
+                            i++;
+                        })
+                    }
+                    resolve(Object.assign({}, {result: "listAlerts"}, {stocks: alert_data}));
+                });
+
             })
         })
     })
@@ -804,8 +837,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                 fetch(CHECK_VERSION_URL)
                     .then(response => response.json())
                     .then(async function (json) {
-                    port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
-                });
+                        port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
+                    });
                 break;
             default:
                 port.postMessage('unknown request');
