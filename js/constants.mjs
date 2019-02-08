@@ -17,6 +17,11 @@ export const PRICE_URL = 'https://api.tinkoff.ru/trading/${securityType}/price?s
 export const CURRENCY_PRICE_URL = 'https://api.tinkoff.ru/trading/currency/price?sessionId=';
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/${securityType}/get?sessionId=';
 export const CURRENCY_SYMBOL_URL = 'https://api.tinkoff.ru/trading/currency/get?sessionId=';
+export const PROGNOSIS_URL = 'https://api.tinkoff.ru/trading/stocks/prognosis?ticker=${ticker}&sessionId=';
+export const SET_ALERT_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_alert?ticker=${ticker}&price=${price}&sessionId=';
+export const ORDERS_URL = 'https://api.tinkoff.ru/trading/user/orders?brokerAccountType=${account}&sessionId=';
+
+
 
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';

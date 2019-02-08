@@ -23,7 +23,7 @@ import {
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
-import {toLocaleString, fillCashData} from "./utils/displayUtils.js";
+import {fillCashData} from "./utils/displayUtils.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -140,6 +140,13 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('qualStatus').innerText = msg.qualStatus;
             document.getElementById('approvedW8').innerText = msg.approvedW8;
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
+            let iis = (msg.accounts.filter(item => item.accountType === 'TinkoffIis' && item.hasOperations)).length > 0
+                ? '<input type="radio" value="0" checked="checked" name="broker_type" id="broker_portfolio_input">' +
+                '<label for="broker_portfolio_input">Портфель Тинькофф и БКС</label>' : '';
+            let tcs = (msg.accounts.filter(item => item.accountType === 'Tinkoff' && item.hasOperations)).length > 0
+                ? '<input type="radio" value="1" name="broker_type" id="iis_portfolio_input">' +
+                '<label for="iis_portfolio_input">Портфель ИИС</label>' : '';
+            //if (iis && tcs) document.getElementById('accounts').innerHTML = iis + tcs;
             break;
         case 'cashDataTCS':
             fillCashData(msg, 'Остаток на счете ТКС ', 'cashTCS');
@@ -234,7 +241,7 @@ function create_portfolio_table(data) {
     th2.innerHTML = 'цены брокера';
     th2.className = 'sorting';
     let th3 = document.createElement('th');
-    th3.innerHTML = 'средняя цена';
+    th3.innerHTML = 'средняя цена прогноз';
     th3.className = 'sorting';
     let th4 = document.createElement('th');
     th4.appendChild(document.createTextNode('измн. за день'));
@@ -282,6 +289,7 @@ function create_portfolio_table(data) {
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${country}${otc}${etf}${currency}${bond}
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
+
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
@@ -292,9 +300,20 @@ function create_portfolio_table(data) {
             (element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
-        let prognosis_link = element.contentMarker.prognosis ? `<br>(<a href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Посмотреть прогноз цены">прогноз</a>)` : '';
+        let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell'
+        let prognosis_link = element.contentMarker.prognosis ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Преполагаемая цена. Подробнее">
+        ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.symbol.consensus.currency,
+            minimumFractionDigits: element.symbol.consensus.consensus < 0.1 ? 4 : 2
+        })}
+        </a><span class="percent" title="Прогнозируемый доход">
+        ${prognosis_style==='onlineBuy'?'+':'-'}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
+        </span>` : '';
 
         let td3 = document.createElement('td');
+        td3.width = '120';
+        td3.align = 'center';
         let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
         if (element.symbol.averagePositionPrice.value === 0)
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка в данных у брокера</div>`;
@@ -778,6 +797,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     }
 });
 
+/*
 document.getElementById('broker_portfolio_input').addEventListener('change', function (e) {
     let table = document.getElementById('portfolio_table');
     table.className = table.className.replace('showTinkoffIis', 'showAll');
@@ -785,4 +805,4 @@ document.getElementById('broker_portfolio_input').addEventListener('change', fun
 document.getElementById('iis_portfolio_input').addEventListener('change', function (e) {
     let table = document.getElementById('portfolio_table');
     table.className = table.className.replace('showAll', 'showTinkoffIis');
-});
+});*/
