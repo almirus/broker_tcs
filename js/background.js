@@ -4,6 +4,7 @@ import {
     ALERT_TICKER_LIST,
     ALL_ACCOUNTS,
     BUY_LINK,
+    CANCEL_ORDER,
     CHECK_VERSION_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
@@ -287,6 +288,21 @@ async function convertPortfolio(data, needToConvert, ticker, sessionId) {
     return return_data;
 }
 
+function deleteOrder(orderId) {
+    return new Promise(function (resolve, reject) {
+        getTCSsession().then(function (session_id) {
+            fetch(CANCEL_ORDER.replace('${orderId}', orderId) + session_id)
+                .then(response => response.json())
+                .then(function (json) {
+                    resolve(json);
+                }).catch(ex => {
+                console.log('cant delete order', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
 /**
  * получаем список акций
  * @return {object} данные для отображения на форме
@@ -554,7 +570,8 @@ function getOrders(session_id) {
                         best_before: '',
                         active: true,
                         timeToExpire: element.timeToExpire,
-                        orderId: element.orderId
+                        orderId: element.orderId,
+                        status: element.status
                     });
                 });
                 resolve(return_data)
@@ -838,6 +855,20 @@ chrome.runtime.onConnect.addListener(function (port) {
                     .then(response => response.json())
                     .then(async function (json) {
                         port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
+                    });
+                break;
+            case 'deleteOrder':
+                deleteOrder(msg.params)
+                    .then(result => {
+                            console.log('try to delete order', result);
+                            updateAlertPrices().then(function (alert_list) {
+                                console.log("send message tickerInfo .....");
+                                port.postMessage(alert_list);
+                            })
+                        }
+                    )
+                    .catch(e => {
+                        console.log(`cant send delete order, because ${e}`)
                     });
                 break;
             default:
