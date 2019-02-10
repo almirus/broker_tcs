@@ -226,14 +226,17 @@ function setDeleteButtonHandler() {
             input.addEventListener('click', function (e) {
                 let button = e.target;
                 let ticker = button.dataset.index;
-                chrome.storage.sync.get([TICKER_LIST], function (data) {
-                    let alert_data = data[TICKER_LIST] || [];
-                    let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker));
-                    chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
-                        console.log('Save ticker ' + JSON.stringify(new_alert_date));
-                        //create_alert_table(alert_data);
-                    })
-                });
+                if (/^\d+$/.test(ticker) && confirm("Завка будет снята, Вы уверены?")) {
+                    port.postMessage({method: "deleteOrder", params: ticker});
+                } else
+                    chrome.storage.sync.get([TICKER_LIST], function (data) {
+                        let alert_data = data[TICKER_LIST] || [];
+                        let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker));
+                        chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
+                            console.log('Save ticker ' + JSON.stringify(new_alert_date));
+                            //create_alert_table(alert_data);
+                        })
+                    });
             });
         })
     }, 1000);
@@ -498,6 +501,7 @@ function create_alert_table(data_list) {
                         element.earnings = undefined;
                     } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                     let tr = document.createElement('tr');
+                    if (element.orderId) tr.className = 'isOnlineOrder';
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
@@ -540,7 +544,12 @@ function create_alert_table(data_list) {
                     let td6 = document.createElement('td');
                     td6.className = '';
                     let alert_date = new Date(Date.parse(element.best_before));
-                    td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
+                    if (element.orderId) {
+                        if (element.timeToExpire / 3600 / 1000 < 1)
+                            td6.innerHTML = 'еще ' + (element.timeToExpire / 60 / 1000).toFixed(0) + ' мин.';
+                        else
+                            td6.innerHTML = 'еще ' + (element.timeToExpire / 3600 / 1000).toFixed(1) + ' ч.';
+                    } else td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
                     td6.align = 'center';
                     let td7 = document.createElement('td');
                     td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
@@ -550,7 +559,9 @@ function create_alert_table(data_list) {
                     td7.className = '';
                     td7.align = 'center';
                     let td8 = document.createElement('td');
-                    td8.innerHTML = `<input class="deleteTicker" data-index="${element.ticker}" type="button" value="X" title="Удалить">`;
+                    if (element.orderId && element.status === 'New' || !element.orderId)
+                        td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || element.ticker}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
+                    else td8.innerHTML = 'В процессе';
                     tr.appendChild(td1);
                     tr.appendChild(td2);
                     tr.appendChild(td3);
