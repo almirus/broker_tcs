@@ -781,6 +781,7 @@ if (window.Notification && Notification.permission !== "granted") {
     let manifestData = chrome.runtime.getManifest();
     document.getElementById('app_version').innerText = manifestData.version;
 })();
+
 create_alert_table();
 
 port.postMessage({method: "getSession"});
