@@ -75,11 +75,8 @@ const throttle = (func, limit) => {
 port.onMessage.addListener(function (msg) {
     console.log(`Option - message received ${msg.result}`);
     switch (msg.result) {
-        case 'updatePrice':
-            create_table(msg.stocks);
-            break;
         case 'listStock':
-            create_table(msg.stocks);
+            create_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
             setAddButtonHandler();
             break;
         case 'listPortfolio':
@@ -205,8 +202,6 @@ function setAddButtonHandler() {
                 let alert_data = data[TICKER_LIST] || [];
                 alert_data.push(alert_symbol);
                 let new_alert_date = alert_data.filter(item => !!item);
-
-                port.postMessage({method: "updatePrices"});
                 chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
                     console.log('Save ticker ' + JSON.stringify(new_alert_date));
                     alert('Добавлено в список отслеживания');
@@ -607,15 +602,24 @@ document.getElementById('add_list_type').addEventListener('change', function (e)
 });
 document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('price_table').style.display = 'none';
+    document.getElementById('orders_table').style.display = 'none';
     document.getElementById('alert_table').style.display = 'block';
     document.getElementById('sort_by_nearest').style.display = 'inline';
     document.getElementById('label_sort_by_nearest').style.display = 'inline';
 });
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('orders_table').style.display = 'none';
     document.getElementById('sort_by_nearest').style.display = 'none';
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'block';
+});
+document.getElementById('add_orders').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('sort_by_nearest').style.display = 'none';
+    document.getElementById('label_sort_by_nearest').style.display = 'none';
+    document.getElementById('price_table').style.display = 'none';
+    document.getElementById('orders_table').style.display = 'block';
 });
 
 // подгрузка списка акций по названию

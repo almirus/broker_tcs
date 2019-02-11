@@ -124,13 +124,17 @@
             <div id="price_table" style="display: none">
                 <label for="add_list_type">Добавить бумаги из</label>
                 <select id="add_list_type">
-                    <option value="0" selected></option>
-                    <option value="1">вручную</option>
+                    <option value="0"></option>
+                    <option value="1" selected>вручную</option>
                     <option value="2">из портфеля</option>
                     <option value="3">из избранного</option>
                 </select>
-                <input id="symbol_name" name="symbol_name" maxlength="10" placeholder="Введите название акции" disabled>
+                <input id="symbol_name" name="symbol_name" maxlength="10" placeholder="Введите название акции">
                 <div id="table"></div>
+            </div>
+            <div id="orders_table" style="display: none">
+                <input id="order_symbol_name" name="symbol_name" maxlength="10" placeholder="Введите название акции">
+                <div id="order_table"></div>
             </div>
         </fieldset>
     </div>
