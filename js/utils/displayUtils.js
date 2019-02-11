@@ -39,5 +39,5 @@ export function msToTime(s) {
     s = (s - secs) / 60;
     let mins = s % 60;
     let hrs = (s - mins) / 60;
-    return zerofill(hrs,2) + 'ч ' + zerofill(mins,2) + 'мин ' + zerofill(secs,2) ;
+    return zerofill(hrs,2) + 'ч ' + zerofill(mins,2) + 'мин';
 }

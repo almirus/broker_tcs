@@ -166,13 +166,6 @@ a:hover, a:active {
     color: #f40024;
 }
 
-tr.All,
-tr.TinkoffIis {
-    display: none;
-}
-table.showAll > tr.All {
-    display: table-row;
-}
-table.showTinkoffIis > tr.TinkoffIis {
-    display: table-row;
+.isOnlineOrder{
+    background-color: lightgreen;
 }

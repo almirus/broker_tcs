@@ -246,7 +246,7 @@ function setDeleteButtonHandler() {
 function create_portfolio_table(divId, data) {
     let old_table = document.getElementById(divId + '_table');
     let table = document.createElement('table');
-    table.className = (old_table) ? old_table.className : 'alertPriceTable showAll';
+    table.className = (old_table) ? old_table.className : 'alertPriceTable';
     table.id = divId + '_table';
     let tr = document.createElement('tr');
     let th1 = document.createElement('th');
