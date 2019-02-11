@@ -24,6 +24,7 @@ import {
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {fillCashData, msToTime} from "./utils/displayUtils.js";
+import {debounce, throttle} from "./utils/systemUtils.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -43,35 +44,6 @@ document.getElementById('toggle_info').addEventListener('click', function (event
 
 }, false);
 
-const debounce = (func, delay) => {
-    let inDebounce;
-    return function () {
-        const context = this;
-        const args = arguments;
-        clearTimeout(inDebounce);
-        inDebounce = setTimeout(() => func.apply(context, args), delay)
-    }
-};
-const throttle = (func, limit) => {
-    let lastFunc;
-    let lastRan;
-    return function () {
-        const context = this;
-        const args = arguments;
-        if (!lastRan) {
-            func.apply(context, args);
-            lastRan = Date.now()
-        } else {
-            clearTimeout(lastFunc);
-            lastFunc = setTimeout(function () {
-                if ((Date.now() - lastRan) >= limit) {
-                    func.apply(context, args);
-                    lastRan = Date.now()
-                }
-            }, limit - (Date.now() - lastRan))
-        }
-    }
-};
 port.onMessage.addListener(function (msg) {
     console.log(`Option - message received ${msg.result}`);
     switch (msg.result) {
