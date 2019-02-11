@@ -607,7 +607,8 @@ function updateAlertPrices() {
                                 online_buy_price: res.payload.buy ? res.payload.buy.value : '',
                                 online_sell_price: res.payload.sell ? res.payload.sell.value : '',
                                 orderId: item.orderId,
-                                timeToExpire: item.timeToExpire
+                                timeToExpire: item.timeToExpire,
+                                status: item.status
                             };
                             i++;
                         })
