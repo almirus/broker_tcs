@@ -154,6 +154,7 @@ p.info {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
 a:link, a:visited {
     color: #121ff4;
     text-align: center;
@@ -166,6 +167,18 @@ a:hover, a:active {
     color: #f40024;
 }
 
-.isOnlineOrder{
+.isOnlineOrder {
     background-color: lightgreen;
+}
+
+input.buy, input.sell {
+    width: 85px;
+}
+
+input.tickerQuantity {
+    width: 60px;
+}
+
+input[type="datetime-local"] {
+    width: 175px;
 }

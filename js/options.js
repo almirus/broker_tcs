@@ -214,6 +214,19 @@ function setDeleteButtonHandler() {
     })
 }
 
+// Логика изменения при вводе данных в Онлайн заявки
+function setChangeOrderHandler(){
+    Array.from(document.getElementsByClassName("tickerOrderBuyPrice")).forEach(function (input) {
+        input.addEventListener('input', function (e) {
+            let input = e.target;
+            if (input.value) {
+                input.parentElement.parentElement.cells.item(3).getElementsByTagName('input')[0].value;
+            }
+        }, {
+            once: true,
+        });
+    })
+}
 function create_portfolio_table(divId, data) {
     let old_table = document.getElementById(divId + '_table');
     let table = document.createElement('table');
@@ -426,7 +439,7 @@ function create_table(data) {
     setAddButtonHandler();
 }
 
-// список для добавления ондайн заявок
+// список для добавления онлайн заявок
 function create_orders_table(data) {
     let table = document.createElement('table');
     table.className = 'priceTable';
@@ -459,18 +472,18 @@ function create_orders_table(data) {
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
-            td3.innerHTML = '<input class="tickerPrice buy" type="number" placeholder="продать >=">';
+            td3.innerHTML = '<input class="tickerOrderBuyPrice buy" type="number" placeholder="продать >=">';
             td3.className = 'tickerCol';
             let td4 = document.createElement('td');
             //td4.innerHTML = element.prices.sell.value + element.prices.sell.currency + '<br>' + '<input class="tickerPrice sell" type="number">';
-            td4.innerHTML = '<input class="tickerPrice sell" type="number" placeholder="купить  <=">';
+            td4.innerHTML = '<input class="tickerOrderSellPrice sell" type="number" placeholder="купить  <=">';
             td4.className = 'tickerCol';
             let td5 = document.createElement('td');
             td5.className = 'tickerCol';
             td5.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
             let td6 = document.createElement('td');
             td6.className = 'tickerCol';
-            td6.innerHTML = '<input type="number" title="">';
+            td6.innerHTML = '<input class="tickerQuantity" type="number" title="">';
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
@@ -481,8 +494,8 @@ function create_orders_table(data) {
         })
     }
     document.getElementById('order_table').innerText = '';
-
     document.getElementById('order_table').appendChild(table);
+    setChangeOrderHandler();
 }
 
 // рендер таблицы с акциями ранее сохраненные
