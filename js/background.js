@@ -167,6 +167,7 @@ function getUserInfo() {
         getTCSsession().then(function (session_id) {
             fetch(USER_URL + session_id)
                 .then(function (response) {
+                    if (response.status!==200) reject ({status:response.status});
                     return response.json()
                 }).then(function (json) {
                 resolve(
@@ -837,6 +838,10 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getUserInfo().then(function (user_data) {
                     console.log("send message getuserInfo .....");
                     port.postMessage(user_data);
+                }).catch(e=>{
+                    console.log("error .....");
+                    port.postMessage(Object.assign({}, {result: "updateUserInfo"}, {status: e.status}));
+
                 });
                 break;
             case 'getAvailableCashTCS':

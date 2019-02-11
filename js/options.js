@@ -114,6 +114,10 @@ port.onMessage.addListener(function (msg) {
 
             break;
         case 'updateUserInfo':
+            if (msg.status){
+                document.getElementById('portfolioTCS').innerHTML ='<h2>API брокера недоступен, возможно идет обновление</h2>';
+                break;
+            }
             document.getElementById('riskProfile').innerText = msg.riskProfile;
             document.getElementById('qualStatus').innerText = msg.qualStatus;
             document.getElementById('approvedW8').innerText = msg.approvedW8;
