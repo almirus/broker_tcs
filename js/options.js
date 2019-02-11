@@ -49,7 +49,7 @@ port.onMessage.addListener(function (msg) {
     switch (msg.result) {
         case 'listStock':
             create_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
-            setAddButtonHandler();
+
             break;
         case 'listStockForOrder':
             create_orders_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
@@ -184,6 +184,8 @@ function setAddButtonHandler() {
                 })
             });
 
+        }, {
+            once: true,
         })
     });
 }
@@ -191,27 +193,25 @@ function setAddButtonHandler() {
 // Удаление из списка
 function setDeleteButtonHandler() {
     // очень некрасиво, но пока так
-    setTimeout(function () {
-        let container = document.getElementById('alert_table');
-        Array.from(container.getElementsByClassName("deleteTicker")).forEach(function (input) {
-            input.addEventListener('click', function (e) {
-                let button = e.target;
-                let ticker = button.dataset.index;
-                if (/^\d+$/.test(ticker) && confirm("Завка будет снята, Вы уверены?")) {
-                    port.postMessage({method: "deleteOrder", params: ticker});
-                } else
-                    chrome.storage.sync.get([TICKER_LIST], function (data) {
-                        let alert_data = data[TICKER_LIST] || [];
-                        let new_alert_date = alert_data.filter(item => !(!!item && (item.ticker + (item.sell_price || '0') + (item.buy_price || '0')) === ticker));
-                        chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
-                            console.log('Save ticker ' + JSON.stringify(new_alert_date));
-                            //create_alert_table(alert_data);
-                        })
-                    });
-            });
-        })
-    }, 1000);
-
+    Array.from(document.getElementsByClassName("deleteTicker")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            let ticker = button.dataset.index;
+            if (/^\d+$/.test(ticker) && confirm("Завка будет снята, Вы уверены?")) {
+                port.postMessage({method: "deleteOrder", params: ticker});
+            } else
+                chrome.storage.sync.get([TICKER_LIST], function (data) {
+                    let alert_data = data[TICKER_LIST] || [];
+                    let new_alert_date = alert_data.filter(item => !(!!item && (item.ticker + (item.sell_price || '0') + (item.buy_price || '0')) === ticker));
+                    chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
+                        console.log('Save ticker ' + JSON.stringify(new_alert_date));
+                        //create_alert_table(alert_data);
+                    })
+                });
+        }, {
+            once: true,
+        });
+    })
 }
 
 function create_portfolio_table(divId, data) {
@@ -422,8 +422,8 @@ function create_table(data) {
         })
     }
     document.getElementById('table').innerText = '';
-
     document.getElementById('table').appendChild(table);
+    setAddButtonHandler();
 }
 
 // список для добавления ондайн заявок
@@ -602,15 +602,18 @@ function create_alert_table(data_list) {
 
                     table.appendChild(tr);
                     //setRefreshHandler();
-                })
+                });
+                document.getElementById('alert_table').innerText = '';
+                document.getElementById('alert_table').appendChild(table);
+                setDeleteButtonHandler()
             })
         } else {
             table = document.createElement('h5');
             table.innerText = 'Список для отслеживания пуст, добавьте, нажав "Добавить для отслеживания"';
+            document.getElementById('alert_table').innerText = '';
+            document.getElementById('alert_table').appendChild(table);
         }
-        document.getElementById('alert_table').innerHTML = '';
-        document.getElementById('alert_table').appendChild(table);
-        setDeleteButtonHandler();
+
     })
 }
 
@@ -826,7 +829,7 @@ if (window.Notification && Notification.permission !== "granted") {
     document.getElementById('app_version').innerText = manifestData.version;
 })();
 
-create_alert_table();
+//create_alert_table();
 
 port.postMessage({method: "getSession"});
 port.postMessage({method: "updateAlertPrices"});
