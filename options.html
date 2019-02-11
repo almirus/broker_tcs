@@ -35,9 +35,60 @@
                 <span>За сегодня</span>
                 <span id="day" style="font-weight: bold" title="Доходность считается по последней цене"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span>
             </div>
-            <a id="toggle_info" class="toggle" style="float: right" href="#info">Версия приложения <span id="app_version">~</span></a>
-
+            <a id="toggle_info" class="toggle" style="float: right" href="#info">Настройки</a><br>
             <div class="toggle-content" id="info">
+                <fieldset class="table">
+                    <legend>Настройки - Версия приложения <span id="app_version">~</span></legend>
+                    <input type="checkbox" value="0" name="redirect" id="redirect">
+                    <label for="redirect">При истечении сессии редиректить на страницу логина, иначе показывать иконкой</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Если галочка установлена, то при любой проверке данных с сервера и невалидной сессии будет перенаправление на страницу брокера с предложением залогиниться">
+                    <br>
+                    <input type="checkbox" value="0" name="session" id="session">
+                    <label for="session">Сохранять сессию в личном кабинете (для получения данных в фоне)</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="В фоне периодически будет пинговаться сервер и не давать завершить сессию в личном кабинете&#013;Если выключено, никаких уведомлений не будет&#013;Учтите, что это может быть небезопасно, если доступ к браузеру имеют 3е лица">
+                    <br>
+                    <input type="checkbox" value="0" name="cosmetic" id="cosmetic">
+
+                    <label for="cosmetic">Применить косметические фильтры на странице брокера</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Уменьшает размеры элементов чтобы на экране в личном кабинете поместилось больше информации">
+                    <br>
+                    <input type="checkbox" value="0" name="alert_redirect" id="alert_redirect">
+                    <label for="alert_redirect">При достижении цены открывать страницу покупки/продажи</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Если установлена галочка будет сразу открыто окно с покупкой/продажи акции, иначе будет показано стандартное уведомление&#013;Нужно по нему кликнуть чтобы открылась страница покупки\продажи">
+                    <br>
+                    <input type="checkbox" value="0" name="alert_today" id="alert_today">
+                    <label for="alert_today">Оповещать, если в течении дня <strong>стоимость портфеля</strong> поменялась на
+                        ±<input class="textInput" type="number"
+                                title="Установить доходность, при достижении которой будет выведено уведомление"
+                                name="alert_today_value"
+                                id="alert_today_value"
+                                maxlength="3"
+                                min="0">%</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Выдает уведомление, если стоимость всего портфеля поменялась в течении дня на более чем на указанную величину&#013;Нажмите цифру чтобы изменить">
+                    <br>
+                    <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_today_per_symbol">
+                    <label for="alert_today_per_symbol">Оповещать, если в течении дня <strong>стоимость любой купленной
+                        позиции</strong> поменялась на
+                        ±<input class="textInput" type="number"
+                                title="Установить доходность, при достижении которой будет выведено уведомление"
+                                name="alert_today_value_per_symbol"
+                                id="alert_today_value_per_symbol" maxlength="3"
+                                min="0">%</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Выдает уведомление, если стоимость любой позиции в портфеле поменялась в течении дня на указанную величину. Нужно учитывать, что брокер считает доходность по цене последней сделки&#013;Нажмите цифру чтобы изменить">
+
+                    <br>
+                    <input type="checkbox" value="0" name="convert_to_rub" id="convert_to_rub">
+                    <label for="convert_to_rub">Показывать итоговые суммы в рублях</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Итоговые суммы будут приведены в рублях, на основе биржевого курс брокера">
+
+                </fieldset>
                 <p><strong>Данное приложение неофициальное.</strong><br>Написано для себя, в виду отсутствия
                     необходимого
                     функционала в TCS Broker.</p>
@@ -56,58 +107,6 @@
                 </p>
                 <span id="versionAPI" style="float: right" title="Версия API брокера"></span>
             </div>
-        </fieldset>
-        <fieldset class="table">
-            <legend>Настройки</legend>
-            <input type="checkbox" value="0" name="redirect" id="redirect">
-            <label for="redirect">При истечении сессии редиректить на страницу логина, иначе показывать иконкой</label>
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Если галочка установлена, то при любой проверке данных с сервера и невалидной сессии будет перенаправление на страницу брокера с предложением залогиниться">
-            <br>
-            <input type="checkbox" value="0" name="session" id="session">
-            <label for="session">Сохранять сессию в личном кабинете (для получения данных в фоне)</label>
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="В фоне периодически будет пинговаться сервер и не давать завершить сессию в личном кабинете&#013;Если выключено, никаких уведомлений не будет&#013;Учтите, что это может быть небезопасно, если доступ к браузеру имеют 3е лица">
-            <br>
-            <input type="checkbox" value="0" name="cosmetic" id="cosmetic">
-
-            <label for="cosmetic">Применить косметические фильтры на странице брокера</label>
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Уменьшает размеры элементов чтобы на экране в личном кабинете поместилось больше информации">
-            <br>
-            <input type="checkbox" value="0" name="alert_redirect" id="alert_redirect">
-            <label for="alert_redirect">При достижении цены открывать страницу покупки/продажи</label>
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Если установлена галочка будет сразу открыто окно с покупкой/продажи акции, иначе будет показано стандартное уведомление&#013;Нужно по нему кликнуть чтобы открылась страница покупки\продажи">
-            <br>
-            <input type="checkbox" value="0" name="alert_today" id="alert_today">
-            <label for="alert_today">Оповещать, если в течении дня <strong>стоимость портфеля</strong> поменялась на
-                ±<input class="textInput" type="number"
-                        title="Установить доходность, при достижении которой будет выведено уведомление"
-                        name="alert_today_value"
-                        id="alert_today_value"
-                        maxlength="3"
-                        min="0">%</label>
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Выдает уведомление, если стоимость всего портфеля поменялась в течении дня на более чем на указанную величину&#013;Нажмите цифру чтобы изменить">
-            <br>
-            <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_today_per_symbol">
-            <label for="alert_today_per_symbol">Оповещать, если в течении дня <strong>стоимость любой купленной
-                позиции</strong> поменялась на
-                ±<input class="textInput" type="number"
-                        title="Установить доходность, при достижении которой будет выведено уведомление"
-                        name="alert_today_value_per_symbol"
-                        id="alert_today_value_per_symbol" maxlength="3"
-                        min="0">%</label>
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Выдает уведомление, если стоимость любой позиции в портфеле поменялась в течении дня на указанную величину. Нужно учитывать, что брокер считает доходность по цене последней сделки&#013;Нажмите цифру чтобы изменить">
-
-            <br>
-            <input type="checkbox" value="0" name="convert_to_rub" id="convert_to_rub">
-            <label for="convert_to_rub">Показывать итоговые суммы в рублях</label>
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Итоговые суммы будут приведены в рублях, на основе биржевого курс брокера">
-
         </fieldset>
         <fieldset class="table">
             <legend>Добавить оповещения об изменении цены</legend>
