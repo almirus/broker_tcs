@@ -805,6 +805,13 @@ chrome.runtime.onConnect.addListener(function (port) {
                     port.postMessage(list_symbols);
                 });
                 break;
+            case 'getListStockForOrder':
+                getListStock(msg.params).then(function (list_symbols) {
+                    console.log("send message listStock .....");
+                    list_symbols.result = "listStockForOrder";
+                    port.postMessage(list_symbols);
+                });
+                break;
             case 'updatePopup':
                 updatePopup().then(function (popup_data) {
                     console.log("send message updatePopup .....");

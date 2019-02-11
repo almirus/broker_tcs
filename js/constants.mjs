@@ -21,7 +21,12 @@ export const PROGNOSIS_URL = 'https://api.tinkoff.ru/trading/stocks/prognosis?ti
 export const SET_ALERT_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_alert?ticker=${ticker}&price=${price}&sessionId=';
 export const ORDERS_URL = 'https://api.tinkoff.ru/trading/user/orders?sessionId=';
 export const CANCEL_ORDER = 'https://api.tinkoff.ru/trading/order/cancel?orderId=${orderId}&brokerAccountType=${brokerAccountType}&sessionId=';
-export const CREATE_ORDER = 'https://api.tinkoff.ru/trading/order/limit_order?ticker=${ticker}&price=${price}&quantity=${quantity}&side=${side}&sessionId=';
+export const HOLD_BUY_ORDER = 'https://api.tinkoff.ru/trading/order/hold_buy_price?ticker=${ticker}&accountType=${accountType}&orderType=${orderType}&quantity=${quantity}&sessionId=';
+export const HOLD_SELL_ORDER = 'https://api.tinkoff.ru/trading/order/hold_sell_price?ticker=${ticker}&accountType=${accountType}&orderType=${orderType}&quantity=${quantity}&sessionId=';
+export const CREATE_ORDER = 'https://api.tinkoff.ru/trading/order/limit_order?ticker=${ticker}&price=${price}&quantity=${quantity}&side=${side}&accountType=${accountType}&sessionId=';
+export const CONFIRM_ORDER = 'https://api.tinkoff.ru/trading/order/confirm?requestId=${requestId}&smsNumber=${smsNumber}&sessionId=';
+export const FULL_PRICE_ORDER = 'https://api.tinkoff.ru/trading/order/full_price_limit?operationType=${operationType}&quantity=${quantity}&ticker=${ticker}&price=${price}&accountType=${accountType}&sessionId=';
+
 
 
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
@@ -90,3 +95,53 @@ export class Portfolio extends AlertList {
 
 
 }
+
+//hold
+/*{
+    payload: {
+        markupCoefficient: 0.003,
+            nkd: 0,
+            validUntil: "2019-02-11T17:17:36.979+03:00",
+            amountWithoutMarkup: {
+            currency: "USD",
+                value: 38.66
+        },
+        priceHold: {
+            id: "863055790941974753",
+                holdType: "Buy"
+        },
+        amount: {
+            currency: "USD",
+                value: 38.78
+        },
+        ticker: "MU"
+    },
+    trackingId: "NG9hPBvEBI",
+        time: "2019-02-11T17:15:36.99+03:00",
+    status: "Ok"
+}*/
+
+//create_order
+/*
+{
+    payload: {
+        message: "Цена не попадает в допустимый интервал от 36.63 до 40.5",
+            code: "RequestValidation",
+            info: {
+            field: "price"
+        }
+    },
+    trackingId: "GoWzdnsgfw",
+        time: "2019-02-11T17:20:35.631+03:00",
+    status: "Error"
+}*/
+/*
+{
+    payload: {
+        requestId: "4578719464638531345",
+            confirmationType: "Sms"
+    },
+    trackingId: "UWcQGRSXZO",
+        time: "2019-02-11T17:22:19.378+03:00",
+    status: "NeedConfirmation"
+}*/
