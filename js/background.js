@@ -739,7 +739,7 @@ function checkAlerts() {
                 checkTicker(item).then(function (response) {
                     console.log('Пытаемся проверить ' + item.ticker + ' на продажу по ' + item.sell_price + ' и покупку по ' + item.buy_price);
                     if (response.buy || response.sell) {
-                        chrome.notifications.create(response.buy ? 'buy|' : 'sell|' + item.ticker, {
+                        chrome.notifications.create((response.buy ? 'buy|' : 'sell|') + item.ticker, {
                             type: 'basic',
                             iconUrl: response.buy ? '/icons/buy-2-64.png' : '/icons/sell-2-64.png',
                             title: response.buy ? `Сработала проверка на покупку по ${item.buy_price}` : `Сработала проверка на продажу по ${item.sell_price}`,
