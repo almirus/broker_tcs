@@ -226,7 +226,7 @@ function setDeleteButtonHandler() {
                 } else
                     chrome.storage.sync.get([TICKER_LIST], function (data) {
                         let alert_data = data[TICKER_LIST] || [];
-                        let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker));
+                        let new_alert_date = alert_data.filter(item => !(!!item && (item.ticker + (item.sell_price || '0') + (item.buy_price || '0')) === ticker));
                         chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
                             console.log('Save ticker ' + JSON.stringify(new_alert_date));
                             //create_alert_table(alert_data);
@@ -551,8 +551,9 @@ function create_alert_table(data_list) {
                     td7.className = '';
                     td7.align = 'center';
                     let td8 = document.createElement('td');
+                    // hash for delete = ticker+sellprice+buyprice
                     if (element.orderId && element.status === 'New' || !element.orderId)
-                        td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || element.ticker}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
+                        td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
                     else td8.innerHTML = 'В процессе';
                     tr.appendChild(td1);
                     tr.appendChild(td2);
