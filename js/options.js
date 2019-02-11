@@ -23,7 +23,7 @@ import {
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
-import {fillCashData} from "./utils/displayUtils.js";
+import {fillCashData, msToTime} from "./utils/displayUtils.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -545,10 +545,7 @@ function create_alert_table(data_list) {
                     td6.className = '';
                     let alert_date = new Date(Date.parse(element.best_before));
                     if (element.orderId) {
-                        if (element.timeToExpire / 3600 / 1000 < 1)
-                            td6.innerHTML = 'еще ' + (element.timeToExpire / 60 / 1000).toFixed(0) + ' мин.';
-                        else
-                            td6.innerHTML = 'еще ' + (element.timeToExpire / 3600 / 1000).toFixed(1) + ' ч.';
+                        td6.innerHTML = '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>';
                     } else td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
                     td6.align = 'center';
                     let td7 = document.createElement('td');
