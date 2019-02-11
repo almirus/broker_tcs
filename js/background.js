@@ -288,13 +288,18 @@ async function convertPortfolio(data, needToConvert, ticker, sessionId) {
     return return_data;
 }
 
-function deleteOrder(orderId) {
+function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
     return new Promise(function (resolve, reject) {
         getTCSsession().then(function (session_id) {
-            fetch(CANCEL_ORDER.replace('${orderId}', orderId) + session_id)
+            fetch(CANCEL_ORDER.replace('${orderId}', orderId).replace('${brokerAccountType}', brokerAccountType) + session_id)
                 .then(response => response.json())
                 .then(function (json) {
-                    resolve(json);
+                    if (json.status === 'Error') {
+                        console.log('cant delete order', json);
+                        reject(undefined);
+                    } else
+                        console.log('success deleting order');
+                        resolve(json);
                 }).catch(ex => {
                 console.log('cant delete order', ex);
                 reject(undefined);
