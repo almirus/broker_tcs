@@ -1,3 +1,15 @@
+@font-face {
+    font-family: NotomojiColor;
+    font-weight: 400;
+    src: url(fonts/NotoColorEmoji.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: Notomoji;
+    font-weight: 400;
+    src: url(fonts/NotoEmoji-Regular.ttf) format("truetype");
+}
+
 #container input {
     display: inline-block;
 }
@@ -181,4 +193,9 @@ input.tickerQuantity {
 
 input[type="datetime-local"] {
     width: 175px;
+    height: 17px;
+}
+.icon{
+    font-family: NotomojiColor, Notomoji, sans-serif;
+    font-size: 10pt;
 }

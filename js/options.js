@@ -114,8 +114,8 @@ port.onMessage.addListener(function (msg) {
 
             break;
         case 'updateUserInfo':
-            if (msg.status){
-                document.getElementById('portfolioTCS').innerHTML ='<h2>API брокера недоступен, возможно идет обновление</h2>';
+            if (msg.status) {
+                document.getElementById('portfolioTCS').innerHTML = '<h2>API брокера недоступен, возможно идет обновление</h2>';
                 break;
             }
             document.getElementById('riskProfile').innerText = msg.riskProfile;
@@ -166,9 +166,18 @@ function setAddButtonHandler() {
             let button = e.target;
             let ticker = button.dataset.ticker;
             let showName = button.dataset.showname;
-            let buy_price = button.parentElement.parentElement.cells.item(3).getElementsByTagName('input')[0].value;
-            let sell_price = button.parentElement.parentElement.cells.item(2).getElementsByTagName('input')[0].value;
-            let date = button.parentElement.parentElement.cells.item(4).getElementsByTagName('input')[0].value;
+            let buy_price = document.getElementById('buy_price_' + button.dataset.ticker).value;
+            let sell_price = document.getElementById('sell_price_' + button.dataset.ticker).value;
+            let mobile_alert = document.getElementById('mobile_alert_' + button.dataset.ticker).checked;
+            let date = document.getElementById('datetime_' + button.dataset.ticker).value;
+            let mobile_alert_price;
+            if (mobile_alert && buy_price && sell_price) {
+                mobile_alert_price = prompt('Вы указали одновременно и цену покупки и продажи\nДля мобильного уведомления нужно указать только одну (last price), введите цифру', buy_price);
+            }
+            if (mobile_alert) {
+                mobile_alert_price = mobile_alert_price || buy_price || sell_price;
+                // отправляем запрос на создание моб уведомления
+            }
             let alert_symbol = {
                 ticker: ticker,
                 showName: showName,
@@ -219,7 +228,7 @@ function setDeleteButtonHandler() {
 }
 
 // Логика изменения при вводе данных в Онлайн заявки
-function setChangeOrderHandler(){
+function setChangeOrderHandler() {
     Array.from(document.getElementsByClassName("tickerOrderBuyPrice")).forEach(function (input) {
         input.addEventListener('input', function (e) {
             let input = e.target;
@@ -231,6 +240,7 @@ function setChangeOrderHandler(){
         });
     })
 }
+
 function create_portfolio_table(divId, data) {
     let old_table = document.getElementById(divId + '_table');
     let table = document.createElement('table');
@@ -282,14 +292,14 @@ function create_portfolio_table(divId, data) {
         }
         if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
         else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
-        let otc = element.symbol.isOTC ? '<img class="symbolStatus" alt="Внебиржевой инструмент" title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность" src="/icons/otc.png">' : '';
-        let etf = element.symbol.symbolType === 'ETF' ? '<img class="symbolStatus" alt="ETF" title="ETF" src="/icons/etf.png">' : '';
-        let currency = element.symbol.symbolType === 'Currency' ? '<img class="symbolStatus" alt="Валюта" title="Валюта" src="/icons/currency_dollar.png">' : '';
-        let bond = element.symbol.symbolType === 'Bond' ? '<img class="symbolStatus" alt="Облигации" title="Облигации" src="/icons/james_bond.png">' : '';
+        let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">📊</span>' : '';
+        let etf = element.symbol.symbolType === 'ETF' ? '<span title="ETF">📈</span>' : '';
+        let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
+        let bond = element.symbol.symbolType === 'Bond' ? '<span title="Бонды">📒</span>' : '';
         let country = '';
-        if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '<img class="symbolStatus" alt="Российские акции" title="Российские акции" src="/icons/rus.png">' : '<img class="symbolStatus" alt="Зарубежные акции" title="Зарубежные акции" src="/icons/usa.png">'
+        if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}">${country}${otc}${etf}${currency}${bond}
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
 
@@ -399,11 +409,16 @@ function create_table(data) {
     th4.appendChild(document.createTextNode('покупка'));
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('заявка активна до'));
+    let th6 = document.createElement('th');
+    th6.appendChild(document.createTextNode('на телефоне'));
+    let th7 = document.createElement('th');
     tr.appendChild(th1);
     tr.appendChild(th2);
     tr.appendChild(th3);
     tr.appendChild(th4);
     tr.appendChild(th5);
+    tr.appendChild(th6);
+    tr.appendChild(th7);
     table.appendChild(tr);
     if (data && data.length > 0) {
         data.forEach(function (element) {
@@ -417,24 +432,28 @@ function create_table(data) {
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
-            td3.innerHTML = '<input class="tickerPrice buy" type="number" placeholder="продать >=">';
+            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="продать >=" title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
             td3.className = 'tickerCol';
             let td4 = document.createElement('td');
             //td4.innerHTML = element.prices.sell.value + element.prices.sell.currency + '<br>' + '<input class="tickerPrice sell" type="number">';
-            td4.innerHTML = '<input class="tickerPrice sell" type="number" placeholder="купить  <=">';
+            td4.innerHTML = `<input class="tickerPrice sell" id="sell_price_${element.symbol.ticker}" type="number" placeholder="купить  <="  title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
             td4.className = 'tickerCol';
             let td5 = document.createElement('td');
             td5.className = 'tickerCol';
-            td5.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
+            td5.innerHTML = `<input type="datetime-local" id="datetime_${element.symbol.ticker}" title="Если не установлено то бессрочно">`;
             let td6 = document.createElement('td');
-            td6.className = 'tickerCol';
-            td6.innerHTML = '<input type="datetime-local" title="Если не установлено то бессрочно">';
+            //td6.width = '50';
+            td6.innerHTML = `<input type="checkbox" id="mobile_alert_${element.symbol.ticker}" title="При достижении цены оповещение также сработает на телефоне в приложении Брокера&#013;Уведомления на телефоне бессрочные и срабатывают только по last price"><label for="mobile_alert_${element.symbol.ticker}">моб оповещение</label>`;
+            let td7 = document.createElement('td');
+            td7.className = 'tickerCol';
+            td7.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
             tr.appendChild(td4);
-            tr.appendChild(td6);
             tr.appendChild(td5);
+            tr.appendChild(td6);
+            tr.appendChild(td7);
             table.appendChild(tr);
         })
     }
