@@ -194,7 +194,7 @@ function setAddButtonHandler() {
                 let new_alert_date = alert_data.filter(item => !!item);
                 chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
                     console.log('Save ticker ' + JSON.stringify(new_alert_date));
-                    alert('Добавлено в список отслеживания');
+                    alert('Добавлено в список отслеживания в браузере' + (mobile_alert ? ' и уведомление в приложении брокера' : ''));
                 })
             });
 
@@ -410,7 +410,7 @@ function create_table(data) {
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('заявка активна до'));
     let th6 = document.createElement('th');
-   
+
     let th7 = document.createElement('th');
     tr.appendChild(th1);
     tr.appendChild(th2);
