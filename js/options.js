@@ -410,7 +410,7 @@ function create_table(data) {
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('заявка активна до'));
     let th6 = document.createElement('th');
-    th6.appendChild(document.createTextNode('на телефоне'));
+   
     let th7 = document.createElement('th');
     tr.appendChild(th1);
     tr.appendChild(th2);
@@ -443,7 +443,7 @@ function create_table(data) {
             td5.innerHTML = `<input type="datetime-local" id="datetime_${element.symbol.ticker}" title="Если не установлено то бессрочно">`;
             let td6 = document.createElement('td');
             //td6.width = '50';
-            td6.innerHTML = `<input type="checkbox" id="mobile_alert_${element.symbol.ticker}" title="При достижении цены оповещение также сработает на телефоне в приложении Брокера&#013;Уведомления на телефоне бессрочные и срабатывают только по last price"><label for="mobile_alert_${element.symbol.ticker}">моб оповещение</label>`;
+            td6.innerHTML = `<input type="checkbox" id="mobile_alert_${element.symbol.ticker}" title="При достижении цены оповещение также сработает на телефоне в приложении Брокера&#013;Уведомления на телефоне бессрочные и срабатывают только по last price"><label class="icon" for="mobile_alert_${element.symbol.ticker}">📳</label>`;
             let td7 = document.createElement('td');
             td7.className = 'tickerCol';
             td7.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
