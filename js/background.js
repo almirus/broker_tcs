@@ -387,7 +387,7 @@ function getListStock(name) {
                             console.log('get session option');
                             getPortfolio(session_id).then(function (json) {
                                 console.log('list of portfolio');
-                                Promise.all([convertPortfolio(json.tcs.payload.data, result[OPTION_CONVERT_TO_RUB], currency, session_id), convertPortfolio(json.iis.payload.data, currency, result[OPTION_CONVERT_TO_RUB], session_id)])
+                                Promise.all([convertPortfolio(json.tcs.payload.data, result[OPTION_CONVERT_TO_RUB], currency, session_id), convertPortfolio(json.iis.payload.data,result[OPTION_CONVERT_TO_RUB], currency, session_id)])
                                     .then(([tcs_data, iis_data]) => {
                                         resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data || []}));
                                     });
