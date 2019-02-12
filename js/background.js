@@ -29,6 +29,7 @@ import {
     PROGNOSIS_URL,
     SEARCH_URL,
     SELL_LINK,
+    SET_ALERT_URL,
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
@@ -167,7 +168,7 @@ function getUserInfo() {
         getTCSsession().then(function (session_id) {
             fetch(USER_URL + session_id)
                 .then(function (response) {
-                    if (response.status!==200) reject ({status:response.status});
+                    if (response.status !== 200) reject({status: response.status});
                     return response.json()
                 }).then(function (json) {
                 resolve(
@@ -300,7 +301,7 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
                         reject(undefined);
                     } else
                         console.log('success deleting order');
-                        resolve(json);
+                    resolve(json);
                 }).catch(ex => {
                 console.log('cant delete order', ex);
                 reject(undefined);
@@ -614,7 +615,8 @@ function updateAlertPrices() {
                                 online_sell_price: res.payload.sell ? res.payload.sell.value : '',
                                 orderId: item.orderId,
                                 timeToExpire: item.timeToExpire,
-                                status: item.status
+                                status: item.status,
+                                subscriptId: item.subscriptId,
                             };
                             i++;
                         })
@@ -775,12 +777,38 @@ function checkAlerts() {
     });
 }
 
+function createMobileAlert(params) {
+    getTCSsession().then(function (session_id) {
+        fetch(SET_ALERT_URL.replace('${ticker}', params.ticker).replace('${price}', params.price) + session_id)
+            .then(response => response.json())
+            .then(function (json) {
+                if (json.payload.confirm) {
+                    chrome.storage.sync.get([TICKER_LIST], function (data) {
+                        let alert_data = data[TICKER_LIST] || [];
+                        alert_data.forEach(function (item, i) {
+                            if (item.ticker === params.ticker)
+                                alert_data[i].subscriptId = json.payload.subscriptId // созданный id уведомления
+                        });
+                        chrome.storage.sync.set({[TICKER_LIST]: alert_data}, () => {
+                            console.log('save relative ' + JSON.stringify(data));
+                        })
+                    })
+                } else {
+                    console.log('cant set mobile alert ' + JSON.stringify(json));
+                }
+            })
+    })
+}
+
 // основной слушатель
 chrome.runtime.onConnect.addListener(function (port) {
     console.log("Connected .....");
     port.onMessage.addListener(function (msg) {
         console.log("Background - message received " + JSON.stringify(msg));
         switch (msg.method) {
+            case 'createMobileAlert':
+                createMobileAlert(msg.params);
+                break;
             case 'updateAlertPrices':
                 updateAlertPrices().then(function (alert_list) {
                     console.log("send message tickerInfo .....");
@@ -838,7 +866,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getUserInfo().then(function (user_data) {
                     console.log("send message getuserInfo .....");
                     port.postMessage(user_data);
-                }).catch(e=>{
+                }).catch(e => {
                     console.log("error .....");
                     port.postMessage(Object.assign({}, {result: "updateUserInfo"}, {status: e.status}));
 

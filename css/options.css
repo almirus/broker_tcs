@@ -198,4 +198,5 @@ input[type="datetime-local"] {
 .icon{
     font-family: NotomojiColor, Notomoji, sans-serif;
     font-size: 10pt;
+    cursor: default;
 }

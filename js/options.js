@@ -172,11 +172,12 @@ function setAddButtonHandler() {
             let date = document.getElementById('datetime_' + button.dataset.ticker).value;
             let mobile_alert_price;
             if (mobile_alert && buy_price && sell_price) {
-                mobile_alert_price = prompt('Вы указали одновременно и цену покупки и продажи\nДля мобильного уведомления нужно указать только одну (last price), введите цифру', buy_price);
+                mobile_alert_price = prompt('Вы указали одновременно и цену покупки и продажи\nДля мобильного уведомления нужно указать только одну (last price), введите интересующую стоимость для ' + button.dataset.ticker, buy_price);
             }
             if (mobile_alert) {
-                mobile_alert_price = mobile_alert_price || buy_price || sell_price;
+                mobile_alert_price = parseFloat(mobile_alert_price || buy_price || sell_price); // только одна цена для мобильного
                 // отправляем запрос на создание моб уведомления
+                port.postMessage({method: "createMobileAlert", params: {ticker: ticker, price: mobile_alert_price}});
             }
             let alert_symbol = {
                 ticker: ticker,
@@ -302,7 +303,6 @@ function create_portfolio_table(divId, data) {
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
-
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
             (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
@@ -313,7 +313,7 @@ function create_portfolio_table(divId, data) {
             (element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
-        let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell'
+        let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
         let prognosis_link = element.contentMarker.prognosis ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
         ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
             style: 'currency',
@@ -404,9 +404,9 @@ function create_table(data) {
     let th2 = document.createElement('th');
     th2.appendChild(document.createTextNode('последняя'));
     let th3 = document.createElement('th');
-    th3.appendChild(document.createTextNode('продажа'));
+    th3.appendChild(document.createTextNode('покупка'));
     let th4 = document.createElement('th');
-    th4.appendChild(document.createTextNode('покупка'));
+    th4.appendChild(document.createTextNode('продажа'));
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('заявка активна до'));
     let th6 = document.createElement('th');
@@ -432,11 +432,11 @@ function create_table(data) {
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
-            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="продать >=" title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
+            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="купить  <=" title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
             td3.className = 'tickerCol';
             let td4 = document.createElement('td');
             //td4.innerHTML = element.prices.sell.value + element.prices.sell.currency + '<br>' + '<input class="tickerPrice sell" type="number">';
-            td4.innerHTML = `<input class="tickerPrice sell" id="sell_price_${element.symbol.ticker}" type="number" placeholder="купить  <="  title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
+            td4.innerHTML = `<input class="tickerPrice sell" id="sell_price_${element.symbol.ticker}" type="number" placeholder="продать >="  title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
             td4.className = 'tickerCol';
             let td5 = document.createElement('td');
             td5.className = 'tickerCol';
@@ -612,7 +612,8 @@ function create_alert_table(data_list) {
                     let alert_date = new Date(Date.parse(element.best_before));
                     if (element.orderId) {
                         td6.innerHTML = '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>';
-                    } else td6.innerHTML = element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно';
+                    } else td6.innerHTML = (element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно') +
+                        (element.subscriptId ? '<span class="icon" title="Уведомление добавлено на мобильном">📳</span>' : '');
                     td6.align = 'center';
                     let td7 = document.createElement('td');
                     td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
