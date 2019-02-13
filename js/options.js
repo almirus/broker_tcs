@@ -11,6 +11,8 @@ import {
     OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
     OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
+    OPTION_ALPHAVANTAGE,
+    OPTION_ALPHAVANTAGE_KEY,
     OPTION_CONVERT_TO_RUB,
     OPTION_COSMETICS,
     OPTION_REDIRECT,
@@ -120,6 +122,9 @@ port.onMessage.addListener(function (msg) {
             }
             document.getElementById('riskProfile').innerText = msg.riskProfile;
             document.getElementById('qualStatus').innerText = msg.qualStatus;
+            if (msg.qualStatus === 'есть статус') {
+                document.getElementById('alphavantage_option').style = 'display:block';
+            }
             document.getElementById('approvedW8').innerText = msg.approvedW8;
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
             let iis = (msg.accounts.filter(item => item.accountType === 'TinkoffIis' && item.hasOperations)).length > 0
@@ -305,6 +310,7 @@ function create_portfolio_table(divId, data) {
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
+            (element.symbol.isOTC ? `<span class="lastOTC" title="Цена полученная со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной">${element.symbol.lastOTC}</span>` : '') +
             (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
                 style: 'currency',
@@ -342,16 +348,27 @@ function create_portfolio_table(divId, data) {
             style: 'currency',
             currency: element.earnings.absolute.currency,
             minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 1 ? 4 : 2
+        }) : element.symbol.isOTC && element.symbol.absoluteOTC ? element.symbol.absoluteOTC.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.symbol.averagePositionPrice.currency,
+            minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
         }) : ''}</div>
         <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${element.earnings ? element.earnings.relative.toLocaleString('ru-RU', {
+            style: 'percent',
+            maximumSignificantDigits: 2
+        }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
         }) : ''}</strong></div>
         <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
+        }) : element.symbol.isOTC && element.symbol.earningToday ? element.symbol.earningToday.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: element.symbol.currentAmount.currency
         }) : ''}</div>`;
-        td4.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
+        if (element.symbol.isOTC) td4.className = element.symbol.relativeOTC / 1 < 0 ? 'onlineSell' : 'onlineBuy'
+        else td4.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
 
 
         let td5 = document.createElement('td');
@@ -614,7 +631,7 @@ function create_alert_table(data_list) {
                         td4.className = '';
                         td4.align = 'center';
                         td4.colSpan = '2';
-                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price?'продажу':'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price}  в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
+                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price}  в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
                     }
                     let td5 = document.createElement('td');
                     td5.innerHTML = `<strong>${element.buy_price}</strong>`;
@@ -863,6 +880,30 @@ document.getElementById(OPTION_SORT_BY_NEAREST).addEventListener('change', funct
 chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
     console.log('get sort_by_nearest option');
     document.getElementById(OPTION_SORT_BY_NEAREST).checked = result[OPTION_SORT_BY_NEAREST] === true;
+});
+
+// сохраняем применение Использовать Alpantage
+document.getElementById(OPTION_ALPHAVANTAGE).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
+        console.log('alphavantage option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALPHAVANTAGE], function (result) {
+    console.log('get alphavantage option');
+    document.getElementById(OPTION_ALPHAVANTAGE).checked = result[OPTION_ALPHAVANTAGE] === true;
+});
+
+// сохраняем применение  Alpantage key
+document.getElementById(OPTION_ALPHAVANTAGE_KEY).addEventListener('input', function (e) {
+    chrome.storage.sync.set({[OPTION_ALPHAVANTAGE_KEY]: e.target.value}, function () {
+        console.log('alphavantage key option set to ' + e.target.value);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALPHAVANTAGE_KEY], function (result) {
+    console.log('get alphavantage key option');
+    document.getElementById(OPTION_ALPHAVANTAGE_KEY).value = result[OPTION_ALPHAVANTAGE_KEY] || '';
 });
 
 // запрашиваем права на выдачу уведомлений

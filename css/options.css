@@ -203,3 +203,6 @@ input[type="datetime-local"] {
     font-size: 10pt;
     cursor: default;
 }
+.lastOTC{
+    color: cornflowerblue;
+}

@@ -87,7 +87,13 @@
                     <label for="convert_to_rub">Показывать итоговые суммы в рублях</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Итоговые суммы будут приведены в рублях на основе биржевого курс брокера&#013;Обновление произойдет в течении минуты">
-
+                    <div id="alphavantage_option" style="display: none">
+                    <input type="checkbox" value="0" name="alphavantage" id="alphavantage">
+                    <label for="alphavantage">Использовать сервис <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage</a> для OTC</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Для получений доходности и последней цены внебиржевых бумаг использовать сторониий сервис alphavantage&#013;Необходимо зарегистрироваться и получить ключ и ввести его в поле">
+                    <input type="text" name="alphavantage_key" id="alphavantage_key" placeholder="Введите ключ alphavantage" maxlength="20">
+                    </div>
                 </fieldset>
                 <p><strong>Данное приложение неофициальное.</strong><br>Написано для себя, в виду отсутствия
                     необходимого

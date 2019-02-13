@@ -3,6 +3,7 @@
 import {
     ALERT_TICKER_LIST,
     ALL_ACCOUNTS,
+    AV_SYMBOL_URL,
     BUY_LINK,
     CANCEL_ORDER,
     CHECK_VERSION_URL,
@@ -248,6 +249,10 @@ async function convertPortfolio(data, needToConvert, ticker, sessionId) {
             let current_amount = element.currentAmount;
             let expected_yield = element.expectedYield;
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
+            if (symbol.payload.symbol.isOTC) {
+                earning_today = symbol.payload.absoluteOTC * element.currentBalance;
+                //expected_yield.value = symbol.payload.relativeOTC;
+            }
             if (needToConvert && current_amount.currency === 'USD') {
                 earning_today = earning_today * ticker.payload.last.value;
                 current_amount.value = current_amount.value * ticker.payload.last.value;
@@ -261,6 +266,9 @@ async function convertPortfolio(data, needToConvert, ticker, sessionId) {
                 earnings: symbol.payload.earnings,
                 contentMarker: symbol.payload.contentMarker,
                 symbol: {
+                    lastOTC: symbol.payload.lastOTC || '',
+                    absoluteOTC: symbol.payload.absoluteOTC || 0,
+                    relativeOTC: symbol.payload.relativeOTC || 0,
                     consensus: symbol.payload.symbol.consensus,
                     symbolType: symbol.payload.symbol.symbolType,
                     isOTC: symbol.payload.symbol.isOTC,
@@ -526,7 +534,21 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                                 res.payload.symbol.consensus = prognosis.payload.consensus;
                                 resolve(res);
                             });
-                    } else resolve(res);
+                    } else {
+                        if (1 && res.payload.symbol.isOTC) {
+                            fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + 'M3JMJM8U22EIIO2Y').then(response => response.json())
+                                .then(otc => {
+                                    res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
+                                    res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
+                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"])/100;
+                                    resolve(res);
+                                })
+                                .catch(e => {
+                                    console.log('Сервис alphavantage недоступен', e);
+                                    resolve(res);
+                                });
+                        } else resolve(res);
+                    }
                 } else {
                     console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
                     reject(res)
