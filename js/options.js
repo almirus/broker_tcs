@@ -411,7 +411,7 @@ function create_table(data) {
     let th5 = document.createElement('th');
     th5.appendChild(document.createTextNode('заявка активна до'));
     let th6 = document.createElement('th');
-   
+
     let th7 = document.createElement('th');
     tr.appendChild(th1);
     tr.appendChild(th2);
@@ -568,12 +568,15 @@ function create_alert_table(data_list) {
                         element.earnings = undefined;
                     } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                     let tr = document.createElement('tr');
-                    if (element.orderId) tr.className = 'isOnlineOrder';
+                    if (element.orderId) {
+                        if (element.sell_price) tr.className = 'isOnlineOrderSell';
+                        if (element.buy_price) tr.className = 'isOnlineOrderBuy';
+                    }
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
-                    td1.innerHTML = `${element.showName}<br>`+
-                        (element.subscriptId ? `<span class="icon" title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+
-                        (element.isFavorite ? `<span class="icon" title="Добавлено в избранное в мобильном приложении">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')+
+                    td1.innerHTML = `${element.showName}<br>` +
+                        (element.subscriptId ? `<span class="icon" title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        (element.isFavorite ? `<span class="icon" title="Добавлено в избранное в мобильном приложении">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         `<strong>${element.ticker}</strong>`;
 
                     let td2 = document.createElement('td');
@@ -607,6 +610,12 @@ function create_alert_table(data_list) {
                     td4.innerHTML = `<strong>${element.sell_price}</strong>`;
                     td4.className = 'onlineBuy';
                     td4.align = 'right';
+                    if (element.orderId) {
+                        td4.className = '';
+                        td4.align = 'center';
+                        td4.colSpan = '2';
+                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price?'продажу':'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price}  в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
+                    }
                     let td5 = document.createElement('td');
                     td5.innerHTML = `<strong>${element.buy_price}</strong>`;
                     td5.className = 'onlineSell';
@@ -634,7 +643,7 @@ function create_alert_table(data_list) {
                     tr.appendChild(td2);
                     tr.appendChild(td3);
                     tr.appendChild(td4);
-                    tr.appendChild(td5);
+                    if (!element.orderId) tr.appendChild(td5);
                     tr.appendChild(td6);
                     tr.appendChild(td7);
                     tr.appendChild(td8);

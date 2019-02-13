@@ -582,6 +582,7 @@ function getOrders(session_id) {
                     return_data.push({
                         ticker: element.ticker,
                         showName: element.showName,
+                        quantity: element.quantity,
                         buy_price: element.operationType === 'Buy' ? element.price.value : '',
                         sell_price: element.operationType === 'Sell' ? element.price.value : '',
                         best_before: '',
@@ -629,6 +630,7 @@ function updateAlertPrices() {
                                 isFavorite: res.payload.isFavorite,
                                 subscriptId: res.payload.subscriptId,
                                 subscriptPrice: res.payload.subscriptPrice,
+                                quantity: item.quantity,
                             };
                             i++;
                         })
@@ -794,18 +796,7 @@ function createMobileAlert(params) {
         fetch(SET_ALERT_URL.replace('${ticker}', params.ticker).replace('${price}', params.price) + session_id)
             .then(response => response.json())
             .then(function (json) {
-                if (json.payload.confirm) {
-                    chrome.storage.sync.get([TICKER_LIST], function (data) {
-                        let alert_data = data[TICKER_LIST] || [];
-                        alert_data.forEach(function (item, i) {
-                            if (item.ticker === params.ticker)
-                                alert_data[i].subscriptId = json.payload.subscriptId // созданный id уведомления
-                        });
-                        chrome.storage.sync.set({[TICKER_LIST]: alert_data}, () => {
-                            console.log('save relative ' + JSON.stringify(data));
-                        })
-                    })
-                } else {
+                if (!json.payload.confirm) {
                     console.log('cant set mobile alert ' + JSON.stringify(json));
                 }
             })
