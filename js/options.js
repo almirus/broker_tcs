@@ -299,8 +299,9 @@ function create_portfolio_table(divId, data) {
         let bond = element.symbol.symbolType === 'Bond' ? '<span title="Бонды">📒</span>' : '';
         let country = '';
         if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
+        let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}</span>
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}${mobile_alert}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="Последняя цена">${element.prices.last.value}</div>` +
@@ -567,10 +568,16 @@ function create_alert_table(data_list) {
                         element.earnings = undefined;
                     } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                     let tr = document.createElement('tr');
-                    if (element.orderId) tr.className = 'isOnlineOrder';
+                    if (element.orderId) {
+                        if (element.sell_price) tr.className = 'isOnlineOrderSell';
+                        if (element.buy_price) tr.className = 'isOnlineOrderBuy';
+                    }
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
-                    td1.innerHTML = `${element.showName}<br><strong>${element.ticker}</strong>`;
+                    td1.innerHTML = `${element.showName}<br>` +
+                        (element.subscriptId ? `<span class="icon" title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        (element.isFavorite ? `<span class="icon" title="Добавлено в избранное в мобильном приложении">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        `<strong>${element.ticker}</strong>`;
 
                     let td2 = document.createElement('td');
                     td2.innerHTML =
@@ -603,6 +610,12 @@ function create_alert_table(data_list) {
                     td4.innerHTML = `<strong>${element.sell_price}</strong>`;
                     td4.className = 'onlineBuy';
                     td4.align = 'right';
+                    if (element.orderId) {
+                        td4.className = '';
+                        td4.align = 'center';
+                        td4.colSpan = '2';
+                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price?'продажу':'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price}  в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
+                    }
                     let td5 = document.createElement('td');
                     td5.innerHTML = `<strong>${element.buy_price}</strong>`;
                     td5.className = 'onlineSell';
@@ -612,8 +625,7 @@ function create_alert_table(data_list) {
                     let alert_date = new Date(Date.parse(element.best_before));
                     if (element.orderId) {
                         td6.innerHTML = '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>';
-                    } else td6.innerHTML = (element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно') +
-                        (element.subscriptId ? '<span class="icon" title="Уведомление добавлено на мобильном">📳</span>' : '');
+                    } else td6.innerHTML = (element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно');
                     td6.align = 'center';
                     let td7 = document.createElement('td');
                     td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
@@ -631,7 +643,7 @@ function create_alert_table(data_list) {
                     tr.appendChild(td2);
                     tr.appendChild(td3);
                     tr.appendChild(td4);
-                    tr.appendChild(td5);
+                    if (!element.orderId) tr.appendChild(td5);
                     tr.appendChild(td6);
                     tr.appendChild(td7);
                     tr.appendChild(td8);
