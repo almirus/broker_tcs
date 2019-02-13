@@ -30,6 +30,7 @@ import {
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
+    SYMBOL_EXTENDED_LINK,
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
@@ -387,7 +388,7 @@ function getListStock(name) {
                             console.log('get session option');
                             getPortfolio(session_id).then(function (json) {
                                 console.log('list of portfolio');
-                                Promise.all([convertPortfolio(json.tcs.payload.data, result[OPTION_CONVERT_TO_RUB], currency, session_id), convertPortfolio(json.iis.payload.data,result[OPTION_CONVERT_TO_RUB], currency, session_id)])
+                                Promise.all([convertPortfolio(json.tcs.payload.data, result[OPTION_CONVERT_TO_RUB], currency, session_id), convertPortfolio(json.iis.payload.data, result[OPTION_CONVERT_TO_RUB], currency, session_id)])
                                     .then(([tcs_data, iis_data]) => {
                                         resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data || []}));
                                     });
@@ -482,9 +483,18 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
             }).then(response => response.json())
                 .then(function (res) {
                     if (res.status.toLocaleUpperCase() === 'OK') {
-                        resolve(res);
+                        fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                            .then(extendInfo => {
+                                res.payload.isFavorite = extendInfo.payload.isFavorite;
+                                res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
+                                res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].price : undefined;
+                                resolve(res);
+                            }).catch(e => {
+                            console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
+                            reject(res)
+                        });
                     } else {
-                        console.log(`Сервис цен недоступен для ${tickerName}`);
+                        console.log(`Сервис цен для ${tickerName} недоступен`);
                         reject(undefined)
                     }
                 }).catch(e => {
@@ -616,7 +626,9 @@ function updateAlertPrices() {
                                 orderId: item.orderId,
                                 timeToExpire: item.timeToExpire,
                                 status: item.status,
-                                subscriptId: item.subscriptId,
+                                isFavorite: res.payload.isFavorite,
+                                subscriptId: res.payload.subscriptId,
+                                subscriptPrice: res.payload.subscriptPrice,
                             };
                             i++;
                         })
