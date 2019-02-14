@@ -20,6 +20,8 @@ import {
     OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
     OPTION_ALERT_TODAY_VALUE_PER_SYMBOL,
+    OPTION_ALPHAVANTAGE,
+    OPTION_ALPHAVANTAGE_KEY,
     OPTION_CONVERT_TO_RUB,
     OPTION_REDIRECT,
     OPTION_SESSION,
@@ -90,23 +92,20 @@ function getTCSsession() {
     return new Promise(function (resolve, reject) {
         console.log('try to get cookies');
         chrome.cookies.getAll({}, function (cookie) {
-            let psid = cookie.filter(function (value) {
-                // нам нужен только один единственный с именем psid
-                return value.name === 'psid';
-            });
+            let psid = cookie.filter(value => value.name === 'psid');
             if (psid.length > 0 && psid[0].value) {
                 console.log('psid founded');
                 sessionIsAlive(psid[0].value).then(function (response) {
                     if (response) {
                         resolve(psid[0].value)
                     } else
-                        reject(false);
+                        reject(undefined);
                 }).catch(e => {
                     console.log(e);
                 });
             } else {
                 console.log('psid not found');
-                reject(false);
+                reject(undefined);
             }
         });
     })
@@ -119,28 +118,25 @@ function getTCSsession() {
 function getAllSum() {
     return new Promise(function (resolve, reject) {
         console.log('try to get sums');
-        getTCSsession().then(function (session_id) {
-            fetch(ALL_ACCOUNTS + session_id)
-                .then(function (response) {
-                    if (response.status === 502) {
-                        return {status: 502, text: 'Сервис брокера недоступен'};
-                    } else return response.json()
-                }).then(function (json) {
 
-                resolve({
-                    totalAmountPortfolio: json.payload.totals.totalAmount.value,
-                    expectedYield: json.payload.totals.expectedYield.value,
-                    expectedYieldRelative: json.payload.totals.expectedYieldRelative / 100,
-                    expectedYieldPerDay: json.payload.totals.expectedYieldPerDay.value,
-                    expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
-                });
-            }).catch(ex => {
-                console.log('portfolio parsing failed', ex);
-                reject(undefined);
-            })
-        }).catch(function () {
-            redirect_to_page(LOGIN_URL);
-        })
+        fetch(ALL_ACCOUNTS + MainProperties.getSession())
+            .then(function (response) {
+                if (response.status === 502) {
+                    return {status: 502, text: 'Сервис брокера недоступен'};
+                } else return response.json()
+            }).then(function (json) {
+
+            resolve({
+                totalAmountPortfolio: json.payload.totals.totalAmount.value,
+                expectedYield: json.payload.totals.expectedYield.value,
+                expectedYieldRelative: json.payload.totals.expectedYieldRelative / 100,
+                expectedYieldPerDay: json.payload.totals.expectedYieldPerDay.value,
+                expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
+            });
+        }).catch(ex => {
+            console.log('portfolio parsing failed', ex);
+            reject(undefined);
+        });
     })
 }
 
@@ -392,19 +388,17 @@ function getListStock(name) {
             } else {
                 if (name === 2) { // портфолио
                     getPriceInfo(USD_RUB, undefined, session_id).then(currency => {
-                        chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
-                            console.log('get session option');
-                            getPortfolio(session_id).then(function (json) {
-                                console.log('list of portfolio');
-                                Promise.all([convertPortfolio(json.tcs.payload.data, result[OPTION_CONVERT_TO_RUB], currency, session_id), convertPortfolio(json.iis.payload.data, result[OPTION_CONVERT_TO_RUB], currency, session_id)])
-                                    .then(([tcs_data, iis_data]) => {
-                                        resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data || []}));
-                                    });
-                            }).catch(function (ex) {
-                                console.log('parsing failed', ex);
-                                reject(undefined);
-                            })
-                        });
+                        console.log('get session option');
+                        getPortfolio(session_id).then(function (json) {
+                            console.log('list of portfolio');
+                            Promise.all([convertPortfolio(json.tcs.payload.data, MainProperties.getConvertToRUB(), currency, session_id), convertPortfolio(json.iis.payload.data, MainProperties.getConvertToRUB(), currency, session_id)])
+                                .then(([tcs_data, iis_data]) => {
+                                    resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data || []}));
+                                });
+                        }).catch(function (ex) {
+                            console.log('parsing failed', ex);
+                            reject(undefined);
+                        })
                     })
                 }
             }
@@ -535,8 +529,8 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                                 resolve(res);
                             });
                     } else {
-                        if (1 && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) { // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                            fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + 'M3JMJM8U22EIIO2Y').then(response => response.json())
+                        if (MainProperties.getAVOption() && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) { // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
+                            fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + MainProperties.getAVKey()).then(response => response.json())
                                 .then(otc => {
                                     res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
                                     res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
@@ -1013,7 +1007,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                         checkAlerts();          // достижение цены по бумагам в списке отслеживания
                         checkPortfolioAlerts(); // резкая смена доходности портфеля
                         checkSymbolsAlerts();   // резкая смена доходности бумаг в портфеле
-                        //updateAlertPrices();    // обновляем цены в интерфейсе настроек
+                        //updateAlertPrices();  // обновляем цены в интерфейсе настроек
                         // возвращаем обычную иконку
                         chrome.browserAction.setIcon({path: "/icons/icon16.png"});
                         chrome.browserAction.setTitle({title: 'TCS Broker'});
@@ -1039,3 +1033,62 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         })
     }
 });
+
+export class MainProperties {
+
+    static getSession() {
+        if (this._sessionId) {
+            return this._sessionId
+        }
+        (async () => {
+            return await getTCSsession().then(sessionId => {
+                this._sessionId = sessionId;
+                return sessionId;
+            })
+        })()
+    };
+
+    set sessionId(sessionId) {
+        this._sessionId = sessionId
+    }
+
+    set convertToRUB(convertToRUB) {
+        this._convertToRUB = convertToRUB
+    }
+
+    static getConvertToRUB() {
+        if (this._convertToRUB) {
+            return this._convertToRUB;
+        }
+        (async () => {
+            return await chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], result => {
+                this._convertToRUB = result[OPTION_CONVERT_TO_RUB];
+                return result[OPTION_CONVERT_TO_RUB];
+            })
+        })()
+    }
+
+    static getAVOption() {
+        if (this._AVOption) {
+            return this._AVOption;
+        }
+        (async () => {
+            return await chrome.storage.sync.get([OPTION_ALPHAVANTAGE], (result) => {
+                this._AVOption = result[OPTION_ALPHAVANTAGE];
+                return result[OPTION_ALPHAVANTAGE];
+            })
+        })()
+    }
+
+    static getAVKey() {
+        if (this._AVKey) {
+            return this._AVKey;
+        }
+        (async () => {
+            return await chrome.storage.sync.get([OPTION_ALPHAVANTAGE_KEY], (result) => {
+                this._AVKey = result[OPTION_ALPHAVANTAGE_KEY];
+                return result[OPTION_ALPHAVANTAGE_KEY];
+            })
+        })()
+    }
+}

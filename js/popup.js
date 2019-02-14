@@ -1,7 +1,9 @@
 'use strict';
 
 import { port } from "/js/constants.mjs";
+import {MainProperties} from "./background.js";
 
+MainProperties.getSession();
 
 port.postMessage({method: "updatePopup"});
 
