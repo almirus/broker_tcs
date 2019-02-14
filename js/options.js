@@ -352,22 +352,22 @@ function create_portfolio_table(divId, data) {
             style: 'currency',
             currency: element.symbol.averagePositionPrice.currency,
             minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
-        }) : ''}</div>
+        }) + '*' : ''}</div>
         <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${element.earnings ? element.earnings.relative.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
         }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
-        }) : ''}</strong></div>
+        }) + '*' : ''}</strong></div>
         <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
         }) : element.symbol.isOTC && element.symbol.earningToday ? element.symbol.earningToday.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
-        }) : ''}</div>`;
-        if (element.symbol.isOTC) td4.className = element.symbol.relativeOTC / 1 < 0 ? 'onlineSell' : 'onlineBuy'
+        }) + '*' : ''}</div>`;
+        if (element.symbol.isOTC) td4.className = element.symbol.relativeOTC / 1 < 0 ? 'onlineSell' : 'onlineBuy';
         else td4.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
 
 
