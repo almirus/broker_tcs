@@ -535,12 +535,12 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                                 resolve(res);
                             });
                     } else {
-                        if (1 && res.payload.symbol.isOTC) {
+                        if (1 && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) { // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
                             fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + 'M3JMJM8U22EIIO2Y').then(response => response.json())
                                 .then(otc => {
                                     res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
                                     res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
-                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"])/100;
+                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
                                     resolve(res);
                                 })
                                 .catch(e => {
