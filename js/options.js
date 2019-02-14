@@ -310,7 +310,7 @@ function create_portfolio_table(divId, data) {
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices.last.value}</div>` +
-            (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена полученна со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
+            (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
             (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
                 style: 'currency',
@@ -450,15 +450,15 @@ function create_table(data) {
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
-            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="купить  <=" title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
+            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="купить  <=" title="Введите цену, при достижении которой в браузер будет выдано уведомление&#013;Будет сравниваться с ценой покупки">`;
             td3.className = 'tickerCol';
             let td4 = document.createElement('td');
             //td4.innerHTML = element.prices.sell.value + element.prices.sell.currency + '<br>' + '<input class="tickerPrice sell" type="number">';
-            td4.innerHTML = `<input class="tickerPrice sell" id="sell_price_${element.symbol.ticker}" type="number" placeholder="продать >="  title="Введите цену при достижении которой в браузер будет выдано уведомление">`;
+            td4.innerHTML = `<input class="tickerPrice sell" id="sell_price_${element.symbol.ticker}" type="number" placeholder="продать >="  title="Введите цену, при достижении которой в браузер будет выдано уведомление&#013;Будет сравниваться с ценой продажи">`;
             td4.className = 'tickerCol';
             let td5 = document.createElement('td');
             td5.className = 'tickerCol';
-            td5.innerHTML = `<input type="datetime-local" id="datetime_${element.symbol.ticker}" title="Если не установлено то бессрочно">`;
+            td5.innerHTML = `<input type="datetime-local" id="datetime_${element.symbol.ticker}" title="Если не установлено, то бессрочно. Не забудьте добавить время">`;
             let td6 = document.createElement('td');
             //td6.width = '50';
             td6.innerHTML = `<input type="checkbox" id="mobile_alert_${element.symbol.ticker}" title="При достижении цены оповещение также сработает на телефоне в приложении Брокера&#013;Уведомления на телефоне бессрочные и срабатывают только по last price"><label class="icon" for="mobile_alert_${element.symbol.ticker}">📳</label>`;
@@ -592,8 +592,8 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
-                        (element.subscriptId ? `<span class="icon" title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
-                        (element.isFavorite ? `<span class="icon" title="Добавлено в избранное в мобильном приложении">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        (element.subscriptId ? `<span class="icon" title="Уведомление было добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         `<strong>${element.ticker}</strong>`;
 
                     let td2 = document.createElement('td');
@@ -624,18 +624,18 @@ function create_alert_table(data_list) {
                     td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
                     td3.align = 'right';
                     let td4 = document.createElement('td');
-                    td4.innerHTML = `<strong>${element.sell_price}</strong>`;
-                    td4.className = 'onlineBuy';
+                    td4.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением продать">${element.sell_price}</strong>`;
+                    td4.className = 'onlineSell';
                     td4.align = 'right';
                     if (element.orderId) {
                         td4.className = '';
                         td4.align = 'center';
                         td4.colSpan = '2';
-                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price}  в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
+                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
                     }
                     let td5 = document.createElement('td');
-                    td5.innerHTML = `<strong>${element.buy_price}</strong>`;
-                    td5.className = 'onlineSell';
+                    td5.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением купить">${element.buy_price}</strong>`;
+                    td5.className = 'onlineBuy';
                     td5.align = 'right';
                     let td6 = document.createElement('td');
                     td6.className = '';
