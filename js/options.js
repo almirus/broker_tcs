@@ -112,7 +112,26 @@ port.onMessage.addListener(function (msg) {
                 style: 'percent',
                 minimumFractionDigits: 2
             });
-
+            document.getElementById('allAccounts').innerHTML = `Счет ТКС ${msg.accounts.Tinkoff.totalAmountPortfolio.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: 'RUB'
+            })}, доход по счету ${msg.accounts.Tinkoff.expectedYield.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: 'RUB'
+                })}, доход сегодня  ${msg.accounts.Tinkoff.expectedYieldPerDay.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: 'RUB'
+                })}<br>`+
+            `${msg.accounts.TinkoffIis ? 'Счет ИИС ' + msg.accounts.TinkoffIis.totalAmountPortfolio.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: 'RUB'
+            })+', доход по счету '+msg.accounts.TinkoffIis.expectedYield.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: 'RUB'
+                })+', доход сегодня '+msg.accounts.TinkoffIis.expectedYieldPerDay.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: 'RUB'
+            }) : ''}`;
             break;
         case 'updateUserInfo':
             if (msg.status) {
@@ -885,7 +904,7 @@ chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
 document.getElementById(OPTION_ALPHAVANTAGE).addEventListener('change', function (e) {
     if (e.target.checked && !document.getElementById(OPTION_ALPHAVANTAGE_KEY).value) {
         alert('Сначала укажите ключ полученный с сайта Alphavantage');
-        e.target.checked=false;
+        e.target.checked = false;
     } else
         chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
             console.log('alphavantage option set to ' + e.target.checked);

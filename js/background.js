@@ -116,17 +116,26 @@ function getTCSsession() {
  * @return {object} - сумма
  */
 function getAllSum() {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log('try to get sums');
         MainProperties.getSession().then(sessionId => {
             fetch(ALL_ACCOUNTS + sessionId)
-                .then(function (response) {
+                .then(response => {
                     if (response.status === 502) {
                         return {status: 502, text: 'Сервис брокера недоступен'};
                     } else return response.json()
-                }).then(function (json) {
-
+                }).then(json => {
+                let accounts = {};
+                json.payload.accounts.forEach(item => {
+                    accounts[item.brokerAccountType] = {};
+                    accounts[item.brokerAccountType].totalAmountPortfolio = item.totalAmount.value;
+                    accounts[item.brokerAccountType].expectedYield = item.expectedYield.value;
+                    accounts[item.brokerAccountType].expectedYieldRelative = item.expectedYieldRelative / 100;
+                    accounts[item.brokerAccountType].expectedYieldPerDay = item.expectedYieldPerDay.value;
+                    accounts[item.brokerAccountType].expectedYieldPerDayRelative = item.expectedYieldPerDayRelative / 100;
+                });
                 resolve({
+                    accounts: accounts,
                     totalAmountPortfolio: json.payload.totals.totalAmount.value,
                     expectedYield: json.payload.totals.expectedYield.value,
                     expectedYieldRelative: json.payload.totals.expectedYieldRelative / 100,
@@ -538,18 +547,20 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                             });
                     } else {
                         MainProperties.getAVOption().then(option => {
-                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) { // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                                fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
-                                    .then(otc => {
-                                        res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
-                                        res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
-                                        res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
-                                        resolve(res);
-                                    })
-                                    .catch(e => {
-                                        console.log('Сервис alphavantage недоступен', e);
-                                        resolve(res);
-                                    });
+                            // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
+                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) {
+                                if (res.payload.symbol.timeToOpen % (60000 * 2) === 0) // раз в две минуты
+                                    fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
+                                        .then(otc => {
+                                            res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
+                                            res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
+                                            res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
+                                            resolve(res);
+                                        })
+                                        .catch(e => {
+                                            console.log('Сервис alphavantage недоступен', e);
+                                            resolve(res);
+                                        });
                             } else resolve(res);
                         })
                     }
