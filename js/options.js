@@ -51,7 +51,6 @@ port.onMessage.addListener(function (msg) {
     switch (msg.result) {
         case 'listStock':
             create_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
-
             break;
         case 'listStockForOrder':
             create_orders_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
@@ -884,9 +883,13 @@ chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
 
 // сохраняем применение Использовать Alpantage
 document.getElementById(OPTION_ALPHAVANTAGE).addEventListener('change', function (e) {
-    chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
-        console.log('alphavantage option set to ' + e.target.checked);
-    })
+    if (e.target.checked && !document.getElementById(OPTION_ALPHAVANTAGE_KEY).value) {
+        alert('Сначала укажите ключ полученный с сайта Alphavantage');
+        e.target.checked=false;
+    } else
+        chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
+            console.log('alphavantage option set to ' + e.target.checked);
+        })
 });
 // подгружаем настройки
 chrome.storage.sync.get([OPTION_ALPHAVANTAGE], function (result) {
@@ -948,12 +951,13 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     }
 });
 
-// перерисовываем таблицу с уведомлениями при изменении Storage
+// вызывается при изменении storage
 chrome.storage.onChanged.addListener(function (changes, namespace) {
     for (let key in changes) {
-        if (key === TICKER_LIST) {
-            debounce(create_alert_table(), 1000);
-        }
+
+        // перерисовываем таблицу с уведомлениями при изменении Storage
+        if (key === TICKER_LIST) debounce(create_alert_table(), 1000);
+
     }
 });
 
