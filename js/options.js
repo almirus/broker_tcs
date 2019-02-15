@@ -27,7 +27,6 @@ import {
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {fillCashData, msToTime} from "./utils/displayUtils.js";
 import {debounce, throttle} from "./utils/systemUtils.js";
-import {MainProperties} from "./background.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -52,7 +51,6 @@ port.onMessage.addListener(function (msg) {
     switch (msg.result) {
         case 'listStock':
             create_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
-
             break;
         case 'listStockForOrder':
             create_orders_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
@@ -949,5 +947,14 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     }
 });
 
+// вызывается при изменении storage
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+    for (let key in changes) {
+
+        // перерисовываем таблицу с уведомлениями при изменении Storage
+        if (key === TICKER_LIST) debounce(create_alert_table(), 1000);
+        
+    }
+});
 
 

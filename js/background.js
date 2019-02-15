@@ -1125,8 +1125,10 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     for (let key in changes) {
         let storageChange = changes[key];
         if (namespace === 'local') {
-
+            // перерисовываем таблицу с уведомлениями при изменении Storage
+            if (key === TICKER_LIST) port.postMessage({result: "listStock"});
         } else {
+            // обновляем значение в стат классе
             if (key === OPTION_CONVERT_TO_RUB) MainProperties._convertToRUB = storageChange.newValue;
             if (key === OPTION_ALPHAVANTAGE) MainProperties._AVOption = storageChange.newValue;
             if (key === OPTION_ALPHAVANTAGE_KEY) MainProperties._AVKey = storageChange.newValue;
