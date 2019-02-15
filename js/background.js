@@ -118,25 +118,28 @@ function getTCSsession() {
 function getAllSum() {
     return new Promise(function (resolve, reject) {
         console.log('try to get sums');
+        MainProperties.getSession().then(sessionId => {
+            fetch(ALL_ACCOUNTS + sessionId)
+                .then(function (response) {
+                    if (response.status === 502) {
+                        return {status: 502, text: 'Сервис брокера недоступен'};
+                    } else return response.json()
+                }).then(function (json) {
 
-        fetch(ALL_ACCOUNTS + MainProperties.getSession())
-            .then(function (response) {
-                if (response.status === 502) {
-                    return {status: 502, text: 'Сервис брокера недоступен'};
-                } else return response.json()
-            }).then(function (json) {
-
-            resolve({
-                totalAmountPortfolio: json.payload.totals.totalAmount.value,
-                expectedYield: json.payload.totals.expectedYield.value,
-                expectedYieldRelative: json.payload.totals.expectedYieldRelative / 100,
-                expectedYieldPerDay: json.payload.totals.expectedYieldPerDay.value,
-                expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
-            });
-        }).catch(ex => {
-            console.log('portfolio parsing failed', ex);
-            reject(undefined);
-        });
+                resolve({
+                    totalAmountPortfolio: json.payload.totals.totalAmount.value,
+                    expectedYield: json.payload.totals.expectedYield.value,
+                    expectedYieldRelative: json.payload.totals.expectedYieldRelative / 100,
+                    expectedYieldPerDay: json.payload.totals.expectedYieldPerDay.value,
+                    expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
+                });
+            }).catch(ex => {
+                console.log('portfolio parsing failed', ex);
+                reject(undefined);
+            })
+        }).catch(function () {
+            redirect_to_page(LOGIN_URL);
+        })
     })
 }
 
@@ -163,7 +166,7 @@ function updatePopup() {
  */
 function getUserInfo() {
     return new Promise(function (resolve, reject) {
-        getTCSsession().then(function (session_id) {
+        MainProperties.getSession().then(function (session_id) {
             fetch(USER_URL + session_id)
                 .then(function (response) {
                     if (response.status !== 200) reject({status: response.status});
@@ -195,37 +198,37 @@ function getUserInfo() {
  */
 function getPortfolio(sessionId) {
     return new Promise(function (resolve, reject) {
-        fetch(PORTFOLIO_URL + sessionId, { // tcs+bcs
-            method: "POST",
-            body: JSON.stringify({
-                brokerAccountType: 'All',
-                currency: 'RUB'
-            }),
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(tcs => fetch(PORTFOLIO_URL + sessionId, { //iis
-                    method: "POST",
-                    body: JSON.stringify({
-                        brokerAccountType: 'TinkoffIis',
-                        currency: 'RUB'
-                    }),
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(iis => {
-                        resolve({tcs: tcs, iis: iis})
-                    })
-            ).catch(error => {
-            console.log(`cant get portfolio, because ${error}`);
-            reject({tcs: [], iis: []});
-        })
+        Promise.all([
+            fetch(PORTFOLIO_URL + sessionId, { // tcs+bcs
+                method: "POST",
+                body: JSON.stringify({
+                    brokerAccountType: 'All',
+                    currency: 'RUB'
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json()),
+            fetch(PORTFOLIO_URL + sessionId, { //iis
+                method: "POST",
+                body: JSON.stringify({
+                    brokerAccountType: 'TinkoffIis',
+                    currency: 'RUB'
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+        ])
+            .then(([tcs, iis]) => {
+                resolve({tcs: tcs, iis: iis || []})
+            })
+            .catch(error => {
+                console.log(`cant get portfolio, because ${error}`);
+                reject({tcs: [], iis: []});
+            })
     })
 }
 
@@ -241,7 +244,7 @@ async function convertPortfolio(data, needToConvert, ticker, sessionId) {
     let return_data = [];
     for (const element of data) {
         let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
-        await getSymbolInfo(element.ticker, securityType, sessionId).then(function (symbol) {
+        await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
             let current_amount = element.currentAmount;
             let expected_yield = element.expectedYield;
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
@@ -297,7 +300,7 @@ async function convertPortfolio(data, needToConvert, ticker, sessionId) {
 
 function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
     return new Promise(function (resolve, reject) {
-        getTCSsession().then(function (session_id) {
+        MainProperties.getSession().then(function (session_id) {
             fetch(CANCEL_ORDER.replace('${orderId}', orderId).replace('${brokerAccountType}', brokerAccountType) + session_id)
                 .then(response => response.json())
                 .then(function (json) {
@@ -322,7 +325,7 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
 function getListStock(name) {
     return new Promise(function (resolve, reject) {
         console.log('try to get list');
-        getTCSsession().then(function (session_id) {
+        MainProperties.getSession().then(function (session_id) {
             if (name === USD_RUB) {
                 let return_data = [];
                 let usdInfo = {};
@@ -366,7 +369,7 @@ function getListStock(name) {
             } else if (name === 3) { // избранное
                 fetch(FAVORITE_URL + session_id)
                     .then(response => response.json())
-                    .then(function (json) {
+                    .then(json => {
                         console.log('list of favorite');
                         let return_data = [];
                         json.payload.stocks.forEach(function (element) {
@@ -388,16 +391,21 @@ function getListStock(name) {
             } else {
                 if (name === 2) { // портфолио
                     getPriceInfo(USD_RUB, undefined, session_id).then(currency => {
-                        console.log('get session option');
-                        getPortfolio(session_id).then(function (json) {
-                            console.log('list of portfolio');
-                            Promise.all([convertPortfolio(json.tcs.payload.data, MainProperties.getConvertToRUB(), currency, session_id), convertPortfolio(json.iis.payload.data, MainProperties.getConvertToRUB(), currency, session_id)])
-                                .then(([tcs_data, iis_data]) => {
-                                    resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data || []}));
+                        MainProperties.getConvertToRUB().then(needConvert => {
+                            console.log('get session option');
+                            getPortfolio(session_id).then(portfolio => {
+                                console.log('list of portfolio');
+                                Promise.all([
+                                        convertPortfolio(portfolio.tcs.payload.data, needConvert, currency, session_id),
+                                        convertPortfolio(portfolio.iis.payload.data, needConvert, currency, session_id)
+                                    ]
+                                ).then(([tcs_data, iis_data]) => {
+                                    resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data}));
                                 });
-                        }).catch(function (ex) {
-                            console.log('parsing failed', ex);
-                            reject(undefined);
+                            }).catch(function (ex) {
+                                console.log('parsing failed', ex);
+                                reject(undefined);
+                            })
                         })
                     })
                 }
@@ -424,9 +432,9 @@ function findTicker(search, session_id) {
                     'Content-Type': 'application/json',
                 }
             }).then(response => response.json())
-                .then(function (res) {
-                    if (res.status.toLocaleUpperCase() === 'OK') {
-                        resolve(res);
+                .then(listOfFound => {
+                    if (listOfFound.status.toLocaleUpperCase() === 'OK') {
+                        resolve(listOfFound);
                     } else {
                         console.log('Сервис поиска недоступен');
                         reject(undefined)
@@ -442,7 +450,7 @@ function findTicker(search, session_id) {
 function getAvailableCash(brokerName) {
     return new Promise(function (resolve, reject) {
         console.log('try to get available cash');
-        getTCSsession().then(function (session_id) {
+        MainProperties.getSession().then(session_id => {
                 // POST
                 fetch(CURRENCY_LIMIT_URL + session_id, {
                     method: "POST",
@@ -454,7 +462,7 @@ function getAvailableCash(brokerName) {
                         'Content-Type': 'application/json',
                     }
                 }).then(response => response.json())
-                    .then(function (res) {
+                    .then(res => {
                         if (res.status.toLocaleUpperCase() === 'OK') {
                             resolve(res);
                         } else {
@@ -483,7 +491,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                     'Content-Type': 'application/json',
                 }
             }).then(response => response.json())
-                .then(function (res) {
+                .then(res => {
                     if (res.status.toLocaleUpperCase() === 'OK') {
                         fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
                             .then(extendInfo => {
@@ -520,7 +528,7 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                 'Content-Type': 'application/json',
             }
         }).then(response => response.json())
-            .then(function (res) {
+            .then(res => {
                 if (res.status.toLocaleUpperCase() === 'OK') {
                     if (res.payload.contentMarker.prognosis) {
                         fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + session_id).then(response => response.json())
@@ -529,19 +537,21 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                                 resolve(res);
                             });
                     } else {
-                        if (MainProperties.getAVOption() && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) { // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                            fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + MainProperties.getAVKey()).then(response => response.json())
-                                .then(otc => {
-                                    res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
-                                    res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
-                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
-                                    resolve(res);
-                                })
-                                .catch(e => {
-                                    console.log('Сервис alphavantage недоступен', e);
-                                    resolve(res);
-                                });
-                        } else resolve(res);
+                        MainProperties.getAVOption().then(option => {
+                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) { // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
+                                fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
+                                    .then(otc => {
+                                        res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
+                                        res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
+                                        res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
+                                        resolve(res);
+                                    })
+                                    .catch(e => {
+                                        console.log('Сервис alphavantage недоступен', e);
+                                        resolve(res);
+                                    });
+                            } else resolve(res);
+                        })
                     }
                 } else {
                     console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
@@ -556,8 +566,8 @@ function getSymbolInfo(tickerName, securityType, session_id) {
 
 function checkTicker(item) {
     return new Promise(function (resolve, reject) {
-        getTCSsession().then(function (session_id) {
-            getPriceInfo(item.ticker, undefined, session_id).then(function (res) {
+        MainProperties.getSession().then(session_id => {
+            getPriceInfo(item.ticker, undefined, session_id).then(res => {
                 let last_price = res.payload.last.value;
                 // у внебержевых отсутствуют sell buy цены - берем last
                 let sell_price = res.payload.sell ? res.payload.sell.value : last_price;
@@ -578,7 +588,7 @@ function checkTicker(item) {
 
 function deleteFromAlert(ticker, sell_price, buy_price) {
     console.log('delete alert for ' + ticker);
-    chrome.storage.sync.get([TICKER_LIST], function (data) {
+    chrome.storage.sync.get([TICKER_LIST], data => {
         let alert_data = data[TICKER_LIST] || [];
         // фильтруем по совпадению имени и установленной цене
         let new_alert_date = alert_data.filter(item => !(!!item && item.ticker === ticker && (item.sell_price === sell_price || item.buy_price === buy_price)));
@@ -594,7 +604,7 @@ function getOrders(session_id) {
             .then(response => response.json())
             .then(function (json) {
                 let return_data = [];
-                json.payload.orders.forEach(function (element) {
+                json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
                         showName: element.showName,
@@ -618,15 +628,15 @@ function getOrders(session_id) {
 }
 
 function updateAlertPrices() {
-    return new Promise(function (resolve, reject) {
-        getTCSsession().then(function (session_id) {
-            chrome.storage.sync.get([TICKER_LIST], function (data) {
+    return new Promise(function (resolve) {
+        MainProperties.getSession().then(session_id => {
+            chrome.storage.sync.get([TICKER_LIST], data => {
                 getOrders(session_id).then(async onlineOrders => {
                     let alert_data = onlineOrders;
                     let i = 0;
                     for (const item of alert_data.concat(data[TICKER_LIST])) {
                         //alert_data.forEach(function (item, i, alertList) {
-                        await getPriceInfo(item.ticker, undefined, session_id).then(function (res) {
+                        await getPriceInfo(item.ticker, undefined, session_id).then(res => {
                             alert_data[i] = {
                                 ticker: item.ticker,
                                 showName: item.showName,
@@ -661,10 +671,10 @@ function updateAlertPrices() {
 
 
 function checkPortfolioAlerts() {
-    chrome.storage.sync.get([OPTION_ALERT_TODAY], function (result) {
+    chrome.storage.sync.get([OPTION_ALERT_TODAY], result => {
         if (result[OPTION_ALERT_TODAY]) {
-            getAllSum().then(function (sums) {
-                chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE], function (result) {
+            getAllSum().then(sums => {
+                chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE], result => {
                     let alert_value = result[OPTION_ALERT_TODAY_VALUE] || 2;
                     getOldRelative('portfolio').then(old_relative => {
                         let portfolio_relative = Math.abs(sums.expectedYieldPerDayRelative - (old_relative || 0));
@@ -698,7 +708,7 @@ function checkPortfolioAlerts() {
 
 function getOldRelative(ticker) {
     return new Promise(function (resolve, reject) {
-        chrome.storage.local.get([ALERT_TICKER_LIST], function (data) {
+        chrome.storage.local.get([ALERT_TICKER_LIST], data => {
             let alert_data = data[ALERT_TICKER_LIST] || {};
             console.log(`get relative for ${ticker}=${alert_data[ticker]}`);
             if (alert_data[ticker]) resolve(alert_data[ticker]);
@@ -708,7 +718,7 @@ function getOldRelative(ticker) {
 }
 
 function setOldRelative(ticker, relative) {
-    chrome.storage.local.get([ALERT_TICKER_LIST], function (data) {
+    chrome.storage.local.get([ALERT_TICKER_LIST], data => {
         let relative_list = data[ALERT_TICKER_LIST] || {};
         relative_list[ticker] = relative;
         chrome.storage.local.set({[ALERT_TICKER_LIST]: relative_list}, () => {
@@ -718,16 +728,16 @@ function setOldRelative(ticker, relative) {
 }
 
 function checkSymbolsAlerts() {
-    chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], function (result) {
+    chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], result => {
         if (result[OPTION_ALERT_TODAY_PER_SYMBOL]) {
-            getTCSsession().then(function (session_id) {
-                getListStock(2).then(function (list_symbols) {
-                    chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result) {
-                        let alert_value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
-                        list_symbols.stocks_tcs.concat(list_symbols.stocks_iis).forEach(function (item, i, alertList) {
+            MainProperties.getSession().then(session_id => {
+                getListStock(2).then(list_symbols => {
+                    chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], alert_percent => {
+                        let alert_value = alert_percent[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
+                        list_symbols.stocks_tcs.concat(list_symbols.stocks_iis).forEach(item => {
                             if (!(item.exchangeStatus === 'Close'))
-                                getPriceInfo(item.symbol.ticker, item.symbol.securityType, session_id).then(function (res) {
-                                    let earnings_relative = res.payload.earnings.relative * 100;
+                                getPriceInfo(item.symbol.ticker, item.symbol.securityType, session_id).then(price_info => {
+                                    let earnings_relative = price_info.payload.earnings.relative * 100;
                                     getOldRelative(item.symbol.ticker).then(old_relative => {
                                         let symbol_relative = Math.abs(earnings_relative - (old_relative || 0));
                                         console.log(`check portfolio symbols ${item.symbol.ticker} for yield ${symbol_relative} <> ${alert_value}`);
@@ -767,9 +777,9 @@ function checkSymbolsAlerts() {
 }
 
 function checkAlerts() {
-    chrome.storage.sync.get([TICKER_LIST], function (data) {
+    chrome.storage.sync.get([TICKER_LIST], data => {
         let alert_data = data[TICKER_LIST] || [];
-        alert_data.forEach(function (item) {
+        alert_data.forEach(item => {
             // пока не работает проверка на статус биржи, раньше бралась из Storage сейчас там ее нет
             if ((!item.best_before || Date.parse(item.best_before) > new Date())) {
                 //if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus === 'Close')) {
@@ -808,7 +818,7 @@ function checkAlerts() {
 }
 
 function createMobileAlert(params) {
-    getTCSsession().then(function (session_id) {
+    MainProperties.getSession().then(session_id => {
         fetch(SET_ALERT_URL.replace('${ticker}', params.ticker).replace('${price}', params.price) + session_id)
             .then(response => response.json())
             .then(function (json) {
@@ -873,7 +883,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
                 break;
             case 'getSession':
-                getTCSsession().then(function (session_id) {
+                MainProperties.getSession().then(function (session_id) {
                     console.log("send message session .....");
                     port.postMessage(Object.assign({}, {result: "session"}, {sessionId: session_id}));
                 }).catch(e => {
@@ -982,7 +992,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
 });
 
 async function getRate(fromTo) {
-    await getTCSsession().then(async function (session_id) {
+    await MainProperties.getSession().then(async function (session_id) {
         await getPriceInfo(fromTo, session_id).then(ticker => {
             return ticker.payload.last.value;
         })
@@ -997,12 +1007,10 @@ chrome.alarms.create("pingServer", {
 
 chrome.alarms.onAlarm.addListener(function (alarm) {
     if (alarm.name === "pingServer") {
-        chrome.storage.sync.get([OPTION_SESSION], function (result) {
-            console.log('get session option');
-            if (result[OPTION_SESSION]) {
+        MainProperties.getSessionOption().then(pingFlag => {
+            if (pingFlag) {
                 console.log('ping server');
-                getTCSsession().then(function (session_id) {
-
+                MainProperties.getSession().then(function (session_id) {
                     fetch(PING_URL + session_id).then(function (response) {
                         checkAlerts();          // достижение цены по бумагам в списке отслеживания
                         checkPortfolioAlerts(); // резкая смена доходности портфеля
@@ -1034,61 +1042,95 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     }
 });
 
+/**
+ * класс кэширующий все параметры, которые редко меняюся (но могут быть затратными по времени как fetch sessionId,
+ * так и ограниченные по количеству в единицу времени как обращение в local storage)
+ * все меоды статические, при первомом запросе формируется асинхронный вызов,
+ * последующие вызовы получают значения из полей класса
+ */
 export class MainProperties {
 
-    static getSession() {
-        if (this._sessionId) {
+    static async getSession() {
+        if (!(this._sessionId === undefined)) {
+            //console.log('get cached sessionId');
             return this._sessionId
         }
-        (async () => {
-            return await getTCSsession().then(sessionId => {
-                this._sessionId = sessionId;
-                return sessionId;
-            })
-        })()
+        return await getTCSsession().then(sessionId => {
+            this._sessionId = sessionId;
+            //console.log('get NOT cached sessionId');
+            return sessionId;
+        })
+
     };
 
-    set sessionId(sessionId) {
-        this._sessionId = sessionId
+    static async getSessionOption() {
+        if (!(this._sessionOption === undefined)) {
+            //console.log('get cached convertToRUB', this._convertToRUB);
+            return this._sessionOption;
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_SESSION], result => {
+                this._sessionOption = result[OPTION_SESSION];
+                resolve(result[OPTION_SESSION]);
+            })
+        );
     }
 
-    set convertToRUB(convertToRUB) {
-        this._convertToRUB = convertToRUB
-    }
-
-    static getConvertToRUB() {
-        if (this._convertToRUB) {
+    static async getConvertToRUB() {
+        if (!(this._convertToRUB === undefined)) {
+            //console.log('get cached convertToRUB', this._convertToRUB);
             return this._convertToRUB;
         }
-        (async () => {
-            return await chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], result => {
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], result => {
                 this._convertToRUB = result[OPTION_CONVERT_TO_RUB];
-                return result[OPTION_CONVERT_TO_RUB];
+                resolve(result[OPTION_CONVERT_TO_RUB]);
             })
-        })()
+        );
     }
 
-    static getAVOption() {
-        if (this._AVOption) {
-            return this._AVOption;
+    static async getAVOption() {
+        if (!(this._AVOption === undefined) && !(this._AVKey === undefined)) {
+            //console.log('get cached AVOption');
+            return {AVOption: this._AVOption, AVKey: this._AVKey};
         }
-        (async () => {
-            return await chrome.storage.sync.get([OPTION_ALPHAVANTAGE], (result) => {
-                this._AVOption = result[OPTION_ALPHAVANTAGE];
-                return result[OPTION_ALPHAVANTAGE];
-            })
-        })()
-    }
-
-    static getAVKey() {
-        if (this._AVKey) {
-            return this._AVKey;
-        }
-        (async () => {
-            return await chrome.storage.sync.get([OPTION_ALPHAVANTAGE_KEY], (result) => {
-                this._AVKey = result[OPTION_ALPHAVANTAGE_KEY];
-                return result[OPTION_ALPHAVANTAGE_KEY];
-            })
-        })()
+        const promises = [
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_ALPHAVANTAGE], (result) => {
+                    this._AVOption = result[OPTION_ALPHAVANTAGE];
+                    resolve(result[OPTION_ALPHAVANTAGE]);
+                })
+            ),
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_ALPHAVANTAGE_KEY], (result) => {
+                    this._AVKey = result[OPTION_ALPHAVANTAGE_KEY];
+                    resolve(result[OPTION_ALPHAVANTAGE_KEY]);
+                })
+            )
+        ];
+        return new Promise(resolve => {
+            Promise.all(promises)
+                .then(([AV_Option, AV_Key]) => {
+                    this._AVOption = AV_Option;
+                    this._AVKey = AV_Key;
+                    //console.log('get NOT cached AVOption');
+                    resolve({AVOption: AV_Option, AVKey: AV_Key});
+                })
+        })
     }
 }
+
+// вызывается при изменении storage
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+    for (let key in changes) {
+        let storageChange = changes[key];
+        if (namespace === 'local') {
+
+        } else {
+            if (key === OPTION_CONVERT_TO_RUB) MainProperties._convertToRUB = storageChange.newValue;
+            if (key === OPTION_ALPHAVANTAGE) MainProperties._AVOption = storageChange.newValue;
+            if (key === OPTION_ALPHAVANTAGE_KEY) MainProperties._AVKey = storageChange.newValue;
+            if (key === OPTION_SESSION) MainProperties._sessionOption = storageChange.newValue;
+        }
+    }
+});

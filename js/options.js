@@ -27,6 +27,7 @@ import {
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {fillCashData, msToTime} from "./utils/displayUtils.js";
 import {debounce, throttle} from "./utils/systemUtils.js";
+import {MainProperties} from "./background.js";
 
 
 document.getElementById('toggle_info').addEventListener('click', function (event) {
@@ -948,13 +949,5 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     }
 });
 
-// перерисовываем таблицу с уведомлениями при изменении Storage
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-    for (let key in changes) {
-        if (key === TICKER_LIST) {
-            debounce(create_alert_table(), 1000);
-        }
-    }
-});
 
 
