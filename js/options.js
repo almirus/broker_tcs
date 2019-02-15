@@ -953,7 +953,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 
         // перерисовываем таблицу с уведомлениями при изменении Storage
         if (key === TICKER_LIST) debounce(create_alert_table(), 1000);
-        
+
     }
 });
 

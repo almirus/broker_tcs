@@ -236,11 +236,11 @@ function getPortfolio(sessionId) {
  * конвертируем и дополняем данные для портфолио
  * @param data
  * @param needToConvert
- * @param ticker
+ * @param currencyCourse
  * @param sessionId
  * @return {Promise<Array>}
  */
-async function convertPortfolio(data, needToConvert, ticker, sessionId) {
+async function convertPortfolio(data, needToConvert, currencyCourse, sessionId) {
     let return_data = [];
     for (const element of data) {
         let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
@@ -253,10 +253,10 @@ async function convertPortfolio(data, needToConvert, ticker, sessionId) {
                 //expected_yield.value = symbol.payload.relativeOTC;
             }
             if (needToConvert && current_amount.currency === 'USD') {
-                earning_today = earning_today * ticker.payload.last.value;
-                current_amount.value = current_amount.value * ticker.payload.last.value;
+                earning_today = earning_today * currencyCourse.payload.last.value;
+                current_amount.value = current_amount.value * currencyCourse.payload.last.value;
                 current_amount.currency = 'RUB';
-                expected_yield.value = expected_yield.value * ticker.payload.last.value;
+                expected_yield.value = expected_yield.value * currencyCourse.payload.last.value;
                 expected_yield.currency = 'RUB';
             }
 

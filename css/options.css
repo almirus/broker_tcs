@@ -189,7 +189,12 @@ a:hover, a:active {
 input.buy, input.sell {
     width: 85px;
 }
-
+input.sell{
+    background: lightpink;
+}
+input.buy{
+    background: lightgreen;
+}
 input.tickerQuantity {
     width: 60px;
 }
