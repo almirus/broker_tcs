@@ -883,9 +883,13 @@ chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
 
 // сохраняем применение Использовать Alpantage
 document.getElementById(OPTION_ALPHAVANTAGE).addEventListener('change', function (e) {
-    chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
-        console.log('alphavantage option set to ' + e.target.checked);
-    })
+    if (e.target.checked && !document.getElementById(OPTION_ALPHAVANTAGE_KEY).value) {
+        alert('Сначала укажите ключ полученный с сайта Alphavantage');
+        e.target.checked=false;
+    } else
+        chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
+            console.log('alphavantage option set to ' + e.target.checked);
+        })
 });
 // подгружаем настройки
 chrome.storage.sync.get([OPTION_ALPHAVANTAGE], function (result) {
