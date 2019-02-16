@@ -175,21 +175,25 @@ function updatePopup() {
  */
 function getUserInfo() {
     return new Promise(function (resolve, reject) {
-        MainProperties.getSession().then(function (session_id) {
+        MainProperties.getSession().then(session_id => {
             fetch(USER_URL + session_id)
                 .then(function (response) {
                     if (response.status !== 200) reject({status: response.status});
                     return response.json()
                 }).then(function (json) {
-                resolve(
-                    {
-                        result: "updateUserInfo",
-                        riskProfile: json.payload.riskProfile ? json.payload.riskProfile : 'еще не определен',
-                        approvedW8: json.payload.approvedW8 ? 'подписана' : 'не подписана',
-                        employee: json.payload.employee,
-                        qualStatus: json.payload.qualStatus ? 'есть статус' : 'еще нет статуса',
-                        accounts: json.payload.accounts
-                    });
+                if (json.payload.accessLevel.toUpperCase() === 'ANONYMOUS') {
+                    console.log('session is dead');
+                    reject(undefined);
+                } else
+                    resolve(
+                        {
+                            result: "updateUserInfo",
+                            riskProfile: json.payload.riskProfile ? json.payload.riskProfile : 'еще не определен',
+                            approvedW8: json.payload.approvedW8 ? 'подписана' : 'не подписана',
+                            employee: json.payload.employee,
+                            qualStatus: json.payload.qualStatus ? 'есть статус' : 'еще нет статуса',
+                            accounts: json.payload.accounts
+                        });
             }).catch(ex => {
                 console.log('userInfo parsing failed', ex);
                 reject(undefined);
