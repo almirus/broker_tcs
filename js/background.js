@@ -177,10 +177,10 @@ function getUserInfo() {
     return new Promise(function (resolve, reject) {
         MainProperties.getSession().then(session_id => {
             fetch(USER_URL + session_id)
-                .then(function (response) {
+                .then(response => {
                     if (response.status !== 200) reject({status: response.status});
                     return response.json()
-                }).then(function (json) {
+                }).then(json => {
                 if (json.payload.accessLevel.toUpperCase() === 'ANONYMOUS') {
                     console.log('session is dead');
                     reject(undefined);
@@ -1060,7 +1060,11 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                             }
 
                         }).catch(e => {
-                        console.log('Сервис недоступен ' + e);
+                        MainProperties._sessionOption = undefined;
+                        // меняем иконку на воскл знак
+                        chrome.browserAction.setTitle({title: 'Нет сети'});
+                        chrome.browserAction.setIcon({path: "/icons/icon16_warning.png"});
+                        console.log('Сервис недоступен или ошибка сети' + e);
                     })
                 }).catch(e => {
                     // сессия невалидна
