@@ -10,6 +10,7 @@ import {
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
+    EUR_RUB,
     FAVORITE_URL,
     HOST_URL,
     INFO_URL,
@@ -333,62 +334,77 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
 function getListStock(name) {
     return new Promise(function (resolve, reject) {
         console.log('try to get list');
-        MainProperties.getSession().then(function (session_id) {
-            if (name === USD_RUB) {
-                let return_data = [];
-                let usdInfo = {};
-                getPriceInfo(USD_RUB, undefined, session_id).then(function (result) {
-                        usdInfo.prices = result.payload;
-                        usdInfo.exchangeStatus = result.payload.exchangeStatus;
-                    }
-                ).then(function () {
-                    usdInfo.symbol = {
-                        ticker: USD_RUB,
-                        showName: "Доллар США",
-                        lotSize: 1,
-                    };
-                    return_data.push(usdInfo);
-                    resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
-                }).catch(function (ex) {
-                    console.log('parsing failed', ex);
-                    reject(undefined);
-                })
-            } else if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
-                findTicker(name, session_id)
-                    .then(function (json) {
-                        console.log('found list');
-                        let return_data = [];
-                        json.payload.values.forEach(function (element) {
-                            return_data.push({
-                                prices: element.prices,
-                                symbol: {
-                                    ticker: element.symbol.ticker,
-                                    showName: element.symbol.showName,
-                                    lotSize: element.symbol.lotSize,
-                                },
-                                exchangeStatus: element.exchangeStatus
+        MainProperties.getSession().then(session_id => {
+            if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
+                if (name && name.toUpperCase().includes('ВАЛЮТ')) {
+                    Promise.all([
+                        getPriceInfo(USD_RUB, undefined, session_id).then(usd => {
+                            let usdInfo = {};
+                            usdInfo.prices = usd.payload;
+                            usdInfo.exchangeStatus = usd.payload.exchangeStatus;
+                            usdInfo.symbol = {
+                                ticker: USD_RUB,
+                                showName: "Доллар США",
+                                lotSize: 1,
+                            };
+                            return usdInfo;
+                        }).catch(function (ex) {
+                            console.log('parsing failed', ex);
+                            reject(undefined);
+                        }),
+                        getPriceInfo(EUR_RUB, undefined, session_id).then(eur => {
+                            let eurInfo = {};
+                            eurInfo.prices = eur.payload;
+                            eurInfo.exchangeStatus = eur.payload.exchangeStatus;
+                            eurInfo.symbol = {
+                                ticker: EUR_RUB,
+                                showName: "Евро",
+                                lotSize: 1,
+                            };
+                            return eurInfo;
+                        }).catch(function (ex) {
+                            console.log('parsing failed', ex);
+                            reject(undefined);
+                        })]
+                    ).then(currency => {
+                        resolve(Object.assign({}, {result: "listStock"}, {stocks: currency}));
+                    })
+                } else
+                    findTicker(name, session_id)
+                        .then(function (json) {
+                            console.log('found list');
+                            let return_data = [];
+                            json.payload.values.forEach(item => {
+                                return_data.push({
+                                    prices: item.prices,
+                                    symbol: {
+                                        ticker: item.symbol.ticker,
+                                        showName: item.symbol.showName,
+                                        lotSize: item.symbol.lotSize,
+                                    },
+                                    exchangeStatus: item.exchangeStatus
+                                });
                             });
-                        });
-                        resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
-                    }).catch(function (ex) {
-                    console.log('parsing failed', ex);
-                    reject(undefined);
-                })
+                            resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
+                        }).catch(function (ex) {
+                        console.log('parsing failed', ex);
+                        reject(undefined);
+                    })
             } else if (name === 3) { // избранное
                 fetch(FAVORITE_URL + session_id)
                     .then(response => response.json())
                     .then(json => {
                         console.log('list of favorite');
                         let return_data = [];
-                        json.payload.stocks.forEach(function (element) {
+                        json.payload.stocks.forEach(item => {
                             return_data.push({
-                                prices: element.prices,
+                                prices: item.prices,
                                 symbol: {
-                                    ticker: element.symbol.ticker,
-                                    showName: element.symbol.showName,
-                                    lotSize: element.symbol.lotSize,
+                                    ticker: item.symbol.ticker,
+                                    showName: item.symbol.showName,
+                                    lotSize: item.symbol.lotSize,
                                 },
-                                exchangeStatus: element.exchangeStatus
+                                exchangeStatus: item.exchangeStatus
                             });
                         });
                         resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
@@ -795,7 +811,7 @@ function checkAlerts() {
                 //if ((!item.best_before || Date.parse(item.best_before) > new Date()) && !(item.exchangeStatus === 'Close')) {
                 // или дата не установлена или больше текущей => проверка не просрочилась и биржа не закрыта
                 console.log(`check alert for ${item.ticker}`);
-                checkTicker(item).then(function (response) {
+                checkTicker(item).then(response => {
                     console.log('Пытаемся проверить ' + item.ticker + ' на продажу по ' + item.sell_price + ' и покупку по ' + item.buy_price);
                     if (response.buy || response.sell) {
                         chrome.notifications.create((response.buy ? 'buy|' : 'sell|') + item.ticker, {
@@ -806,7 +822,7 @@ function checkAlerts() {
                             requireInteraction: true,
                             priority: 0
                         });
-                        chrome.storage.sync.get([OPTION_ALERT], function (result) {
+                        chrome.storage.sync.get([OPTION_ALERT], result => {
                             if (result[OPTION_ALERT])
                                 redirect_to_page((response.buy ? BUY_LINK : SELL_LINK) + item.ticker + '/', true);
                         });
@@ -831,7 +847,7 @@ function createMobileAlert(params) {
     MainProperties.getSession().then(session_id => {
         fetch(SET_ALERT_URL.replace('${ticker}', params.ticker).replace('${price}', params.price) + session_id)
             .then(response => response.json())
-            .then(function (json) {
+            .then(json => {
                 if (!json.payload.confirm) {
                     console.log('cant set mobile alert ' + JSON.stringify(json));
                 }
@@ -1038,12 +1054,13 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
                                 chrome.browserAction.setIcon({path: "/icons/icon16.png"});
                                 chrome.browserAction.setTitle({title: 'TCS Broker'});
                             }
+
                         }).catch(e => {
                         console.log('Сервис недоступен ' + e);
                     })
                 }).catch(e => {
                     // сессия невалидна
-                    chrome.storage.sync.get([OPTION_REDIRECT], function (result) {
+                    chrome.storage.sync.get([OPTION_REDIRECT], result => {
                         console.log('get redirect option');
                         if (result[OPTION_REDIRECT]) {
                             redirect_to_page(LOGIN_URL)

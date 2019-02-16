@@ -57,6 +57,7 @@ export const ALPHAVANTAGE_KEY = 'M3JMJM8U22EIIO2Y';
 export const AV_SYMBOL_URL = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=';
 
 export const USD_RUB = 'USDRUB';
+export const EUR_RUB = 'EURRUB';
 
 export let port = chrome.runtime.connect({
     name: "tcs_trader"
