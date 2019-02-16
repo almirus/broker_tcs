@@ -63,9 +63,8 @@ function redirect_to_page(url, open_new = false) {
  */
 function sessionIsAlive(sessionId) {
     return fetch(INFO_URL + sessionId)
-        .then(function (response) {
-            return response.json()
-        }).then(function (json) {
+        .then(response => response.json())
+        .then(json => {
             if (json.resultCode.toLocaleUpperCase() === 'OK') {
                 if (json.payload.accessLevel.toLocaleUpperCase() === 'ANONYMOUS') {
                     console.log('session is dead');
@@ -89,13 +88,13 @@ function sessionIsAlive(sessionId) {
  * @return {object} - возвращается строка с sessionId через promise
  */
 function getTCSsession() {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log('try to get cookies');
-        chrome.cookies.getAll({}, function (cookie) {
+        chrome.cookies.getAll({}, cookie => {
             let psid = cookie.filter(value => value.name === 'psid');
             if (psid.length > 0 && psid[0].value) {
                 console.log('psid founded');
-                sessionIsAlive(psid[0].value).then(function (response) {
+                sessionIsAlive(psid[0].value).then(response => {
                     if (response) {
                         resolve(psid[0].value)
                     } else
@@ -1021,17 +1020,25 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         MainProperties.getSessionOption().then(pingFlag => {
             if (pingFlag) {
                 console.log('ping server');
-                MainProperties.getSession().then(function (session_id) {
-                    fetch(PING_URL + session_id).then(function (response) {
-                        checkAlerts();          // достижение цены по бумагам в списке отслеживания
-                        checkPortfolioAlerts(); // резкая смена доходности портфеля
-                        checkSymbolsAlerts();   // резкая смена доходности бумаг в портфеле
-                        //updateAlertPrices();  // обновляем цены в интерфейсе настроек
-                        // возвращаем обычную иконку
-                        chrome.browserAction.setIcon({path: "/icons/icon16.png"});
-                        chrome.browserAction.setTitle({title: 'TCS Broker'});
-                        return response.blob();
-                    }).catch(e => {
+                MainProperties.getSession().then(session_id => {
+                    fetch(PING_URL + session_id)
+                        .then(response => response.json())
+                        .then(response => {
+                            if (response.payload.accessLevel.toUpperCase() === 'ANONYMOUS') {
+                                MainProperties._sessionOption = undefined;
+                                // меняем иконку на воскл знак
+                                chrome.browserAction.setTitle({title: 'Сессия истекла, проверьте настройки'});
+                                chrome.browserAction.setIcon({path: "/icons/icon16_warning.png"});
+                            } else {
+                                checkAlerts();          // достижение цены по бумагам в списке отслеживания
+                                checkPortfolioAlerts(); // резкая смена доходности портфеля
+                                checkSymbolsAlerts();   // резкая смена доходности бумаг в портфеле
+                                //updateAlertPrices();  // обновляем цены в интерфейсе настроек
+                                // возвращаем обычную иконку
+                                chrome.browserAction.setIcon({path: "/icons/icon16.png"});
+                                chrome.browserAction.setTitle({title: 'TCS Broker'});
+                            }
+                        }).catch(e => {
                         console.log('Сервис недоступен ' + e);
                     })
                 }).catch(e => {
