@@ -211,3 +211,7 @@ input[type="datetime-local"] {
 .lastOTC{
     color: cornflowerblue;
 }
+.toggle{
+    cursor: pointer;
+    border-bottom: 1px dotted #000;
+}

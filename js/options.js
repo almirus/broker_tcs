@@ -29,22 +29,18 @@ import {fillCashData, msToTime, getAllAccountsHtmlInfo, toCurrency, toPercent} f
 import {debounce, throttle} from "./utils/systemUtils.js";
 
 
-document.getElementById('toggle_info').addEventListener('click', function (event) {
-
-    let toggle = function (elem) {
-        elem.classList.toggle('is-visible');
-    };
-
-    if (!event.target.classList.contains('toggle')) return;
-
-    event.preventDefault();
-
-    let content = document.querySelector(event.target.hash);
-    if (!content) return;
-
-    toggle(content);
-
-}, false);
+Array.from(document.getElementsByClassName('toggle')).forEach(function (input) {
+    input.addEventListener('click', function (event) {
+        let toggle = function (elem) {
+            elem.classList.toggle('is-visible');
+        };
+        if (!event.target.classList.contains('toggle')) return;
+        event.preventDefault();
+        let content = document.getElementById(input.getAttribute('data-toggle'));
+        if (!content) return;
+        toggle(content);
+    }, false)
+});
 
 port.onMessage.addListener(function (msg) {
     console.log(`Option - message received ${msg.result}`);
