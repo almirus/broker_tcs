@@ -297,7 +297,7 @@ async function convertPortfolio(data, needToConvert, currencyCourse, sessionId) 
                     marketStartTime: symbol.payload.symbol.marketStartTime,
                     securityType: securityType,
                     ticker: element.ticker,
-                    showName: symbol.payload.symbol.showName || symbol.payload.symbol.descriptionf,
+                    showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
                     lotSize: element.currentBalance,
                     expectedYieldRelative: element.expectedYieldRelative,
                     expectedYield: expected_yield,
