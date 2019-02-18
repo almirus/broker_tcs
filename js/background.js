@@ -308,6 +308,7 @@ async function convertPortfolio(data, needToConvert, currencyCourse, sessionId) 
                         value: 0,
                         currency: element.currentPrice.currency
                     },
+                    timeToOpen:symbol.payload.symbol.timeToOpen,
                 },
                 exchangeStatus: symbol.payload.exchangeStatus
             });

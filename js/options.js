@@ -25,7 +25,7 @@ import {
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
-import {fillCashData, msToTime, getAllAccountsHtmlInfo, toCurrency, toPercent} from "./utils/displayUtils.js";
+import {fillCashData, getAllAccountsHtmlInfo, msToTime, toCurrency, toPercent} from "./utils/displayUtils.js";
 import {debounce, throttle} from "./utils/systemUtils.js";
 
 
@@ -275,17 +275,20 @@ function create_portfolio_table(divId, data) {
             session_open += ' премаркет с ' + element.symbol.premarketStartTime;
             session_close += ' премаркет до ' + element.symbol.premarketEndTime
         }
-        if (element.exchangeStatus === 'Close') img_status = '/icons/closed.png';
-        else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
+        let remain_time;
+        if (element.exchangeStatus === 'Close') {
+            img_status = '/icons/closed.png';
+            remain_time = "Время до открытия " + msToTime(element.symbol.timeToOpen);
+        } else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
         let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">📊</span>' : '';
         let etf = element.symbol.symbolType === 'ETF' ? '<span title="ETF">📈</span>' : '';
         let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
-        let bond = element.symbol.symbolType === 'Bond' ? '<span title="Бонды">📒</span>' : '';
+        let bond = element.symbol.symbolType === 'Bond' ? '<span title="Облигации">📒</span>' : '';
         let country = '';
         if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
         let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}${mobile_alert}</span>
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}${mobile_alert}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices.last.value}</div>` +
