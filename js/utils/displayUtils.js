@@ -7,17 +7,25 @@ export function fillCashData(msg, cash_str, cash_element_id) {
         let currentBalance = msg.cash.payload.data[cash].currentBalance;
         resultCash += currentBalance;
         if (currentBalance > 0) {
-            cash_str += '<strong>' + toLocaleString(currentBalance, msg.cash.payload.data[cash].currency) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
+            cash_str += '<strong>' + toCurrency(currentBalance, msg.cash.payload.data[cash].currency) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
         }
     }
     document.getElementById(cash_element_id).innerHTML = (resultCash > 0) ? cash_str : '';
 }
 
 // Функция преобразующая число в локальную валюту
-export function toLocaleString(value, currency = 'RUB') {
+export function toCurrency(value, currency = 'RUB') {
     return value.toLocaleString('ru-RU', {
         style: 'currency',
         currency: currency
+    });
+}
+
+// Функция преобразующая число в проценты
+export function toPercent(value, minimumFractionDigits = 2) {
+    return value.toLocaleString('ru-RU', {
+        style: 'percent',
+        minimumFractionDigits: minimumFractionDigits
     });
 }
 
@@ -56,9 +64,9 @@ function getAccountHtmlInfo(accountName, accountInfo) {
                          (accountName === 'Tinkoff') ?    "ТКС" :
                          (accountName === 'TinkoffIis') ? "КИС" : accountName;
 
-    let htmlTotalAmount = `<span style="font-weight: bold">${toLocaleString(accountInfo.totalAmountPortfolio)}</span>`;
-    let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toLocaleString(accountInfo.expectedYieldPerDay)}</span>`;
-    let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toLocaleString(accountInfo.expectedYield)}</span>`;
+    let htmlTotalAmount = `<span style="font-weight: bold">${toCurrency(accountInfo.totalAmountPortfolio)}</span>`;
+    let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYieldPerDay)}</span>`;
+    let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYield)}</span>`;
 
     return `Счет ${rusAccountName} ${htmlTotalAmount}, 
             доход по счету ${htmlExpectedYield}, 

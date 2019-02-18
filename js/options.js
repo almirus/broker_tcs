@@ -25,7 +25,7 @@ import {
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
-import {fillCashData, msToTime, getAllAccountsHtmlInfo} from "./utils/displayUtils.js";
+import {fillCashData, msToTime, getAllAccountsHtmlInfo, toCurrency, toPercent} from "./utils/displayUtils.js";
 import {debounce, throttle} from "./utils/systemUtils.js";
 
 
@@ -86,32 +86,16 @@ port.onMessage.addListener(function (msg) {
             break;
         case 'updatePopup':
             //document.getElementById('timestamp').innerText=msg.timestamp;
-            document.getElementById('sum').innerText = msg.totalAmountPortfolio.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: 'RUB'
-            });
+            document.getElementById('sum').innerText = toCurrency(msg.totalAmountPortfolio);
 
-            if (msg.expectedYield > 0) document.getElementById('all').classList.add("onlineBuy");
-            else document.getElementById('all').classList.add("onlineSell");
-            document.getElementById('earnedAll').innerText = msg.expectedYield.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: 'RUB'
-            });
-            document.getElementById('earnedAllPercent').innerText = msg.expectedYieldRelative.toLocaleString('ru-RU', {
-                style: 'percent',
-                minimumFractionDigits: 2
-            });
+            document.getElementById('all').classList.add(msg.expectedYield > 0 ? "onlineBuy" : "onlineSell");
+            document.getElementById('earnedAll').innerText = toCurrency(msg.expectedYield);
+            document.getElementById('earnedAllPercent').innerText = toPercent(msg.expectedYieldRelative);
 
-            if (msg.expectedYieldPerDay > 0) document.getElementById('day').classList.add("onlineBuy");
-            else document.getElementById('day').classList.add("onlineSell");
-            document.getElementById('earnedToday').innerText = msg.expectedYieldPerDay.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: 'RUB'
-            });
-            document.getElementById('earnedTodayPercent').innerText = msg.expectedYieldPerDayRelative.toLocaleString('ru-RU', {
-                style: 'percent',
-                minimumFractionDigits: 2
-            });
+            document.getElementById('day').classList.add(msg.expectedYieldPerDay > 0 ? "onlineBuy" : "onlineSell");
+            document.getElementById('earnedToday').innerText = toCurrency(msg.expectedYieldPerDay);
+            document.getElementById('earnedTodayPercent').innerText = toPercent(msg.expectedYieldPerDayRelative);
+
             document.getElementById('allAccounts').innerHTML = getAllAccountsHtmlInfo(msg.accounts);
             break;
         case 'updateUserInfo':
