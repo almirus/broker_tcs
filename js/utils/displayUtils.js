@@ -62,7 +62,7 @@ export function getAllAccountsHtmlInfo(accounts) {
 function getAccountHtmlInfo(accountName, accountInfo) {
     let rusAccountName = (accountName === 'Bcs') ?        "БКС" :
                          (accountName === 'Tinkoff') ?    "ТКС" :
-                         (accountName === 'TinkoffIis') ? "КИС" : accountName;
+                         (accountName === 'TinkoffIis') ? "ИИС" : accountName;
 
     let htmlTotalAmount = `<span style="font-weight: bold">${toCurrency(accountInfo.totalAmountPortfolio)}</span>`;
     let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYieldPerDay)}</span>`;
