@@ -967,6 +967,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         port.postMessage({method: "getAvailableCashTCS"});
         port.postMessage({method: "getAvailableCashBCS"});
         port.postMessage({method: "getAvailableCashIIS"});
+        port.postMessage({method: "getSession"});
     }
 });
 

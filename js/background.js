@@ -143,6 +143,7 @@ function getAllSum() {
                     expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
                 });
             }).catch(ex => {
+                MainProperties._sessionId=undefined;
                 console.log('portfolio parsing failed', ex);
                 reject(undefined);
             })
