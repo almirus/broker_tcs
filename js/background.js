@@ -125,6 +125,10 @@ function getAllSum() {
                         return {status: 502, text: 'Сервис брокера недоступен'};
                     } else return response.json()
                 }).then(json => {
+                    if (json.payload.code && json.payload.code.toUpperCase()==='INSUFFICIENTPRIVILEGES'){
+                        MainProperties._sessionId= undefined;
+                        reject(undefined);
+                    }
                 let accounts = {};
                 json.payload.accounts.forEach(item => {
                     accounts[item.brokerAccountType] = {};
@@ -449,10 +453,11 @@ function findTicker(search, session_id) {
                 method: "POST",
                 body: JSON.stringify({
                     start: 0,
-                    end: 1000,
+                    end: 100,
                     sortType: "ByName",
                     orderType: "Asc",
                     country: "All",
+                    //otcType:["Tradable","Market"],
                     filter: search
                 }),
                 headers: {
