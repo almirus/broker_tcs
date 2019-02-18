@@ -52,12 +52,15 @@ export function getAllAccountsHtmlInfo(accounts) {
 }
 
 function getAccountHtmlInfo(accountName, accountInfo) {
-    let totalAmountPortfolio = toLocaleString(accountInfo.totalAmountPortfolio);
-    let expectedYieldPerDay = toLocaleString(accountInfo.expectedYieldPerDay);
-    let expectedYield = toLocaleString(accountInfo.expectedYield);
-    let rusAccountName = (accountName === 'Bcs') ? "БКС" :
-                         (accountName === 'Tinkoff') ? "ТКС" :
-                         (accountName === 'TinkoffIis') ? "ИИС" : accountName;
+    let rusAccountName = (accountName === 'Bcs') ?        "БКС" :
+                         (accountName === 'Tinkoff') ?    "ТКС" :
+                         (accountName === 'TinkoffIis') ? "КИС" : accountName;
 
-    return `Счет ${rusAccountName} ${totalAmountPortfolio}, доход по счету ${expectedYield}, доход сегодня ${expectedYieldPerDay}<br>`;
+    let htmlTotalAmount = `<span style="font-weight: bold">${toLocaleString(accountInfo.totalAmountPortfolio)}</span>`;
+    let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toLocaleString(accountInfo.expectedYieldPerDay)}</span>`;
+    let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toLocaleString(accountInfo.expectedYield)}</span>`;
+
+    return `Счет ${rusAccountName} ${htmlTotalAmount}, 
+            доход по счету ${htmlExpectedYield}, 
+            доход сегодня ${htmlExpectedYieldPerDay}<br>`;
 }
