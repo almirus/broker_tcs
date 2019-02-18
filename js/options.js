@@ -25,7 +25,7 @@ import {
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
-import {fillCashData, msToTime} from "./utils/displayUtils.js";
+import {fillCashData, msToTime, getAllAccountsHtmlInfo} from "./utils/displayUtils.js";
 import {debounce, throttle} from "./utils/systemUtils.js";
 
 
@@ -112,26 +112,7 @@ port.onMessage.addListener(function (msg) {
                 style: 'percent',
                 minimumFractionDigits: 2
             });
-            document.getElementById('allAccounts').innerHTML = `Счет ТКС ${msg.accounts.Tinkoff.totalAmountPortfolio.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: 'RUB'
-            })}, доход по счету ${msg.accounts.Tinkoff.expectedYield.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: 'RUB'
-                })}, доход сегодня  ${msg.accounts.Tinkoff.expectedYieldPerDay.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: 'RUB'
-                })}<br>`+
-            `${msg.accounts.TinkoffIis ? 'Счет ИИС ' + msg.accounts.TinkoffIis.totalAmountPortfolio.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: 'RUB'
-            })+', доход по счету '+msg.accounts.TinkoffIis.expectedYield.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: 'RUB'
-                })+', доход сегодня '+msg.accounts.TinkoffIis.expectedYieldPerDay.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: 'RUB'
-            }) : ''}`;
+            document.getElementById('allAccounts').innerHTML = getAllAccountsHtmlInfo(msg.accounts);
             break;
         case 'updateUserInfo':
             if (msg.status) {

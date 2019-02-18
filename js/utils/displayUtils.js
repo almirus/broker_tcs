@@ -13,6 +13,7 @@ export function fillCashData(msg, cash_str, cash_element_id) {
     document.getElementById(cash_element_id).innerHTML = (resultCash > 0) ? cash_str : '';
 }
 
+// Функция преобразующая число в локальную валюту
 export function toLocaleString(value, currency = 'RUB') {
     return value.toLocaleString('ru-RU', {
         style: 'currency',
@@ -40,4 +41,23 @@ export function msToTime(s) {
     let mins = s % 60;
     let hrs = (s - mins) / 60;
     return zerofill(hrs,2) + 'ч ' + zerofill(mins,2) + 'мин';
+}
+
+export function getAllAccountsHtmlInfo(accounts) {
+    let res = '';
+    Object.keys(accounts).forEach(function (key) {
+        res += getAccountHtmlInfo(key, accounts[key]);
+    });
+    return res;
+}
+
+function getAccountHtmlInfo(accountName, accountInfo) {
+    let totalAmountPortfolio = toLocaleString(accountInfo.totalAmountPortfolio);
+    let expectedYieldPerDay = toLocaleString(accountInfo.expectedYieldPerDay);
+    let expectedYield = toLocaleString(accountInfo.expectedYield);
+    let rusAccountName = (accountName === 'Bcs') ? "БКС" :
+                         (accountName === 'Tinkoff') ? "ТКС" :
+                         (accountName === 'TinkoffIis') ? "ИИС" : accountName;
+
+    return `Счет ${rusAccountName} ${totalAmountPortfolio}, доход по счету ${expectedYield}, доход сегодня ${expectedYieldPerDay}<br>`;
 }
