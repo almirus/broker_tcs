@@ -213,5 +213,7 @@ input[type="datetime-local"] {
 }
 .toggle{
     cursor: pointer;
+}
+.dotted{
     border-bottom: 1px dotted #000;
 }
