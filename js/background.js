@@ -554,7 +554,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
 function getSymbolInfo(tickerName, securityType, session_id) {
     return new Promise(function (resolve, reject) {
         // POST
-
+        console.log('try to get symbolInfo for', tickerName);
         fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + session_id, {
             method: "POST",
             body: JSON.stringify({ticker: tickerName}),
@@ -566,16 +566,20 @@ function getSymbolInfo(tickerName, securityType, session_id) {
             .then(res => {
                 if (res.status.toLocaleUpperCase() === 'OK') {
                     if (res.payload.contentMarker.prognosis) {
+                        console.log('try to get prognosis for', tickerName);
                         fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + session_id).then(response => response.json())
                             .then(prognosis => {
                                 res.payload.symbol.consensus = prognosis.payload.consensus;
+                                resolve(res);
+                            })
+                            .catch(e => {
+                                console.log('Сервис прогнозов недоступен', e);
                                 resolve(res);
                             });
                     } else {
                         MainProperties.getAVOption().then(option => {
                             // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0) {
-                                if (res.payload.symbol.timeToOpen % (60000 * 2) === 0) // раз в две минуты
+                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0 )
                                     fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
                                         .then(otc => {
                                             res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
@@ -587,7 +591,7 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                                             console.log('Сервис alphavantage недоступен', e);
                                             resolve(res);
                                         });
-                            } else resolve(res);
+                             else resolve(res);
                         })
                     }
                 } else {
@@ -595,7 +599,7 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                     reject(res)
                 }
             }).catch(e => {
-            console.log(e);
+            console.log('cant get symbolInfo, because', e);
             reject(e);
         })
     })
