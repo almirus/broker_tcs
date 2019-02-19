@@ -125,10 +125,10 @@ function getAllSum() {
                         return {status: 502, text: 'Сервис брокера недоступен'};
                     } else return response.json()
                 }).then(json => {
-                    if (json.payload.code && json.payload.code.toUpperCase()==='INSUFFICIENTPRIVILEGES'){
-                        MainProperties._sessionId= undefined;
-                        reject(undefined);
-                    }
+                if (json.payload.code && json.payload.code.toUpperCase() === 'INSUFFICIENTPRIVILEGES') {
+                    MainProperties._sessionId = undefined;
+                    reject(undefined);
+                }
                 let accounts = {};
                 json.payload.accounts.forEach(item => {
                     accounts[item.brokerAccountType] = {};
@@ -147,7 +147,7 @@ function getAllSum() {
                     expectedYieldPerDayRelative: json.payload.totals.expectedYieldPerDayRelative / 100,
                 });
             }).catch(ex => {
-                MainProperties._sessionId=undefined;
+                MainProperties._sessionId = undefined;
                 console.log('portfolio parsing failed', ex);
                 reject(undefined);
             })
@@ -258,7 +258,7 @@ function getPortfolio(sessionId) {
  * @param sessionId
  * @return {Promise<Array>}
  */
-async function convertPortfolio(data, needToConvert, currencyCourse, sessionId) {
+async function convertPortfolio(data = [], needToConvert, currencyCourse, sessionId) {
     let return_data = [];
     for (const element of data) {
         let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
@@ -308,7 +308,7 @@ async function convertPortfolio(data, needToConvert, currencyCourse, sessionId) 
                         value: 0,
                         currency: element.currentPrice.currency
                     },
-                    timeToOpen:symbol.payload.symbol.timeToOpen,
+                    timeToOpen: symbol.payload.symbol.timeToOpen,
                 },
                 exchangeStatus: symbol.payload.exchangeStatus
             });
