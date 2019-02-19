@@ -57,7 +57,7 @@ port.onMessage.addListener(function (msg) {
             let iisStyle = 'none';
             if (msg.stocks_tcs.length < 14 || document.getElementById('iis_portfolio_input').checked)
                 iisStyle = 'block';
-            create_portfolio_table('portfolioIIS', msg.stocks_iis);
+            if (msg.stocks_iis.length>0) create_portfolio_table('portfolioIIS', msg.stocks_iis);
             document.getElementById('portfolioIIS').style = 'display:' + iisStyle;
             break;
         case 'listAlerts':
