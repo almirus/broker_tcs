@@ -310,7 +310,7 @@ function create_portfolio_table(divId, data) {
             minimumFractionDigits: element.symbol.consensus.consensus < 0.1 ? 4 : 2
         })}
         </a><span class="percent" title="Прогнозируемое изменение с учетом текущей цены">
-        ${prognosis_style === 'onlineBuy' ? '+' : '-'}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
+        ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
         </span>` : '';
 
         let td3 = document.createElement('td');
