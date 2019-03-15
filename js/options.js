@@ -57,7 +57,7 @@ port.onMessage.addListener(function (msg) {
             let iisStyle = 'none';
             if (msg.stocks_tcs.length < 14 || document.getElementById('iis_portfolio_input').checked)
                 iisStyle = 'block';
-            if (msg.stocks_iis.length>0) create_portfolio_table('portfolioIIS', msg.stocks_iis);
+            if (msg.stocks_iis.length > 0) create_portfolio_table('portfolioIIS', msg.stocks_iis);
             document.getElementById('portfolioIIS').style = 'display:' + iisStyle;
             break;
         case 'listAlerts':
@@ -84,11 +84,11 @@ port.onMessage.addListener(function (msg) {
             //document.getElementById('timestamp').innerText=msg.timestamp;
             document.getElementById('sum').innerText = toCurrency(msg.totalAmountPortfolio);
 
-            document.getElementById('all').classList.add(msg.expectedYield > 0 ? "onlineBuy" : "onlineSell");
+            document.getElementById('all').className = msg.expectedYield > 0 ? "onlineBuy" : "onlineSell";
             document.getElementById('earnedAll').innerText = toCurrency(msg.expectedYield);
             document.getElementById('earnedAllPercent').innerText = toPercent(msg.expectedYieldRelative);
 
-            document.getElementById('day').classList.add(msg.expectedYieldPerDay > 0 ? "onlineBuy" : "onlineSell");
+            document.getElementById('day').className = msg.expectedYieldPerDay > 0 ? "onlineBuy" : "onlineSell";
             document.getElementById('earnedToday').innerText = toCurrency(msg.expectedYieldPerDay);
             document.getElementById('earnedTodayPercent').innerText = toPercent(msg.expectedYieldPerDayRelative);
 
@@ -701,6 +701,7 @@ document.getElementById('add_alert_list').addEventListener('change', function (e
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'block';
 });
+/*
 document.getElementById('add_orders').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('sort_by_nearest').style.display = 'none';
@@ -708,7 +709,7 @@ document.getElementById('add_orders').addEventListener('change', function (e) {
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('orders_table').style.display = 'block';
 });
-
+*/
 // подгрузка списка акций по названию
 document.getElementById('symbol_name').addEventListener('input', function (e) {
     if (e.target.value) {
