@@ -34,6 +34,7 @@ import {
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
+    STOP_URL,
     SYMBOL_EXTENDED_LINK,
     SYMBOL_LINK,
     SYMBOL_URL,
@@ -41,7 +42,6 @@ import {
     USD_RUB,
     USER_URL
 } from "/js/constants.mjs";
-
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -579,19 +579,23 @@ function getSymbolInfo(tickerName, securityType, session_id) {
                     } else {
                         MainProperties.getAVOption().then(option => {
                             // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0 )
-                                    fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
-                                        .then(otc => {
+                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0)
+                                fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
+                                    .then(otc => {
+                                        if (otc.Note) {
+                                            console.log('Достигнуто ограничение alphavantage');
+                                        } else {
                                             res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
                                             res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
                                             res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
-                                            resolve(res);
-                                        })
-                                        .catch(e => {
-                                            console.log('Сервис alphavantage недоступен', e);
-                                            resolve(res);
-                                        });
-                             else resolve(res);
+                                        }
+                                        resolve(res);
+                                    })
+                                    .catch(e => {
+                                        console.log('Сервис alphavantage недоступен', e);
+                                        resolve(res);
+                                    });
+                            else resolve(res);
                         })
                     }
                 } else {
@@ -668,12 +672,48 @@ function getOrders(session_id) {
     })
 }
 
+function getStop(session_id) {
+    return new Promise(function (resolve, reject) {
+        fetch(STOP_URL + session_id)
+            .then(response => response.json())
+            .then(function (json) {
+                let return_data = [];
+                json.payload.orders.forEach(element => {
+                    return_data.push({
+                        ticker: element.ticker,
+                        showName: element.showName,
+                        quantity: element.quantity,
+                        buy_price: element.operationType === 'Buy' ? element.stopPrice : '',
+                        sell_price: element.operationType === 'Sell' ? element.stopPrice : '',
+                        best_before: undefined,
+                        active: true,
+                        timeToExpire: undefined,
+                        orderId: element.orderId,
+                        status: element.status
+                    });
+                });
+                resolve(return_data)
+            })
+            .catch(error => {
+                console.log(`Cant get orders, because ${error}`);
+                reject([]);
+            })
+    })
+}
+
 function updateAlertPrices() {
     return new Promise(function (resolve) {
         MainProperties.getSession().then(session_id => {
             chrome.storage.sync.get([TICKER_LIST], data => {
-                getOrders(session_id).then(async onlineOrders => {
-                    let alert_data = onlineOrders;
+                Promise.all([
+                    getOrders(session_id).then(orders => {
+                        return (orders)
+                    }),
+                    getStop(session_id).then(stops => {
+                        return (stops)
+                    })
+                ]).then(async ([orders, stops]) => {
+                    let alert_data = [].concat(orders,stops);
                     let i = 0;
                     for (const item of alert_data.concat(data[TICKER_LIST])) {
                         //alert_data.forEach(function (item, i, alertList) {

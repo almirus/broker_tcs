@@ -623,8 +623,10 @@ function create_alert_table(data_list) {
                     td6.className = '';
                     let alert_date = new Date(Date.parse(element.best_before));
                     if (element.orderId) {
-                        td6.innerHTML = '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>';
-                    } else td6.innerHTML = (element.best_before ? alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString() : 'бессрочно');
+                        td6.innerHTML = element.timeToExpire ? '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>'
+                            : (element.status === 'progress' ? (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit') : '');
+                    } else td6.innerHTML = element.best_before ? (alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString())
+                        : 'бессрочно';
                     td6.align = 'center';
                     let td7 = document.createElement('td');
                     td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
@@ -635,9 +637,9 @@ function create_alert_table(data_list) {
                     td7.align = 'center';
                     let td8 = document.createElement('td');
                     // hash for delete = ticker+sellprice+buyprice
-                    if (element.orderId && element.status === 'New' || !element.orderId)
+                    if (element.orderId && element.status || !element.orderId)
                         td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
-                    else td8.innerHTML = 'В процессе';
+                    else td8.innerHTML = '';
                     tr.appendChild(td1);
                     tr.appendChild(td2);
                     tr.appendChild(td3);

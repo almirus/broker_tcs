@@ -20,6 +20,7 @@ export const CURRENCY_SYMBOL_URL = 'https://api.tinkoff.ru/trading/currency/get?
 export const PROGNOSIS_URL = 'https://api.tinkoff.ru/trading/stocks/prognosis?ticker=${ticker}&sessionId=';
 export const SET_ALERT_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_alert?ticker=${ticker}&price=${price}&sessionId=';
 export const ORDERS_URL = 'https://api.tinkoff.ru/trading/user/orders?sessionId=';
+export const STOP_URL = 'https://api.tinkoff.ru/trading/user/stop_orders?appName=invest_terminal&appVersion=1.0.0&sessionId=';
 export const CANCEL_ORDER = 'https://api.tinkoff.ru/trading/order/cancel?orderId=${orderId}&brokerAccountType=${brokerAccountType}&sessionId=';
 export const HOLD_BUY_ORDER = 'https://api.tinkoff.ru/trading/order/hold_buy_price?ticker=${ticker}&accountType=${accountType}&orderType=${orderType}&quantity=${quantity}&sessionId=';
 export const HOLD_SELL_ORDER = 'https://api.tinkoff.ru/trading/order/hold_sell_price?ticker=${ticker}&accountType=${accountType}&orderType=${orderType}&quantity=${quantity}&sessionId=';
