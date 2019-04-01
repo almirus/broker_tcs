@@ -36,6 +36,7 @@ import {
     SET_ALERT_URL,
     STOP_URL,
     SYMBOL_EXTENDED_LINK,
+    SYMBOL_FUNDAMENTAL_URL,
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
@@ -283,6 +284,8 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                 earnings: symbol.payload.earnings,
                 contentMarker: symbol.payload.contentMarker,
                 symbol: {
+                    dayLow: symbol.payload.dayLow,
+                    dayHigh: symbol.payload.dayHigh,
                     lastOTC: symbol.payload.lastOTC || '',
                     absoluteOTC: symbol.payload.absoluteOTC || 0,
                     relativeOTC: symbol.payload.relativeOTC || 0,
@@ -552,11 +555,11 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
 
 }
 
-function getSymbolInfo(tickerName, securityType, session_id) {
+function getSymbolInfo(tickerName, securityType, sessionId) {
     return new Promise(function (resolve, reject) {
         // POST
         console.log('try to get symbolInfo for', tickerName);
-        fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + session_id, {
+        fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
             method: "POST",
             body: JSON.stringify({ticker: tickerName}),
             headers: {
@@ -566,9 +569,25 @@ function getSymbolInfo(tickerName, securityType, session_id) {
         }).then(response => response.json())
             .then(res => {
                 if (res.status.toLocaleUpperCase() === 'OK') {
+                    fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            period: 'year',
+                            ticker: tickerName
+                        }),
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(response => response.json())
+                        .then(json => {
+                            res.payload.symbol.dayHigh = json.payload.dayHigh;
+                            res.payload.symbol.dayLow = json.payload.dayLow;
+                            resolve(res);
+                        });
                     if (res.payload.contentMarker.prognosis) {
                         console.log('try to get prognosis for', tickerName);
-                        fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                        fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
                             .then(prognosis => {
                                 res.payload.symbol.consensus = prognosis.payload.consensus;
                                 resolve(res);
@@ -714,7 +733,7 @@ function updateAlertPrices() {
                         return (stops)
                     })
                 ]).then(async ([orders, stops]) => {
-                    let alert_data = [].concat(orders,stops);
+                    let alert_data = [].concat(orders, stops);
                     let i = 0;
                     for (const item of alert_data.concat(data[TICKER_LIST])) {
                         //alert_data.forEach(function (item, i, alertList) {

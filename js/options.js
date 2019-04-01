@@ -289,7 +289,8 @@ function create_portfolio_table(divId, data) {
         let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}${mobile_alert}</span>
-        <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
+        <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>
+<br>${element.symbol.dayLow}-${element.symbol.dayHigh}`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices.last.value}</div>` +
             (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
@@ -302,8 +303,8 @@ function create_portfolio_table(divId, data) {
             (element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
-        let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-        let prognosis_link = element.contentMarker.prognosis ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
+        let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
+        let prognosis_link = element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
         ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.consensus.currency,

@@ -28,6 +28,7 @@ export const CREATE_ORDER = 'https://api.tinkoff.ru/trading/order/limit_order?ti
 export const CONFIRM_ORDER = 'https://api.tinkoff.ru/trading/order/confirm?requestId=${requestId}&smsNumber=${smsNumber}&sessionId=';
 export const FULL_PRICE_ORDER = 'https://api.tinkoff.ru/trading/order/full_price_limit?operationType=${operationType}&quantity=${quantity}&ticker=${ticker}&price=${price}&accountType=${accountType}&sessionId=';
 export const SYMBOL_EXTENDED_LINK = 'https://api.tinkoff.ru/trading/symbols/user_info?ticker=${ticker}&sessionId=';
+export const SYMBOL_FUNDAMENTAL_URL = 'https://api.tinkoff.ru/trading/stocks/fundamentals?sessionId=';
 
 
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
