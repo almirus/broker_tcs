@@ -28,6 +28,9 @@
     border-bottom: 1pt solid black;
 }
 
+tr.process td{
+    background-color: #d4d4d4;
+}
 .tickerPrice {
     width: 100px;
 }

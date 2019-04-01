@@ -363,16 +363,19 @@ function create_portfolio_table(divId, data) {
         })}</div>`;
 
         let td7 = document.createElement('td');
-        td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
-        td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.expectedYield.currency
-        })}<br>${(element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
-            style: 'percent',
-            maximumSignificantDigits: 2
-        })}</div>`;
-
-        tr.className = element.broker_type;
+        if (element.symbol.expectedYield.value===0 &&  element.symbol.status==='process'){
+            td7.innerHTML = `<div data-ticker="${element.symbol.ticker}" title="Лимитная заявка">Еще не исполнена</div>`;
+            tr.className='process';
+        }else {
+            td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+            td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: element.symbol.expectedYield.currency
+            })}<br>${(element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
+                style: 'percent',
+                maximumSignificantDigits: 2
+            })}</div>`;
+        }
         tr.appendChild(td1);
         tr.appendChild(td2);
         tr.appendChild(td3);
