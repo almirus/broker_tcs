@@ -284,8 +284,8 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                 earnings: symbol.payload.earnings,
                 contentMarker: symbol.payload.contentMarker,
                 symbol: {
-                    dayLow: symbol.payload.dayLow,
-                    dayHigh: symbol.payload.dayHigh,
+                    dayLow: symbol.payload.symbol.dayLow,
+                    dayHigh: symbol.payload.symbol.dayHigh,
                     lastOTC: symbol.payload.lastOTC || '',
                     absoluteOTC: symbol.payload.absoluteOTC || 0,
                     relativeOTC: symbol.payload.relativeOTC || 0,
@@ -583,41 +583,42 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                         .then(json => {
                             res.payload.symbol.dayHigh = json.payload.dayHigh;
                             res.payload.symbol.dayLow = json.payload.dayLow;
-                            resolve(res);
-                        });
-                    if (res.payload.contentMarker.prognosis) {
-                        console.log('try to get prognosis for', tickerName);
-                        fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
-                            .then(prognosis => {
-                                res.payload.symbol.consensus = prognosis.payload.consensus;
-                                resolve(res);
-                            })
-                            .catch(e => {
-                                console.log('Сервис прогнозов недоступен', e);
-                                resolve(res);
-                            });
-                    } else {
-                        MainProperties.getAVOption().then(option => {
-                            // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                            if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0)
-                                fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
-                                    .then(otc => {
-                                        if (otc.Note) {
-                                            console.log('Достигнуто ограничение alphavantage');
-                                        } else {
-                                            res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
-                                            res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
-                                            res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
-                                        }
+
+                            if (res.payload.contentMarker.prognosis) {
+                                console.log('try to get prognosis for', tickerName);
+                                fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
+                                    .then(prognosis => {
+                                        res.payload.symbol.consensus = prognosis.payload.consensus;
                                         resolve(res);
                                     })
                                     .catch(e => {
-                                        console.log('Сервис alphavantage недоступен', e);
+                                        console.log('Сервис прогнозов недоступен', e);
                                         resolve(res);
                                     });
-                            else resolve(res);
-                        })
-                    }
+                            } else {
+                                MainProperties.getAVOption().then(option => {
+                                    // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
+                                    if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0)
+                                        fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
+                                            .then(otc => {
+                                                if (otc.Note) {
+                                                    console.log('Достигнуто ограничение alphavantage');
+                                                } else {
+                                                    res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
+                                                    res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
+                                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
+                                                }
+                                                resolve(res);
+                                            })
+                                            .catch(e => {
+                                                console.log('Сервис alphavantage недоступен', e);
+                                                resolve(res);
+                                            });
+                                    else resolve(res);
+                                })
+                            }
+                        });
+
                 } else {
                     console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
                     reject(res)

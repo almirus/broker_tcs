@@ -285,12 +285,13 @@ function create_portfolio_table(divId, data) {
         let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
         let bond = element.symbol.symbolType === 'Bond' ? '<span title="Облигации">📒</span>' : '';
         let country = '';
+        let dayInterval = element.symbol.dayLow ? `<br>${element.symbol.dayLow}-${element.symbol.dayHigh}` : '';
         if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
         let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}${mobile_alert}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>
-<br>${element.symbol.dayLow}-${element.symbol.dayHigh}`;
+        ${dayInterval}`;
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices.last.value}</div>` +
             (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
@@ -364,10 +365,10 @@ function create_portfolio_table(divId, data) {
         })}</div>`;
 
         let td7 = document.createElement('td');
-        if (element.symbol.expectedYield.value===0 &&  element.symbol.status==='process'){
+        if (element.symbol.expectedYield.value === 0 && element.symbol.status === 'process') {
             td7.innerHTML = `<div data-ticker="${element.symbol.ticker}" title="Лимитная заявка">Еще не исполнена</div>`;
-            tr.className='process';
-        }else {
+            tr.className = 'process';
+        } else {
             td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
             td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
                 style: 'currency',
