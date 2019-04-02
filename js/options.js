@@ -275,7 +275,7 @@ function create_portfolio_table(divId, data) {
             session_open += ' премаркет с ' + element.symbol.premarketStartTime;
             session_close += ' премаркет до ' + element.symbol.premarketEndTime
         }
-        let remain_time;
+        let remain_time='';
         if (element.exchangeStatus === 'Close') {
             img_status = '/icons/closed.png';
             remain_time = "Время до открытия " + msToTime(element.symbol.timeToOpen);
@@ -285,10 +285,9 @@ function create_portfolio_table(divId, data) {
         let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
         let bond = element.symbol.symbolType === 'Bond' ? '<span title="Облигации">📒</span>' : '';
         let country = '';
-        //let dayInterval = element.symbol.dayLow ? `<br>${element.symbol.dayLow}-${element.symbol.dayHigh}` : '';
         let progress = (element.prices.last.value - element.symbol.dayLow) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
         let progress_style = progress < 30 ? 'low' : progress > 30 && progress < 60 ? 'middle' : 'high';
-        let dayInterval = element.symbol.dayLow ? `<br><progress class="${progress_style}" value="${progress}" max="100" title="Дневной диапазон цен ${element.symbol.dayLow}-${element.symbol.dayHigh}">30%</progress>` : '';
+        let dayInterval = element.symbol.dayLow ? `<br><progress class="${progress_style}" value="${progress}" max="100" title="Текущая цена ${element.prices.last.value}&#013;Дневной диапазон цен ${element.symbol.dayLow}-${element.symbol.dayHigh}"></progress>` : '';
         if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
         let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
