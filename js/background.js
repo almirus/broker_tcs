@@ -286,6 +286,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                 symbol: {
                     dayLow: symbol.payload.symbol.dayLow,
                     dayHigh: symbol.payload.symbol.dayHigh,
+                    dayOpen: symbol.payload.symbol.dayOpen,
                     lastOTC: symbol.payload.lastOTC || '',
                     absoluteOTC: symbol.payload.absoluteOTC || 0,
                     relativeOTC: symbol.payload.relativeOTC || 0,
@@ -583,6 +584,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                         .then(json => {
                             res.payload.symbol.dayHigh = json.payload.dayHigh;
                             res.payload.symbol.dayLow = json.payload.dayLow;
+                            res.payload.symbol.dayOpen = json.payload.dayOpen;
 
                             if (res.payload.contentMarker.prognosis) {
                                 console.log('try to get prognosis for', tickerName);
