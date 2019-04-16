@@ -1,3 +1,25 @@
-td[class^="Table__td_"] {
-   padding: 0 !important;
+td[class^="Table__cell_"] {
+    padding: 0 !important;
+}
+
+span[class^="Button__buttonWrapper_"] {
+    padding: 0px 5px 0px !important;
+    min-height: 0;
+}
+
+div[class^="BrokerAccountsHeader__header_"], div[class^="IISAccountHeader__wrapper_"] {
+    margin: 0px 0px 5px !important;
+}
+
+div[class^="Earnings__relative"] {
+    margin-top: 0px !important;
+}
+
+div[class^="IISAccountHeader__buttons_"] {
+    display: inline-flex;
+    margin-left: 10px;
+}
+
+div[class^="PortfolioHeaderPure__container_"], div[class^="BrokerAccountsHeader__header_"], div[class^="IISAccountHeader__wrapper_"] {
+    padding: 5px 5px 5px !important;
 }
