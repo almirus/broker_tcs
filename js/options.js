@@ -194,13 +194,16 @@ function setDeleteButtonHandler() {
     Array.from(document.getElementsByClassName("deleteTicker")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
-            let ticker = button.dataset.index;
-            if (/^\d+$/.test(ticker) && confirm("Завка будет снята, Вы уверены?")) {
-                port.postMessage({method: "deleteOrder", params: ticker});
+            let id = button.dataset.index;
+            let status = button.dataset.status;
+            // если число, то это уведомление с сервера с OrderId, иначе чисто наше уведомление о достижении цены
+            if (/^\d+$/.test(id) && confirm("Заявка будет снята, Вы уверены?")) {
+                if (status) port.postMessage({method: "cancelStop", params: id}); // takeprofit или stoploss
+                else port.postMessage({method: "deleteOrder", params: id});
             } else
                 chrome.storage.sync.get([TICKER_LIST], function (data) {
                     let alert_data = data[TICKER_LIST] || [];
-                    let new_alert_date = alert_data.filter(item => !(!!item && (item.ticker + (item.sell_price || '0') + (item.buy_price || '0')) === ticker));
+                    let new_alert_date = alert_data.filter(item => !(!!item && (item.ticker + (item.sell_price || '0') + (item.buy_price || '0')) === id));
                     chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
                         console.log('Save ticker ' + JSON.stringify(new_alert_date));
                         //create_alert_table(alert_data);
@@ -345,7 +348,7 @@ function create_portfolio_table(divId, data) {
         if (element.symbol.averagePositionPrice.value === 0)
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка в данных у брокера</div>`;
         else
-            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
+            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Средняя цена. Посмотреть транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.averagePositionPrice.currency,
                 minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
@@ -603,9 +606,7 @@ function create_alert_table(data_list) {
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
                         (element.subscriptId ? `<span class="icon" title="Уведомление было добавлено на мобильном по цене 
-                        ${element.subscriptPrice.map(function (elem) {
-                            return elem.price;
-                        }).join(", ")}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        ${element.subscriptPrice.map(elem => elem.price).join(", ")}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         `<strong>${element.ticker}</strong>`;
 
@@ -669,7 +670,7 @@ function create_alert_table(data_list) {
                     let td8 = document.createElement('td');
                     // hash for delete = ticker+sellprice+buyprice
                     if (element.orderId && element.status || !element.orderId)
-                        td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
+                        td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" data-status="${element.status}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
                     else td8.innerHTML = '';
                     tr.appendChild(td1);
                     tr.appendChild(td2);

@@ -41,7 +41,8 @@ import {
     SYMBOL_URL,
     TICKER_LIST,
     USD_RUB,
-    USER_URL
+    USER_URL,
+    CANCEL_STOP
 } from "/js/constants.mjs";
 
 function redirect_to_page(url, open_new = false) {
@@ -322,10 +323,52 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
     return return_data;
 }
 
+/**
+ * Удаляет уведомление о достижении цены
+ * @param orderId
+ * @param brokerAccountType
+ * @return {Promise<any>}
+ */
 function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
     return new Promise(function (resolve, reject) {
         MainProperties.getSession().then(function (session_id) {
             fetch(CANCEL_ORDER.replace('${orderId}', orderId).replace('${brokerAccountType}', brokerAccountType) + session_id)
+                .then(response => response.json())
+                .then(function (json) {
+                    if (json.status === 'Error') {
+                        console.log('cant delete order', json);
+                        reject(undefined);
+                    } else
+                        console.log('success deleting order');
+                    resolve(json);
+                }).catch(ex => {
+                console.log('cant delete order', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
+/**
+ * Отменяет тейкпрофит и стоплосс
+ * @param orderId
+ * @param brokerAccountType
+ * @return {Promise<any>}
+ */
+function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
+    return new Promise(function (resolve, reject) {
+        MainProperties.getSession().then(function (session_id) {
+            fetch(CANCEL_STOP + session_id, {
+                method: "POST",
+                body: JSON.stringify({
+                    orderId: orderId,
+                    brokerAccountType: brokerAccountType
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
                 .then(response => response.json())
                 .then(function (json) {
                     if (json.status === 'Error') {
@@ -1038,6 +1081,20 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'deleteOrder':
                 deleteOrder(msg.params)
+                    .then(result => {
+                            console.log('try to delete order', result);
+                            updateAlertPrices().then(function (alert_list) {
+                                console.log("send message tickerInfo .....");
+                                port.postMessage(alert_list);
+                            })
+                        }
+                    )
+                    .catch(e => {
+                        console.log(`cant send delete order, because ${e}`)
+                    });
+                break;
+            case 'cancelStop':
+                cancelStop(msg.params)
                     .then(result => {
                             console.log('try to delete order', result);
                             updateAlertPrices().then(function (alert_list) {
