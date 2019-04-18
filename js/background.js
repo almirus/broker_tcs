@@ -537,7 +537,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                             .then(extendInfo => {
                                 res.payload.isFavorite = extendInfo.payload.isFavorite;
                                 res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
-                                res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].price : undefined;
+                                res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
                                 resolve(res);
                             }).catch(e => {
                             console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
