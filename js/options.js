@@ -237,7 +237,7 @@ function drawDayProgress(element) {
 
     let canvas = document.createElement('canvas');
     canvas.width = 100;
-    canvas.height= 6;
+    canvas.height = 6;
     canvas.title = "Текущая цена " + element.prices.last.value + "  Дневной диапазон цен " + element.symbol.dayLow + " - " + element.symbol.dayHigh;
     let ctx = canvas.getContext('2d');
     ctx.fillStyle = progress_style;
@@ -296,7 +296,7 @@ function create_portfolio_table(divId, data) {
             session_open += ' премаркет с ' + element.symbol.premarketStartTime;
             session_close += ' премаркет до ' + element.symbol.premarketEndTime
         }
-        let remain_time='';
+        let remain_time = '';
         if (element.exchangeStatus === 'Close') {
             img_status = '/icons/closed.png';
             remain_time = "Время до открытия " + msToTime(element.symbol.timeToOpen);
@@ -311,7 +311,10 @@ function create_portfolio_table(divId, data) {
         td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${country}${otc}${etf}${currency}${bond}${mobile_alert}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
-        if (element.symbol.dayLow) { td1.appendChild(document.createElement("br")); td1.appendChild(drawDayProgress(element));}
+        if (element.symbol.dayLow) {
+            td1.appendChild(document.createElement("br"));
+            td1.appendChild(drawDayProgress(element));
+        }
         let td2 = document.createElement('td');
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices.last.value}</div>` +
             (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
@@ -599,7 +602,10 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
-                        (element.subscriptId ? `<span class="icon" title="Уведомление было добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        (element.subscriptId ? `<span class="icon" title="Уведомление было добавлено на мобильном по цене 
+                        ${element.subscriptPrice.map(function (elem) {
+                            return elem.price;
+                        }).join(", ")}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         `<strong>${element.ticker}</strong>`;
 
