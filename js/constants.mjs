@@ -78,25 +78,8 @@ export class Symbol {
     }
 }
 
-export class AlertList {
-    add(symbol) {
-        this.symbol.push(symbol);
-    }
 
-    remove(symbolName) {
-
-    }
-
-    update() {
-
-    }
-
-    render() {
-
-    }
-}
-
-export class Portfolio extends AlertList {
+export class Portfolio{
 
 
 }
