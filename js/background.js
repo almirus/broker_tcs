@@ -6,6 +6,7 @@ import {
     AV_SYMBOL_URL,
     BUY_LINK,
     CANCEL_ORDER,
+    CANCEL_STOP,
     CHECK_VERSION_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
@@ -35,14 +36,14 @@ import {
     SELL_LINK,
     SET_ALERT_URL,
     STOP_URL,
+    SUBSCRIPTIONS_URL,
     SYMBOL_EXTENDED_LINK,
     SYMBOL_FUNDAMENTAL_URL,
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
     USD_RUB,
-    USER_URL,
-    CANCEL_STOP
+    USER_URL
 } from "/js/constants.mjs";
 
 function redirect_to_page(url, open_new = false) {
@@ -588,7 +589,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                         });
                     } else {
                         console.log(`Сервис цен для ${tickerName} недоступен`);
-                        reject(undefined)
+                        resolve(res)
                     }
                 }).catch(e => {
                 console.log(e);
@@ -709,6 +710,36 @@ function deleteFromAlert(ticker, sell_price, buy_price) {
     })
 }
 
+function getSubscriptions(session_id) {
+    return new Promise(function (resolve, reject) {
+        fetch(SUBSCRIPTIONS_URL + session_id)
+            .then(response => response.json())
+            .then(function (json) {
+                let return_data = [];
+                json.payload.subscriptions.forEach(element => {
+                    return_data.push({
+                        ticker: element.ticker,
+                        showName: element.showName,
+                        quantity: 0,
+                        buy_price: 0,
+                        sell_price: 0,
+                        subscriptions: element.subscriptions,
+                        best_before: '',
+                        active: true,
+                        timeToExpire: '',
+                        orderId: undefined,
+                        status: undefined
+                    });
+                });
+                resolve(return_data)
+            })
+            .catch(error => {
+                console.log(`Cant get Subscriptions, because ${error}`);
+                reject([]);
+            })
+    })
+}
+
 function getOrders(session_id) {
     return new Promise(function (resolve, reject) {
         fetch(ORDERS_URL + session_id)
@@ -772,16 +803,19 @@ function updateAlertPrices() {
         MainProperties.getSession().then(session_id => {
             chrome.storage.sync.get([TICKER_LIST], data => {
                 Promise.all([
+                    getSubscriptions(session_id).then(subscriptions => {
+                        return (subscriptions)
+                    }),
                     getOrders(session_id).then(orders => {
                         return (orders)
                     }),
                     getStop(session_id).then(stops => {
                         return (stops)
                     })
-                ]).then(async ([orders, stops]) => {
-                    let alert_data = [].concat(orders, stops);
+                ]).then(async ([subscriptions, orders, stops]) => {
+                    let alert_data = [].concat(subscriptions, orders, stops);
                     let i = 0;
-                    for (const item of alert_data.concat(data[TICKER_LIST])) {
+                    for (const item of alert_data) {
                         //alert_data.forEach(function (item, i, alertList) {
                         await getPriceInfo(item.ticker, undefined, session_id).then(res => {
                             alert_data[i] = {
@@ -793,8 +827,8 @@ function updateAlertPrices() {
                                 active: item.active,
                                 earnings: res.payload.earnings,
                                 exchangeStatus: res.payload.exchangeStatus,
-                                currency: res.payload.last.currency,
-                                online_average_price: res.payload.last.value,
+                                currency: res.payload.last ? res.payload.last.currency : 'USD',
+                                online_average_price: res.payload.last ? res.payload.last.value : 0,
                                 online_buy_price: res.payload.buy ? res.payload.buy.value : '',
                                 online_sell_price: res.payload.sell ? res.payload.sell.value : '',
                                 orderId: item.orderId,
