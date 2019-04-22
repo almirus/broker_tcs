@@ -28,9 +28,10 @@
     border-bottom: 1pt solid black;
 }
 
-tr.process td{
+tr.process td {
     background-color: #d4d4d4;
 }
+
 .tickerPrice {
     width: 100px;
 }
@@ -185,6 +186,7 @@ a:hover, a:active {
 .isOnlineOrderBuy {
     background-color: lightgreen;
 }
+
 .isOnlineOrderSell {
     background-color: lightcoral;
 }
@@ -192,12 +194,15 @@ a:hover, a:active {
 input.buy, input.sell {
     width: 85px;
 }
-input.sell{
+
+input.sell {
     background: lightpink;
 }
-input.buy{
+
+input.buy {
     background: lightgreen;
 }
+
 input.tickerQuantity {
     width: 60px;
 }
@@ -206,17 +211,42 @@ input[type="datetime-local"] {
     width: 175px;
     height: 17px;
 }
-.icon{
+
+.icon {
     font-family: NotomojiColor, Notomoji, sans-serif;
     font-size: 10pt;
     cursor: default;
 }
-.lastOTC{
+
+.lastOTC {
     color: cornflowerblue;
 }
-.toggle{
+
+.toggle {
     cursor: pointer;
 }
-.dotted{
+
+.dotted {
     border-bottom: 1px dotted #000;
+}
+
+.subscribePrice {
+    margin: 5px;
+    padding-left: 5px;
+    padding-right: 10px;
+    color: white;
+    background-color: #42ba08;
+    border-radius: 5%;
+    display: inline-block;
+}
+
+.close {
+    border-radius: 50%;
+    background-color: #f40024;
+    padding: 0px 5px;
+    cursor: pointer;
+    color: white;
+    margin-left: -12px;
+    display: inline-flex;
+    align-items: center;
 }

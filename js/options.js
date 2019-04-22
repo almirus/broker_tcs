@@ -605,10 +605,9 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
-                        (element.subscriptId ? `<span class="icon" title="Уведомление было добавлено на мобильном по цене 
-                        ${element.subscriptPrice.map(elem => elem.price).join(", ")}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
-                        `<strong>${element.ticker}</strong>`;
+                        `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbolType)}${element.ticker}" target="_blank">
+                        <strong>${element.ticker}</strong></a>`;
 
                     let td2 = document.createElement('td');
                     td2.innerHTML =
@@ -641,11 +640,12 @@ function create_alert_table(data_list) {
                     td4.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением продать">${element.sell_price}</strong>`;
                     td4.className = 'onlineSell';
                     td4.align = 'right';
-                    if (element.orderId) {
+                    if (element.orderId || element.subscriptPrice) { //StopLoss TakeProfit Subscriptions
                         td4.className = '';
                         td4.align = 'center';
-                        td4.colSpan = '2';
-                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
+                        td4.colSpan = 2;
+                        if (element.orderId) td4.innerHTML = `<strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
+                        else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span title="Удалить" class="close">x</span>`).join('');
                     }
                     let td5 = document.createElement('td');
                     td5.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением купить">${element.buy_price}</strong>`;
@@ -676,7 +676,7 @@ function create_alert_table(data_list) {
                     tr.appendChild(td2);
                     tr.appendChild(td3);
                     tr.appendChild(td4);
-                    if (!element.orderId) tr.appendChild(td5);
+                    if (!element.orderId && !element.subscriptPrice) tr.appendChild(td5);
                     tr.appendChild(td6);
                     tr.appendChild(td7);
                     tr.appendChild(td8);

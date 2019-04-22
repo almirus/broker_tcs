@@ -723,12 +723,21 @@ function getSubscriptions(session_id) {
                         quantity: 0,
                         buy_price: 0,
                         sell_price: 0,
-                        subscriptions: element.subscriptions,
+                        subscriptions: element.subscriptions.sort(function (a, b) {
+                            if (a.price > b.price) {
+                                return 1;
+                            }
+                            if (a.price < b.price) {
+                                return -1;
+                            }
+                            return 0;
+                        }),
                         best_before: '',
                         active: true,
                         timeToExpire: '',
                         orderId: undefined,
-                        status: undefined
+                        status: undefined,
+                        symbolType: element.symbolType,
                     });
                 });
                 resolve(return_data)
@@ -757,7 +766,8 @@ function getOrders(session_id) {
                         active: true,
                         timeToExpire: element.timeToExpire,
                         orderId: element.orderId,
-                        status: element.status
+                        status: element.status,
+                        symbolType: element.securityType,
                     });
                 });
                 resolve(return_data)
@@ -786,7 +796,8 @@ function getStop(session_id) {
                         active: true,
                         timeToExpire: undefined,
                         orderId: element.orderId,
-                        status: element.status
+                        status: element.status,
+                        symbolType: element.securityType,
                     });
                 });
                 resolve(return_data)
@@ -821,7 +832,7 @@ function updateAlertPrices() {
                             alert_data[i] = {
                                 ticker: item.ticker,
                                 showName: item.showName,
-                                buy_price: item.buy_price,
+                                buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
                                 sell_price: item.sell_price,
                                 best_before: item.best_before,
                                 active: item.active,
@@ -836,7 +847,8 @@ function updateAlertPrices() {
                                 status: item.status,
                                 isFavorite: res.payload.isFavorite,
                                 subscriptId: res.payload.subscriptId,
-                                subscriptPrice: res.payload.subscriptPrice,
+                                subscriptPrice: item.subscriptions || res.payload.subscriptPrice,
+                                symbolType: item.symbolType.toLowerCase() + 's',
                                 quantity: item.quantity,
                             };
                             i++;
