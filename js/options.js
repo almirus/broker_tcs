@@ -369,7 +369,7 @@ function create_portfolio_table(divId, data) {
         }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
-        }) + '*' : ''}</strong></div>
+        }) + '*' : ''}</strong><span class="icon" title="Технический анализ">💡</span></div>
         <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
