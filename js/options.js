@@ -725,6 +725,7 @@ document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'block';
     document.getElementById('sort_by_nearest').style.display = 'inline';
     document.getElementById('label_sort_by_nearest').style.display = 'inline';
+    document.getElementById('graphic_table').style.display = 'none';
 });
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
@@ -732,6 +733,46 @@ document.getElementById('add_alert_list').addEventListener('change', function (e
     document.getElementById('sort_by_nearest').style.display = 'none';
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'block';
+    document.getElementById('graphic_table').style.display = 'none';
+});
+document.getElementById('graphic').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('orders_table').style.display = 'none';
+    document.getElementById('sort_by_nearest').style.display = 'none';
+    document.getElementById('label_sort_by_nearest').style.display = 'none';
+    document.getElementById('price_table').style.display = 'none';
+    document.getElementById('graphic_table').style.display = 'block';
+    // общий список
+    new TradingView.widget(
+        {
+            "width": 720,
+            "height": 610,
+            "symbol": "LSIN:TCS",
+            "interval": "D",
+            "timezone": "Europe/Moscow",
+            "theme": "Light",
+            "style": "1",
+            "locale": "ru",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "hide_side_toolbar": false,
+            "allow_symbol_change": true,
+            "watchlist": [
+                "LSIN:TCS"
+            ],
+            "details": true,
+            "calendar": true,
+            "studies": [
+                "MACD@tv-basicstudies",
+                "BB@tv-basicstudies",
+                "StochasticRSI@tv-basicstudies"
+            ],
+            "show_popup_button": true,
+            "popup_width": "1000",
+            "popup_height": "650",
+            "container_id": "tradingview_bbf09"
+        }
+    );
 });
 /*
 document.getElementById('add_orders').addEventListener('change', function (e) {

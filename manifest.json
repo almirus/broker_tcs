@@ -36,6 +36,6 @@
       "js": ["/js/content.js"]
     }
   ],
-  "content_security_policy":"script-src 'self' https://s3.tradingview.com/; object-src 'self'",
+  "content_security_policy":"script-src 'self' sha256-e82CtCE+q8S43aNHfWaLdiJcGlLmUztIZJCG4m1v/vU=' 'unsafe-inline' 'sha256-mWTdXwXGiIZrIgSy8EQra3Nd40+j6I4SsrpykSMgzCM=' https://s3.tradingview.com/; object-src 'self'",
   "web_accessible_resources": ["/css/styles.css"]
 }
