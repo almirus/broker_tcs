@@ -36,5 +36,6 @@
       "js": ["/js/content.js"]
     }
   ],
+  "content_security_policy":"script-src 'self' https://s3.tradingview.com/; object-src 'self'",
   "web_accessible_resources": ["/css/styles.css"]
 }

@@ -218,6 +218,10 @@ input[type="datetime-local"] {
     cursor: default;
 }
 
+.disabled {
+    opacity: .3;
+}
+
 .lastOTC {
     color: cornflowerblue;
 }
@@ -236,17 +240,36 @@ input[type="datetime-local"] {
     padding-right: 10px;
     color: white;
     background-color: #42ba08;
-    border-radius: 5%;
+    border-radius: 15%;
     display: inline-block;
 }
 
 .close {
+    position: absolute;
     border-radius: 50%;
     background-color: #f40024;
-    padding: 0px 5px;
+    padding: 0 8px;
     cursor: pointer;
     color: white;
+    margin-top: 5px;
     margin-left: -12px;
-    display: inline-flex;
-    align-items: center;
+    height: 16px;
+}
+.close:before, .close:after {
+    position: absolute;
+    content: ' ';
+    height: 10px;
+    margin-top: 3px;
+    margin-left: -1px;
+    width: 2px;
+    background-color: white;
+}
+.close:before {
+    transform: rotate(45deg);
+}
+.close:after {
+    transform: rotate(-45deg);
+}
+.close:hover {
+    opacity: 1;
 }

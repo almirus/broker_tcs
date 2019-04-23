@@ -569,9 +569,8 @@ function create_alert_table(data_list) {
             let th3 = document.createElement('th');
             th3.appendChild(document.createTextNode('измн. за день'));
             let th4 = document.createElement('th');
-            th4.appendChild(document.createTextNode('продажа по'));
-            let th5 = document.createElement('th');
-            th5.appendChild(document.createTextNode('покупка по'));
+            th4.appendChild(document.createTextNode('уведомления/заявки/takeProfit/stopLoss'));
+
             let th6 = document.createElement('th');
             th6.appendChild(document.createTextNode('заявка активна до'));
             let th7 = document.createElement('th');
@@ -580,7 +579,7 @@ function create_alert_table(data_list) {
             tr.appendChild(th2);
             tr.appendChild(th3);
             tr.appendChild(th4);
-            tr.appendChild(th5);
+
             tr.appendChild(th6);
             tr.appendChild(th7);
             table.appendChild(tr);
@@ -605,7 +604,9 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
-                        (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
+                        (element.orderId && !element.timeToExpire ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>':'')+
+                        (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>':'')+
+                        (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
                         `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbolType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
 
@@ -643,14 +644,11 @@ function create_alert_table(data_list) {
                     if (element.orderId || element.subscriptPrice) { //StopLoss TakeProfit Subscriptions
                         td4.className = '';
                         td4.align = 'center';
-                        td4.colSpan = 2;
-                        if (element.orderId) td4.innerHTML = `<strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
-                        else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span title="Удалить" class="close">x</span>`).join('');
+
+                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="Удалить заявку" class="close"></span>, <strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
+                        else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}"  title="Удалить уведомление" class="close"></span>`).join('');
                     }
-                    let td5 = document.createElement('td');
-                    td5.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением купить">${element.buy_price}</strong>`;
-                    td5.className = 'onlineBuy';
-                    td5.align = 'right';
+
                     let td6 = document.createElement('td');
                     td6.className = '';
                     let alert_date = new Date(Date.parse(element.best_before));
@@ -676,11 +674,11 @@ function create_alert_table(data_list) {
                     tr.appendChild(td2);
                     tr.appendChild(td3);
                     tr.appendChild(td4);
-                    if (!element.orderId && !element.subscriptPrice) tr.appendChild(td5);
+
                     tr.appendChild(td6);
                     tr.appendChild(td7);
-                    tr.appendChild(td8);
-                    tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
+                    //tr.appendChild(td8);
+                    //tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
 
                     table.appendChild(tr);
                     //setRefreshHandler();
