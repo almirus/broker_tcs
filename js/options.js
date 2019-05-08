@@ -598,8 +598,7 @@ function create_alert_table(data_list) {
                     } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                     let tr = document.createElement('tr');
                     if (element.orderId) {
-                        if (element.sell_price) tr.className = 'isOnlineOrderSell';
-                        if (element.buy_price) tr.className = 'isOnlineOrderBuy';
+                        if (element.operationType === 'Sell') tr.className = 'isOnlineOrderSell'; else tr.className = 'isOnlineOrderBuy';
                     }
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
@@ -645,7 +644,7 @@ function create_alert_table(data_list) {
                         td4.className = '';
                         td4.align = 'center';
 
-                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="Удалить заявку" class="close"></span>, <strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
+                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="Удалить заявку" class="close"></span>, <strong title="Заявка на ${element.operationType === 'Sell' ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
                         else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}"  title="Удалить уведомление" class="close"></span>`).join('');
                     }
 

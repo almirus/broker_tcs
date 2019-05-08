@@ -798,6 +798,7 @@ function getStop(session_id) {
                         orderId: element.orderId,
                         status: element.status,
                         orderType: element.orderType,
+                        operationType: element.operationType,
                         symbolType: element.securityType,
                     });
                 });
@@ -845,6 +846,7 @@ function updateAlertPrices() {
                                 online_sell_price: res.payload.sell ? res.payload.sell.value : '',
                                 orderId: item.orderId,
                                 orderType: item.orderType,
+                                operationType: item.operationType,
                                 timeToExpire: item.timeToExpire,
                                 status: item.status,
                                 isFavorite: res.payload.isFavorite,
