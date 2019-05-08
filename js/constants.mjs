@@ -37,6 +37,7 @@ export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';
+export const ACCOUNTS_URL='https://api.tinkoff.ru/trading/user/broker_accounts?appName=invest_terminal&appVersion=1.0.0&sessionId=';
 
 //{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
