@@ -6,11 +6,11 @@ export function fillCashData(msg, cash_str, cash_element_id) {
     for (let cash in msg.cash.payload.data) {
         let currentBalance = msg.cash.payload.data[cash].currentBalance;
         resultCash += currentBalance;
-        if (currentBalance > 0) {
+        if (currentBalance !== 0) {
             cash_str += '<strong>' + toCurrency(currentBalance, msg.cash.payload.data[cash].currency) + '</strong>&nbsp;&nbsp;&nbsp;&nbsp;'
         }
     }
-    document.getElementById(cash_element_id).innerHTML = (resultCash > 0) ? cash_str : '';
+    document.getElementById(cash_element_id).innerHTML = (resultCash !== 0) ? cash_str : '';
 }
 
 // Функция преобразующая число в локальную валюту
