@@ -23,3 +23,7 @@ div[class^="IISAccountHeader__buttons_"] {
 div[class^="PortfolioHeaderPure__container_"], div[class^="BrokerAccountsHeader__header_"], div[class^="IISAccountHeader__wrapper_"] {
     padding: 5px 5px 5px !important;
 }
+
+div[class^="Table__linkCell_"]{
+    padding: 5px 5px 5px !important;
+}
