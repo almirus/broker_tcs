@@ -6,6 +6,7 @@ import {
     AV_SYMBOL_URL,
     BUY_LINK,
     CANCEL_ORDER,
+    CANCEL_STOP,
     CHECK_VERSION_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
@@ -41,8 +42,7 @@ import {
     SYMBOL_URL,
     TICKER_LIST,
     USD_RUB,
-    USER_URL,
-    CANCEL_STOP
+    USER_URL
 } from "/js/constants.mjs";
 
 function redirect_to_page(url, open_new = false) {
@@ -784,6 +784,7 @@ function updateAlertPrices() {
                     for (const item of alert_data.concat(data[TICKER_LIST])) {
                         //alert_data.forEach(function (item, i, alertList) {
                         await getPriceInfo(item.ticker, undefined, session_id).then(res => {
+
                             alert_data[i] = {
                                 ticker: item.ticker,
                                 showName: item.showName,
@@ -793,8 +794,8 @@ function updateAlertPrices() {
                                 active: item.active,
                                 earnings: res.payload.earnings,
                                 exchangeStatus: res.payload.exchangeStatus,
-                                currency: res.payload.last.currency,
-                                online_average_price: res.payload.last.value,
+                                currency: !res.payload.last ? '' : res.payload.last.currency,
+                                online_average_price: !res.payload.last ? 0 : res.payload.last.value,
                                 online_buy_price: res.payload.buy ? res.payload.buy.value : '',
                                 online_sell_price: res.payload.sell ? res.payload.sell.value : '',
                                 orderId: item.orderId,
