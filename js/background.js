@@ -781,7 +781,7 @@ function updateAlertPrices() {
                 ]).then(async ([orders, stops]) => {
                     let alert_data = [].concat(orders, stops);
                     let i = 0;
-                    for (const item of alert_data.concat(data[TICKER_LIST])) {
+                    for (const item of alert_data.concat(data[TICKER_LIST] || [])) {
                         //alert_data.forEach(function (item, i, alertList) {
                         await getPriceInfo(item.ticker, undefined, session_id).then(res => {
 

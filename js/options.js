@@ -557,7 +557,7 @@ function create_alert_table(data_list) {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let table;
 
-        if (data[TICKER_LIST] && data[TICKER_LIST].length > 0) {
+        if ((data[TICKER_LIST] && data[TICKER_LIST].length > 0) || data_list ) {
             table = document.createElement('table');
             table.className = 'alertPriceTable';
             let tr = document.createElement('tr');
