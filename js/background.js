@@ -65,10 +65,11 @@ function redirect_to_page(url, open_new = false) {
  * @return {Promise<Response  | boolean>} можно использовать или нет
  */
 function sessionIsAlive(sessionId) {
+    console.log(sessionId);
     return fetch(INFO_URL + sessionId)
         .then(response => response.json())
         .then(json => {
-            if (json.resultCode.toLocaleUpperCase() === 'OK') {
+            if (json.resultCode.toLocaleUpperCase() === 'OK' && json.payload.accessLevel === 'CLIENT') {
                 if (json.payload.accessLevel.toLocaleUpperCase() === 'ANONYMOUS') {
                     console.log('session is dead');
                     return false;
@@ -94,9 +95,9 @@ function getTCSsession() {
     return new Promise((resolve, reject) => {
         console.log('try to get cookies');
         chrome.cookies.getAll({}, cookie => {
-            let psid = cookie.filter(value => value.name === 'psid');
+            let psid = cookie.filter(value => value.name === 'psid' && value.domain === 'www.tinkoff.ru');
             if (psid.length > 0 && psid[0].value) {
-                console.log('psid founded');
+                console.log('psid founded' + psid[0].value);
                 sessionIsAlive(psid[0].value).then(response => {
                     if (response) {
                         resolve(psid[0].value)

@@ -1,5 +1,5 @@
 'use strict';
-export const INFO_URL = 'https://api.tinkoff.ru/v1/session_status?sessionid=';
+export const INFO_URL = 'https://api.tinkoff.ru/v1/session_status?appName=invest_terminal&appVersion=1.0.0&sessionid=';
 export const LOGIN_URL = 'https://www.tinkoff.ru/login/?redirectTo=/invest/broker_account/';
 export const HOST_URL = 'https://www.tinkoff.ru/';
 export const FAVORITE_URL = 'https://api.tinkoff.ru/trading/user/get_favorites?sessionId=';
