@@ -322,13 +322,13 @@ function create_portfolio_table(divId, data) {
         td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${Object.keys(element.prices).length ? element.prices.last.value : 'нет'}</div>` +
             (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
             (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
-            <a class="onlineBuy" href="${BUY_LINK}${element.symbol.ticker}" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
+            <a class="onlineBuy" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/buy" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.prices.buy.currency,
                 minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
             }) : ''}</a></div>` : '') +
             (element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
-            <a class="onlineSell" href="${SELL_LINK}${element.symbol.ticker}" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
+            <a class="onlineSell" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/sell" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
         let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
         let prognosis_link = element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
@@ -608,7 +608,7 @@ function create_alert_table(data_list) {
                         (element.subscriptId ? `<span class="icon" title="Уведомление было добавлено на мобильном по цене 
                         ${element.subscriptPrice.map(elem => elem.price).join(", ")}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
-                        `<strong>${element.ticker}</strong>`;
+                        `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank"><strong>${element.ticker}</strong></a>`;
 
                     let td2 = document.createElement('td');
                     td2.innerHTML =
@@ -619,10 +619,10 @@ function create_alert_table(data_list) {
                         })}</div>
                     <div style="float:right;">
                     <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
-                    <a class="onlineBuy" href="${BUY_LINK}${element.ticker}" target="_blank" title="Купить">${element.online_buy_price}</a>
+                    <a class="onlineBuy" href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}/buy" target="_blank" title="Купить">${element.online_buy_price}</a>
                     </div>
                     <div data-ticker="${element.ticker}" class="onlineSell"  title="Цена продажи">
-                    <a class="onlineSell" href="${SELL_LINK}${element.ticker}" target="_blank" title="Продать">${element.online_sell_price}</a>
+                    <a class="onlineSell" href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}/sell" target="_blank" title="Продать">${element.online_sell_price}</a>
                     </div>
                     </div>`;
                     let td3 = document.createElement('td');

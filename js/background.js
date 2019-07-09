@@ -719,11 +719,12 @@ function getOrders(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
+                        securityType: item.securityType.toLowerCase()+ 's',
                         showName: element.showName,
                         quantity: element.quantity,
                         buy_price: element.operationType === 'Buy' ? element.price.value : '',
                         sell_price: element.operationType === 'Sell' ? element.price.value : '',
-                        best_before: '',
+                        best_before: undefined,
                         active: true,
                         timeToExpire: element.timeToExpire,
                         orderId: element.orderId,
@@ -748,6 +749,7 @@ function getStop(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
+                        securityType: element.securityType.toLowerCase()+ 's',
                         showName: element.showName,
                         quantity: element.quantity,
                         buy_price: element.operationType === 'Buy' ? element.stopPrice : '',
@@ -788,6 +790,7 @@ function updateAlertPrices() {
 
                             alert_data[i] = {
                                 ticker: item.ticker,
+                                securityType: (item.securityType || 'stocks').toLowerCase(),
                                 showName: item.showName,
                                 buy_price: item.buy_price,
                                 sell_price: item.sell_price,
