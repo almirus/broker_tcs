@@ -589,7 +589,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                         });
                     } else {
                         console.log(`Сервис цен для ${tickerName} недоступен`);
-                        reject(undefined)
+                        //reject(undefined)
                     }
                 }).catch(e => {
                 console.log(e);
@@ -719,7 +719,7 @@ function getOrders(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: item.securityType.toLowerCase()+ 's',
+                        securityType: (element.securityType || 'stock').toLowerCase() + 's',
                         showName: element.showName,
                         quantity: element.quantity,
                         buy_price: element.operationType === 'Buy' ? element.price.value : '',
@@ -749,7 +749,7 @@ function getStop(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: element.securityType.toLowerCase()+ 's',
+                        securityType: element.securityType.toLowerCase() + 's',
                         showName: element.showName,
                         quantity: element.quantity,
                         buy_price: element.operationType === 'Buy' ? element.stopPrice : '',
