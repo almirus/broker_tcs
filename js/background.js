@@ -267,7 +267,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
         let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
         await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
             let current_amount = element.currentAmount;
-            let expected_yield = element.expectedYield;
+            let expected_yield = element.expectedYield || {};
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
             if (symbol.payload.symbol.isOTC) {
                 earning_today = symbol.payload.absoluteOTC * element.currentBalance;
@@ -277,7 +277,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                 earning_today = earning_today * currencyCourse.payload.last.value;
                 current_amount.value = current_amount.value * currencyCourse.payload.last.value;
                 current_amount.currency = 'RUB';
-                expected_yield.value = expected_yield.value * currencyCourse.payload.last.value;
+                expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
                 expected_yield.currency = 'RUB';
             }
 
