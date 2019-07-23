@@ -23,27 +23,46 @@
     <div class="rightColumn">
         <fieldset class="table">
             <legend>Информация - <span id="error_message"></span><span id="message"></span></legend>
-            Ваш риск профиль <a href="https://help.tinkoff.ru/invest-premium/invest-premium-profile/" target="_blank"><span id="riskProfile" style="font-weight: bold">~</span></a>, у Вас <span id="qualStatus" style="font-weight: bold">~</span> <a href="https://help.tinkoff.ru/invest-premium/invest-premium-qualification/" target="_blank">квалифицированный инвестор</a>.
-            Форма <a href="https://help.tinkoff.ru/trading-account/intaxes/usa-dividends/" target="_blank">w8</a> <span id="approvedW8" style="font-weight: bold">~</span><br>
+            Ваш риск профиль <a href="https://help.tinkoff.ru/invest-premium/invest-premium-profile/"
+                                target="_blank"><span id="riskProfile" style="font-weight: bold">~</span></a>, у Вас
+            <span id="qualStatus" style="font-weight: bold">~</span> <a
+                href="https://help.tinkoff.ru/invest-premium/invest-premium-qualification/" target="_blank">квалифицированный
+            инвестор</a>.
+            Форма <a href="https://help.tinkoff.ru/trading-account/intaxes/usa-dividends/" target="_blank">w8</a> <span
+                id="approvedW8" style="font-weight: bold">~</span><br>
             <span id="employee" style="font-weight: bold"></span>
             <div class="header">
                 <span id="cashTCS"></span><span id="cashBCS"></span><span id="cashIIS"></span><br>
-                <span>Стоимость всего <a href="https://www.tinkoff.ru/invest/broker_account/" target="_blank" title="Открыть страницу брокера">портфеля</a></span>
+                <span>Стоимость всего <a href="https://www.tinkoff.ru/invest/broker_account/" target="_blank"
+                                         title="Открыть страницу брокера">портфеля</a></span>
                 <span><a href="https://www.tinkoff.ru/invest-terminal/" target="_blank" title="Открыть web терминал">(терминал)</a></span>
-                <span id="sum" class="toggle dotted" data-toggle="allAccounts" style="font-weight: bold" title="Включает в себя в том числе свободные денежные средства на инвест счете&#013;Нажмите чтобы посмотреть по отдельным счетам">~</span>
+                <span id="sum" class="toggle dotted" data-toggle="allAccounts" style="font-weight: bold"
+                      title="Включает в себя в том числе свободные денежные средства на инвест счете&#013;Нажмите чтобы посмотреть по отдельным счетам">~</span>
                 <span>Доход всего</span>
-                <span id="all" style="font-weight: bold"><span id="earnedAll">~</span><span class="percent" id="earnedAllPercent">~</span></span>
+                <span id="all" style="font-weight: bold"><span id="earnedAll">~</span><span class="percent"
+                                                                                            id="earnedAllPercent">~</span></span>
                 <span>За сегодня</span>
-                <span id="day" style="font-weight: bold" title="Доходность считается по последней цене"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span><br>
+                <span id="day" style="font-weight: bold" title="Доходность считается по последней цене"><span
+                        id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span><br>
                 <span id="allAccounts" class="toggle-content"></span>
             </div>
             <a class="toggle" data-toggle="info" style="float: right" href="#info" title="Основные настройки">⚙️Настройки</a>
-            <a class="toggle" data-toggle="export" style="float: right" href="#export" title="Экспорт портфеля в CSV">🔄️    Экспорт</a><br>
+            <a class="toggle" data-toggle="export" style="float: right" href="#export" title="Экспорт портфеля в CSV">🔄️
+                Экспорт</a><br>
+            <div class="toggle-content" id="export">
+                <fieldset class="table">
+                    <legend>Экспорт</legend>
+                    Экспорт данных для <a href="https://ru.investing.com/portfolio/" target="_blank">Investing</a> или
+                    <a href="https://finance.yahoo.com/" target="_blank">Yahoo.Finance</a>
+                    <div id="exportOperations"></div>
+                </fieldset>
+            </div>
             <div class="toggle-content" id="info">
                 <fieldset class="table">
                     <legend>Настройки - Версия приложения <span id="app_version">~</span></legend>
                     <input type="checkbox" value="0" name="redirect" id="redirect">
-                    <label for="redirect">При истечении сессии редиректить на страницу логина, иначе показывать иконкой</label>
+                    <label for="redirect">При истечении сессии редиректить на страницу логина, иначе показывать
+                        иконкой</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Если галочка установлена, то при любой проверке данных с сервера и невалидной сессии будет перенаправление на страницу брокера с предложением залогиниться">
                     <br>
@@ -64,7 +83,8 @@
                          title="Если установлена галочка будет сразу открыто окно с покупкой/продажи акции, иначе будет показано стандартное уведомление">
                     <br>
                     <input type="checkbox" value="0" name="alert_today" id="alert_today">
-                    <label for="alert_today">Оповещать, если в течении дня <strong>стоимость портфеля</strong> поменялась на
+                    <label for="alert_today">Оповещать, если в течении дня <strong>стоимость портфеля</strong>
+                        поменялась на
                         ±<input class="textInput" type="number"
                                 title="Установить доходность, при достижении которой будет выведено уведомление"
                                 name="alert_today_value"
@@ -91,11 +111,14 @@
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Итоговые суммы будут приведены в рублях на основе биржевого курс брокера&#013;Обновление произойдет в течении минуты">
                     <div id="alphavantage_option" style="display: none">
-                    <input type="checkbox" value="0" name="alphavantage" id="alphavantage">
-                    <label for="alphavantage">Использовать сервис <a href="https://www.alphavantage.co/support/#api-key" target="_blank" title="Перейти на сайт и зарегистрировать ключ">alphavantage</a> для OTC</label>
-                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                         title="Для получения доходности за день и рыночной цены внебиржевых бумаг будет использован сторониий сервис alphavantage&#013;Необходимо зарегистрироваться, получить ключ и ввести его в поле">
-                    <input type="text" name="alphavantage_key" id="alphavantage_key" placeholder="Введите ключ alphavantage" maxlength="20">
+                        <input type="checkbox" value="0" name="alphavantage" id="alphavantage">
+                        <label for="alphavantage">Использовать сервис <a
+                                href="https://www.alphavantage.co/support/#api-key" target="_blank"
+                                title="Перейти на сайт и зарегистрировать ключ">alphavantage</a> для OTC</label>
+                        <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                             title="Для получения доходности за день и рыночной цены внебиржевых бумаг будет использован сторониий сервис alphavantage&#013;Необходимо зарегистрироваться, получить ключ и ввести его в поле">
+                        <input type="text" name="alphavantage_key" id="alphavantage_key"
+                               placeholder="Введите ключ alphavantage" maxlength="20">
                     </div>
                 </fieldset>
                 <p><strong>Данное приложение неофициальное.</strong><br>Написано для себя, в виду отсутствия
@@ -108,14 +131,11 @@
                     покупки/продажи. В любом случае <strong>приложение ничего само не продает и не покупает</strong>.
                 </p>
                 <p>
-                    Исходный код приложения доступен <a target="_blank" href="https://github.com/almirus/broker_tcs">тут</a>.
+                    Исходный код приложения доступен <a target="_blank"
+                                                        href="https://github.com/almirus/broker_tcs">тут</a>.
                     <a href="mailto:al-open@yandex.ru?subject=TCS Broker">Вопросы, предложения</a>
                 </p>
                 <span id="versionAPI" style="float: right" title="Версия API брокера"></span>
-            </div>
-            <div class="toggle-content" id="export">
-                Экспорт данных для <a href="https://ru.investing.com/portfolio/" target="_blank">Investing</a> или <a href="https://finance.yahoo.com/" target="_blank">Yahoo.Finance</a>
-                <div id="exportOperations"></div>
             </div>
         </fieldset>
         <fieldset class="table">
@@ -141,7 +161,8 @@
                     <option value="2">из портфеля</option>
                     <option value="3">из избранного</option>
                 </select>
-                <input id="symbol_name" name="symbol_name" style="width:300px" placeholder="Введите название акции или введите 'Валюта'">
+                <input id="symbol_name" name="symbol_name" style="width:300px"
+                       placeholder="Введите название акции или введите 'Валюта'">
                 <div id="table"></div>
             </div>
             <div id="orders_table" style="display: none">

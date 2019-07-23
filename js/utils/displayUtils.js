@@ -64,7 +64,7 @@ function getAccountHtmlInfo(accountName, accountInfo) {
         (accountName === 'Tinkoff') ? "ТКС" :
             (accountName === 'TinkoffIis') ? "ИИС" : accountName;
 
-    let htmlTotalAmount = `<span style="font-weight: bold">${toCurrency(accountInfo.totalAmountPortfolio)}</span>`;
+    let htmlTotalAmount = `<span title="${accountInfo.marginAttributes ? (accountInfo.marginAttributes.marginAccountStatus === 'Normal' ? 'Торговля без ограничений' : 'Предупреждение') : ''}" style="font-weight: bold" class="${accountInfo.marginAttributes ? (accountInfo.marginAttributes.marginAccountStatus === 'Normal' ? 'onlineBuy' : 'onlineSell') : ''}">${toCurrency(accountInfo.totalAmountPortfolio)}</span>`;
     let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYieldPerDay)}</span>`;
     let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYield)}</span>`;
 
@@ -80,9 +80,10 @@ export function getExportAccountHtml(accounts) {
             (key === 'Tinkoff') ? "ТКС" :
                 (key === 'TinkoffIis') ? "ИИС" : key;
         res += `
-<span title="Выгрузить данные по портфелю в формате CSV (все валюты)" class="exportLink" data-account="${key}" data-currency="all">Выгрузить данные по брокерскому счету ${rusAccountName}</span>
+<span title="Выгрузить данные по счету в формате CSV (все валюты)" class="exportLink" data-account="${key}" data-currency="all">Выгрузить данные по брокерскому счету ${rusAccountName}</span>
 (<span title="Выгрузить отдельно по валюте USD в формате CSV" class="exportLink" data-account="${key}" data-currency="USD">USD</span>,
-<span title="Выгрузить отдельно по валюте RUB в формате CSV" class="exportLink" data-account="${key}" data-currency="RUB">RUB</span>)
+<span title="Выгрузить отдельно по валюте RUB в формате CSV" class="exportLink" data-account="${key}" data-currency="RUB">RUB</span>,
+<span title="Выгрузить отдельно по валюте EUR в формате CSV" class="exportLink" data-account="${key}" data-currency="EUR">EUR</span>)
 <br>`;
     });
     return res;

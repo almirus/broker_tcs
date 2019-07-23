@@ -89,7 +89,6 @@ port.onMessage.addListener(function (msg) {
         case 'updatePopup':
             //document.getElementById('timestamp').innerText=msg.timestamp;
             document.getElementById('sum').innerText = toCurrency(msg.totalAmountPortfolio);
-
             document.getElementById('all').className = msg.expectedYield > 0 ? "onlineBuy" : "onlineSell";
             document.getElementById('earnedAll').innerText = toCurrency(msg.expectedYield);
             document.getElementById('earnedAllPercent').innerText = toPercent(msg.expectedYieldRelative);

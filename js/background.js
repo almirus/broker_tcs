@@ -141,6 +141,7 @@ function getAllSum() {
                     accounts[item.brokerAccountType].expectedYieldRelative = item.expectedYieldRelative / 100;
                     accounts[item.brokerAccountType].expectedYieldPerDay = item.expectedYieldPerDay.value;
                     accounts[item.brokerAccountType].expectedYieldPerDayRelative = item.expectedYieldPerDayRelative / 100;
+                    accounts[item.brokerAccountType].marginAttributes = item.marginAttributes;
                 });
                 resolve({
                     accounts: accounts,
