@@ -73,6 +73,17 @@ function getAccountHtmlInfo(accountName, accountInfo) {
             доход сегодня ${htmlExpectedYieldPerDay}<br>`;
 }
 
+export function getExportAccountHtml(accounts) {
+    let res = '';
+    Object.keys(accounts).forEach(key => {
+        let rusAccountName = (key === 'Bcs') ? "БКС" :
+            (key === 'Tinkoff') ? "ТКС" :
+                (key === 'TinkoffIis') ? "ИИС" : key;
+        res += ` <span title="Выгрузить данные по портфелю в формате CSV" class="exportLink" data-account="${key}">Выгрузить данные по брокерскому счету ${rusAccountName}</span><br>`;
+    });
+    return res;
+}
+
 export function drawDayProgress(element) {
     let progress_style = element.symbol.dayOpen >= element.prices.last.value ? 'red' : 'green';
     let min = element.symbol.dayOpen;

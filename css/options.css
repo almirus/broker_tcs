@@ -220,3 +220,11 @@ input[type="datetime-local"] {
 .dotted{
     border-bottom: 1px dotted #000;
 }
+.export{
+    padding: 10px;
+}
+.exportLink{
+    cursor: pointer;
+    color: green;
+    border-bottom: 1px dotted #000;
+}

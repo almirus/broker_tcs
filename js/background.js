@@ -17,6 +17,7 @@ import {
     INFO_URL,
     INTERVAL_TO_CHECK,
     LOGIN_URL,
+    OPERATIONS_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
     OPTION_ALERT_TODAY_PER_SYMBOL,
@@ -387,6 +388,42 @@ function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
 }
 
 /**
+ * Формирует список для экспорта в CVS
+ * @param brokerAccountType
+ * @return {Promise<any>}
+ */
+function exportPortfolio(brokerAccountType = 'Tinkoff') {
+    return new Promise(function (resolve, reject) {
+        MainProperties.getSession().then(function (session_id) {
+            fetch(OPERATIONS_URL + session_id, {
+                method: "POST",
+                body: JSON.stringify({
+                    from: "2015-03-01T00:00:00Z",
+                    to: (new Date()).toJSON(),
+                    "overnightsDisabled": true
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get operations', json);
+                        reject([]);
+                    } else
+                        console.log('obtained operations');
+                    resolve(json.payload.items);
+                }).catch(ex => {
+                console.log('cant get operations', ex);
+                reject([]);
+            })
+        })
+    })
+}
+
+/**
  * получаем список акций
  * @return {object} данные для отображения на форме
  */
@@ -589,7 +626,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                         });
                     } else {
                         console.log(`Сервис цен для ${tickerName} недоступен`);
-                        //reject(undefined)
+                        reject(res)
                     }
                 }).catch(e => {
                 console.log(e);
@@ -1110,6 +1147,17 @@ chrome.runtime.onConnect.addListener(function (port) {
                     )
                     .catch(e => {
                         console.log(`cant send delete order, because ${e}`)
+                    });
+                break;
+            case 'exportPortfolio':
+                exportPortfolio(msg.params)
+                    .then(result => {
+                            console.log('send data for Export');
+                            port.postMessage(Object.assign({}, {result: "listForExport"}, {account: msg.params}, {list: result}));
+                        }
+                    )
+                    .catch(e => {
+                        console.log(`cant send data for export, because ${e}`)
                     });
                 break;
             default:

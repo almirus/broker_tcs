@@ -2,7 +2,6 @@
 
 import {
     ALERT_TICKER_LIST,
-    BUY_LINK,
     EVENTS_LINK,
     INTERVAL_TO_CHECK,
     LOGIN_URL,
@@ -20,12 +19,19 @@ import {
     OPTION_SORT_BY_NEAREST,
     port,
     PROGNOS_LINK,
-    SELL_LINK,
     SYMBOL_LINK,
     TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
-import {fillCashData, getAllAccountsHtmlInfo, msToTime, toCurrency, toPercent} from "./utils/displayUtils.js";
+import {exportCSVFile} from "./utils/csvExporter.js";
+import {
+    fillCashData,
+    getAllAccountsHtmlInfo,
+    getExportAccountHtml,
+    msToTime,
+    toCurrency,
+    toPercent
+} from "./utils/displayUtils.js";
 import {debounce, throttle} from "./utils/systemUtils.js";
 
 
@@ -93,6 +99,17 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('earnedTodayPercent').innerText = toPercent(msg.expectedYieldPerDayRelative);
 
             document.getElementById('allAccounts').innerHTML = getAllAccountsHtmlInfo(msg.accounts);
+            document.getElementById('exportOperations').innerHTML = getExportAccountHtml(msg.accounts);
+            // клик по выгрузке портфеля
+            setTimeout(() => Array.from(document.getElementsByClassName('exportLink')).forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.target.innerHTML = 'Ждите';
+                    throttle(port.postMessage({
+                        method: "exportPortfolio",
+                        params: e.target.getAttribute('data-account')
+                    }), 500);
+                });
+            }), 500);
             break;
         case 'updateUserInfo':
             if (msg.status) {
@@ -139,6 +156,18 @@ port.onMessage.addListener(function (msg) {
             break;
         case 'versionAPI':
             document.getElementById('versionAPI').innerText = `Версия API ${msg.version.payload.version}`;
+            break;
+        case 'listForExport':
+            exportCSVFile({
+                symbol: 'symbol',
+                isin: 'isin',
+                commission: 'commission',
+                date: 'date',
+                type: 'operation',
+                price: 'price',
+                currency: 'currency',
+                amount: 'amount'
+            }, msg.list, msg.account);
             break;
     }
 });
@@ -557,7 +586,7 @@ function create_alert_table(data_list) {
     chrome.storage.sync.get([TICKER_LIST], function (data) {
         let table;
 
-        if ((data[TICKER_LIST] && data[TICKER_LIST].length > 0) || data_list ) {
+        if ((data[TICKER_LIST] && data[TICKER_LIST].length > 0) || data_list) {
             table = document.createElement('table');
             table.className = 'alertPriceTable';
             let tr = document.createElement('tr');
