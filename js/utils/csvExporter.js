@@ -12,14 +12,14 @@ function convertToCSV(objArray) {
     return str;
 }
 
-export function exportCSVFile(headers, items, fileTitle) {
-    items = filterData(items, fileTitle);
+export function exportCSVFile(headers, items, fileTitle, postfix) {
+    items = filterData(items, fileTitle, postfix);
     if (headers) {
         items.unshift(headers);
     }
     let jsonObject = JSON.stringify(items);
     let csv = convertToCSV(jsonObject);
-    let exportedFilename = fileTitle + '.csv' || 'export.csv';
+    let exportedFilename = fileTitle + '_' + postfix + '.csv' || 'export.csv';
     let blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
     let link = document.createElement("a");
     if (link.download !== undefined) {
@@ -33,14 +33,19 @@ export function exportCSVFile(headers, items, fileTitle) {
     }
 }
 
-function filterData(items, account = 'Tinkoff') {
-    let accountData = items.filter(item => item.accountType === account && (item.status === 'done' || item.status === 'progress') && item.quantity > 0);
+function filterData(items, account = 'Tinkoff', currency) {
+    let accountData = items.filter(item =>
+        item.accountType === account
+        && (item.status === 'done' || item.status === 'progress')
+        && (item.quantity > 0)
+        && (currency === 'all' ? true : item.currency === currency)
+    );
     let result = [];
     accountData.forEach(item => {
         result.push({
             symbol: item.ticker,
             isin: item.isin,
-            commission: Math.abs(item.commission),
+            commission: Math.abs(item.commission || 0),
             date: new Intl.DateTimeFormat('en-US').format(new Date(item.date)),
             type: item.operationType.toLowerCase() === 'buywithcard' ? 'buy' : item.operationType.toLowerCase(),
             price: item.price,

@@ -37,7 +37,8 @@
                 <span id="day" style="font-weight: bold" title="Доходность считается по последней цене"><span id="earnedToday">~</span><span class="percent" id="earnedTodayPercent">~</span></span><br>
                 <span id="allAccounts" class="toggle-content"></span>
             </div>
-            <a class="toggle" data-toggle="info" style="float: right" href="#info" title="Основные настройки">⚙️Настройки</a><br>
+            <a class="toggle" data-toggle="info" style="float: right" href="#info" title="Основные настройки">⚙️Настройки</a>
+            <a class="toggle" data-toggle="export" style="float: right" href="#export" title="Экспорт портфеля в CSV">🔄️    Экспорт</a><br>
             <div class="toggle-content" id="info">
                 <fieldset class="table">
                     <legend>Настройки - Версия приложения <span id="app_version">~</span></legend>
@@ -97,10 +98,6 @@
                     <input type="text" name="alphavantage_key" id="alphavantage_key" placeholder="Введите ключ alphavantage" maxlength="20">
                     </div>
                 </fieldset>
-                <div class="export">
-                    Экспорт данных для <a href="https://ru.investing.com/portfolio/" target="_blank">Investing</a> или <a href="https://finance.yahoo.com/" target="_blank">Yahoo.Finance</a>
-                    <div id="exportOperations"></div>
-                </div>
                 <p><strong>Данное приложение неофициальное.</strong><br>Написано для себя, в виду отсутствия
                     необходимого
                     функционала в TCS Broker.</p>
@@ -115,6 +112,10 @@
                     <a href="mailto:al-open@yandex.ru?subject=TCS Broker">Вопросы, предложения</a>
                 </p>
                 <span id="versionAPI" style="float: right" title="Версия API брокера"></span>
+            </div>
+            <div class="toggle-content" id="export">
+                Экспорт данных для <a href="https://ru.investing.com/portfolio/" target="_blank">Investing</a> или <a href="https://finance.yahoo.com/" target="_blank">Yahoo.Finance</a>
+                <div id="exportOperations"></div>
             </div>
         </fieldset>
         <fieldset class="table">

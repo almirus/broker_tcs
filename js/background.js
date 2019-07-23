@@ -1150,10 +1150,10 @@ chrome.runtime.onConnect.addListener(function (port) {
                     });
                 break;
             case 'exportPortfolio':
-                exportPortfolio(msg.params)
+                exportPortfolio(msg.params.account)
                     .then(result => {
                             console.log('send data for Export');
-                            port.postMessage(Object.assign({}, {result: "listForExport"}, {account: msg.params}, {list: result}));
+                            port.postMessage(Object.assign({}, {result: "listForExport"}, {account: msg.params.account}, {currency: msg.params.currency}, {list: result}));
                         }
                     )
                     .catch(e => {

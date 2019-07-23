@@ -79,7 +79,11 @@ export function getExportAccountHtml(accounts) {
         let rusAccountName = (key === 'Bcs') ? "БКС" :
             (key === 'Tinkoff') ? "ТКС" :
                 (key === 'TinkoffIis') ? "ИИС" : key;
-        res += ` <span title="Выгрузить данные по портфелю в формате CSV" class="exportLink" data-account="${key}">Выгрузить данные по брокерскому счету ${rusAccountName}</span><br>`;
+        res += `
+<span title="Выгрузить данные по портфелю в формате CSV (все валюты)" class="exportLink" data-account="${key}" data-currency="all">Выгрузить данные по брокерскому счету ${rusAccountName}</span>
+(<span title="Выгрузить отдельно по валюте USD в формате CSV" class="exportLink" data-account="${key}" data-currency="USD">USD</span>,
+<span title="Выгрузить отдельно по валюте RUB в формате CSV" class="exportLink" data-account="${key}" data-currency="RUB">RUB</span>)
+<br>`;
     });
     return res;
 }

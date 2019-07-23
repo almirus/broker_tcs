@@ -106,7 +106,10 @@ port.onMessage.addListener(function (msg) {
                     e.target.innerHTML = 'Ждите';
                     throttle(port.postMessage({
                         method: "exportPortfolio",
-                        params: e.target.getAttribute('data-account')
+                        params: {
+                            account: e.target.getAttribute('data-account'),
+                            currency: e.target.getAttribute('data-currency')
+                        }
                     }), 500);
                 });
             }), 500);
@@ -167,7 +170,7 @@ port.onMessage.addListener(function (msg) {
                 price: 'price',
                 currency: 'currency',
                 amount: 'amount'
-            }, msg.list, msg.account);
+            }, msg.list, msg.account, msg.currency);
             break;
     }
 });
