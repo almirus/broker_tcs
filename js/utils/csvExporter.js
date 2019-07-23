@@ -43,7 +43,7 @@ function filterData(items, account = 'Tinkoff', currency) {
     let result = [];
     accountData.forEach(item => {
         result.push({
-            symbol: item.ticker,
+            symbol: item.ticker === 'TCS' ? 'TCSq' : item.ticker,
             isin: item.isin,
             commission: Math.abs(item.commission || 0),
             date: new Intl.DateTimeFormat('en-US').format(new Date(item.date)),
