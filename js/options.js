@@ -102,12 +102,13 @@ port.onMessage.addListener(function (msg) {
             // клик по выгрузке портфеля
             setTimeout(() => Array.from(document.getElementsByClassName('exportLink')).forEach(item => {
                 item.addEventListener('click', function (e) {
-                    e.target.innerHTML = 'Ждите';
+                    e.target.innerHTML = 'Выгружается, ждите...';
                     throttle(port.postMessage({
                         method: "exportPortfolio",
                         params: {
                             account: e.target.getAttribute('data-account'),
-                            currency: e.target.getAttribute('data-currency')
+                            currency: e.target.getAttribute('data-currency'),
+                            collapse: document.getElementById('exportFilter').checked
                         }
                     }), 500);
                 });
@@ -169,7 +170,7 @@ port.onMessage.addListener(function (msg) {
                 price: 'price',
                 currency: 'currency',
                 amount: 'amount'
-            }, msg.list, msg.account, msg.currency);
+            }, msg.list, msg.account, msg.currency, msg.collapse);
             break;
     }
 });

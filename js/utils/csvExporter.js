@@ -12,8 +12,8 @@ function convertToCSV(objArray) {
     return str;
 }
 
-export function exportCSVFile(headers, items, fileTitle, postfix) {
-    items = filterData(items, fileTitle, postfix);
+export function exportCSVFile(headers, items, fileTitle, postfix, collapse = false) {
+    items = filterData(items, fileTitle, postfix, collapse);
     if (headers) {
         items.unshift(headers);
     }
@@ -33,7 +33,7 @@ export function exportCSVFile(headers, items, fileTitle, postfix) {
     }
 }
 
-function filterData(items, account = 'Tinkoff', currency) {
+function filterData(items, account = 'Tinkoff', currency, collapse) {
     let accountData = items.filter(item =>
         item.accountType === account
         && (item.status === 'done' || item.status === 'progress')
@@ -53,5 +53,30 @@ function filterData(items, account = 'Tinkoff', currency) {
             amount: item.quantity,
         })
     });
+    if (collapse) {
+        // нужно отфильтровать пары покупка - продажа
+        result.forEach((item, index, object) => {
+            let amount = item.amount;
+            let date = item.date;
+            let price = item.price;
+            let fundedCount = 0;
+            object.slice(index,1);
+            for (let i = index; i < result.length; i++) {
+                if (item.symbol === result[i].symbol) {
+                    fundedCount++;
+                    date = result[i].date;
+                    if (item.type === 'buy') amount += result[i].amount;
+                    else amount -= result[i].amount;
+                    price += result[i].price;
+                    object.slice(i,1);
+                }
+            }
+            price = price / (fundedCount || 1);
+            result[index].price=price;
+            result[index].date=date;
+            result[index].amount=amount;
+            // тут в stack все операции по одному инструменту
+        })
+    }
     return result;
 }

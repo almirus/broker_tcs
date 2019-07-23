@@ -1154,7 +1154,13 @@ chrome.runtime.onConnect.addListener(function (port) {
                 exportPortfolio(msg.params.account)
                     .then(result => {
                             console.log('send data for Export');
-                            port.postMessage(Object.assign({}, {result: "listForExport"}, {account: msg.params.account}, {currency: msg.params.currency}, {list: result}));
+                            port.postMessage(Object.assign({},
+                                {result: "listForExport"},
+                                {account: msg.params.account},
+                                {currency: msg.params.currency},
+                                {collapse: msg.params.collapse},
+                                {list: result})
+                            );
                         }
                     )
                     .catch(e => {
