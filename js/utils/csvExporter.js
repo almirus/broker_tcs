@@ -44,8 +44,8 @@ function filterData(items, account = 'Tinkoff', currency, collapse) {
         );
         accountData.forEach(item => {
             result.push({
-                symbol: item.ticker === 'TCS' ? 'TCSq' : item.ticker,
                 isin: item.isin,
+                symbol: item.ticker === 'TCS' ? 'TCSq' : item.ticker,
                 commission: Math.abs(item.commission || 0),
                 date: new Intl.DateTimeFormat('en-US').format(new Date(item.date)),
                 type: item.operationType.toLowerCase() === 'buywithcard' ? 'buy' : item.operationType.toLowerCase(),
