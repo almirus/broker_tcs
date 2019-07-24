@@ -305,6 +305,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     marketStartTime: symbol.payload.symbol.marketStartTime,
                     securityType: securityType,
                     ticker: element.ticker,
+                    isin: element.isin,
                     status: element.status,
                     showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
                     lotSize: element.currentBalance,
@@ -1151,21 +1152,33 @@ chrome.runtime.onConnect.addListener(function (port) {
                     });
                 break;
             case 'exportPortfolio':
-                exportPortfolio(msg.params.account)
-                    .then(result => {
-                            console.log('send data for Export');
-                            port.postMessage(Object.assign({},
-                                {result: "listForExport"},
-                                {account: msg.params.account},
-                                {currency: msg.params.currency},
-                                {collapse: msg.params.collapse},
-                                {list: result})
-                            );
-                        }
-                    )
-                    .catch(e => {
-                        console.log(`cant send data for export, because ${e}`)
+                console.log('send data for Export');
+                if (msg.params.collapse) {
+                    getListStock(2).then(function (list_symbols) {
+                        list_symbols.result = 'listPortfolio';
+                        port.postMessage(Object.assign({},
+                            {result: "listForExport"},
+                            {account: msg.params.account},
+                            {currency: msg.params.currency},
+                            {collapse: msg.params.collapse},
+                            {list: (msg.params.account === 'Tinkoff' ? list_symbols.stocks_tcs : list_symbols.stocks_iis)})
+                        );
                     });
+                } else
+                    exportPortfolio(msg.params.account)
+                        .then(result => {
+                                port.postMessage(Object.assign({},
+                                    {result: "listForExport"},
+                                    {account: msg.params.account},
+                                    {currency: msg.params.currency},
+                                    {collapse: msg.params.collapse},
+                                    {list: result})
+                                );
+                            }
+                        )
+                        .catch(e => {
+                            console.log(`cant send data for export, because ${e}`)
+                        });
                 break;
             default:
                 port.postMessage('unknown request');

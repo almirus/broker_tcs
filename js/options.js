@@ -162,8 +162,8 @@ port.onMessage.addListener(function (msg) {
             break;
         case 'listForExport':
             exportCSVFile({
-                symbol: 'symbol',
                 isin: 'isin',
+                symbol: 'symbol',
                 commission: 'commission',
                 date: 'date',
                 type: 'operation',

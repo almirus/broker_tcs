@@ -34,49 +34,42 @@ export function exportCSVFile(headers, items, fileTitle, postfix, collapse = fal
 }
 
 function filterData(items, account = 'Tinkoff', currency, collapse) {
-    let accountData = items.filter(item =>
-        item.accountType === account
-        && (item.status === 'done' || item.status === 'progress')
-        && (item.quantity > 0)
-        && (currency === 'all' ? true : item.currency === currency)
-    );
     let result = [];
-    accountData.forEach(item => {
-        result.push({
-            symbol: item.ticker === 'TCS' ? 'TCSq' : item.ticker,
-            isin: item.isin,
-            commission: Math.abs(item.commission || 0),
-            date: new Intl.DateTimeFormat('en-US').format(new Date(item.date)),
-            type: item.operationType.toLowerCase() === 'buywithcard' ? 'buy' : item.operationType.toLowerCase(),
-            price: item.price,
-            currency: item.currency,
-            amount: item.quantity,
+    if (!collapse) {
+        let accountData = items.filter(item =>
+            item.accountType === account
+            && (item.status === 'done' || item.status === 'progress')
+            && (item.quantity > 0)
+            && (currency === 'all' ? true : item.currency === currency)
+        );
+        accountData.forEach(item => {
+            result.push({
+                symbol: item.ticker === 'TCS' ? 'TCSq' : item.ticker,
+                isin: item.isin,
+                commission: Math.abs(item.commission || 0),
+                date: new Intl.DateTimeFormat('en-US').format(new Date(item.date)),
+                type: item.operationType.toLowerCase() === 'buywithcard' ? 'buy' : item.operationType.toLowerCase(),
+                price: item.price,
+                currency: item.currency,
+                amount: item.quantity,
+            })
         })
-    });
-    if (collapse) {
-        // нужно отфильтровать пары покупка - продажа
-        result.forEach((item, index, object) => {
-            let amount = item.amount;
-            let date = item.date;
-            let price = item.price;
-            let fundedCount = 0;
-            object.slice(index,1);
-            for (let i = index; i < result.length; i++) {
-                if (item.symbol === result[i].symbol) {
-                    fundedCount++;
-                    date = result[i].date;
-                    if (item.type === 'buy') amount += result[i].amount;
-                    else amount -= result[i].amount;
-                    price += result[i].price;
-                    object.slice(i,1);
-                }
-            }
-            price = price / (fundedCount || 1);
-            result[index].price=price;
-            result[index].date=date;
-            result[index].amount=amount;
-            // тут в stack все операции по одному инструменту
-        })
+    } else {
+        let accountData = items.filter(item =>
+            currency === 'all' ? true : item.symbol.averagePositionPrice.currency === currency
+        );
+        accountData.forEach(item => {
+            result.push({
+                symbol: item.symbol.ticker === 'TCS' ? 'TCSq' : item.symbol.ticker,
+                isin: item.symbol.isin,
+                commission: 0,
+                date: new Intl.DateTimeFormat('en-US').format(new Date(new Date().setDate(new Date().getDate() - 1))),
+                type: 'buy',
+                price: item.symbol.averagePositionPrice.value,
+                currency: item.symbol.averagePositionPrice.currency,
+                amount: item.symbol.lotSize,
+            })
+        });
     }
     return result;
 }
