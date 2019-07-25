@@ -74,13 +74,13 @@ function getAccountHtmlInfo(accountName, accountInfo) {
 }
 
 export function getExportAccountHtml(accounts) {
-    let res = '';
+    let res = '<span title="Сырая выгрузка в формате CSV (все валюты, все счета, все транзакции)" class="exportLink" data-account="all" data-currency="all">Выгрузить все транзакции по всем счетам</span><br>';
     Object.keys(accounts).forEach(key => {
         let rusAccountName = (key === 'Bcs') ? "БКС" :
             (key === 'Tinkoff') ? "ТКС" :
                 (key === 'TinkoffIis') ? "ИИС" : key;
         res += `
-<span title="Выгрузить данные по счету в формате CSV (все валюты)" class="exportLink" data-account="${key}" data-currency="all">Выгрузить данные по брокерскому счету ${rusAccountName}</span>
+<span title="Выгрузить данные по счету в формате CSV (все валюты), только операции покупка\продажа" class="exportLink" data-account="${key}" data-currency="all">Выгрузить данные по брокерскому счету ${rusAccountName}</span>
 (<span title="Выгрузить отдельно по валюте USD в формате CSV" class="exportLink" data-account="${key}" data-currency="USD">USD</span>,
 <span title="Выгрузить отдельно по валюте RUB в формате CSV" class="exportLink" data-account="${key}" data-currency="RUB">RUB</span>,
 <span title="Выгрузить отдельно по валюте EUR в формате CSV" class="exportLink" data-account="${key}" data-currency="EUR">EUR</span>)

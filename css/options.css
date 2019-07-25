@@ -211,6 +211,11 @@ input[type="datetime-local"] {
     font-size: 10pt;
     cursor: default;
 }
+
+.disabled {
+    opacity: .3;
+}
+
 .lastOTC{
     color: cornflowerblue;
 }
@@ -227,4 +232,43 @@ input[type="datetime-local"] {
     cursor: pointer;
     color: green;
     border-bottom: 1px dotted #000;
+}
+.subscribePrice {
+    margin: 5px;
+    padding-left: 5px;
+    padding-right: 10px;
+    color: white;
+    background-color: #42ba08;
+    border-radius: 15%;
+    display: inline-block;
+}
+
+.close {
+    position: absolute;
+    border-radius: 50%;
+    background-color: #f40024;
+    padding: 0 8px;
+    cursor: pointer;
+    color: white;
+    margin-top: 5px;
+    margin-left: -12px;
+    height: 16px;
+}
+.close:before, .close:after {
+    position: absolute;
+    content: ' ';
+    height: 10px;
+    margin-top: 3px;
+    margin-left: -1px;
+    width: 2px;
+    background-color: white;
+}
+.close:before {
+    transform: rotate(45deg);
+}
+.close:after {
+    transform: rotate(-45deg);
+}
+.close:hover {
+    opacity: 1;
 }

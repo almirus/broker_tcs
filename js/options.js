@@ -169,7 +169,8 @@ port.onMessage.addListener(function (msg) {
                 type: 'operation',
                 price: 'price',
                 currency: 'currency',
-                amount: 'amount'
+                amount: 'amount',
+                description:'description'
             }, msg.list, msg.account, msg.currency, msg.collapse);
             break;
     }
@@ -601,18 +602,17 @@ function create_alert_table(data_list) {
             let th3 = document.createElement('th');
             th3.appendChild(document.createTextNode('измн. за день'));
             let th4 = document.createElement('th');
-            th4.appendChild(document.createTextNode('продажа по'));
-            let th5 = document.createElement('th');
-            th5.appendChild(document.createTextNode('покупка по'));
+            th4.appendChild(document.createTextNode('уведомления/заявки/takeProfit/stopLoss'));
+
             let th6 = document.createElement('th');
             th6.appendChild(document.createTextNode('заявка активна до'));
             let th7 = document.createElement('th');
-            th7.appendChild(document.createTextNode('осталось до цели'));
+            th7.appendChild(document.createTextNode('до цели'));
             tr.appendChild(th1);
             tr.appendChild(th2);
             tr.appendChild(th3);
             tr.appendChild(th4);
-            tr.appendChild(th5);
+
             tr.appendChild(th6);
             tr.appendChild(th7);
             table.appendChild(tr);
@@ -630,17 +630,15 @@ function create_alert_table(data_list) {
                         element.earnings = undefined;
                     } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                     let tr = document.createElement('tr');
-                    if (element.orderId) {
-                        if (element.sell_price) tr.className = 'isOnlineOrderSell';
-                        if (element.buy_price) tr.className = 'isOnlineOrderBuy';
-                    }
+
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
-                        (element.subscriptId ? `<span class="icon" title="Уведомление было добавлено на мобильном по цене 
-                        ${element.subscriptPrice.map(elem => elem.price).join(", ")}">📳</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
-                        (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') +
-                        `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank"><strong>${element.ticker}</strong></a>`;
+                        (element.orderId && !element.timeToExpire ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
+                        (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
+                        (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
+                        `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbolType)}${element.ticker}" target="_blank">
+                        <strong>${element.ticker}</strong></a>`;
 
                     let td2 = document.createElement('td');
                     td2.innerHTML =
@@ -673,16 +671,14 @@ function create_alert_table(data_list) {
                     td4.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением продать">${element.sell_price}</strong>`;
                     td4.className = 'onlineSell';
                     td4.align = 'right';
-                    if (element.orderId) {
+                    if (element.orderId || element.subscriptPrice) { //StopLoss TakeProfit Subscriptions
                         td4.className = '';
                         td4.align = 'center';
-                        td4.colSpan = '2';
-                        td4.innerHTML = `<strong title="Заявка на ${element.sell_price ? 'продажу' : 'покупку'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.sell_price || element.buy_price}, ${element.quantity} шт</strong>`;
+
+                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="${(element.orderId).length > 6 ? 'Удалить заявку' : 'Удалить takeprofit/stoploss'}" class="close"></span>, <strong title="${opacity_rate < 0 ? 'StopLoss' : 'TakeProfit'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
+                        else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}"  title="Удалить уведомление" class="close"></span>`).join('');
                     }
-                    let td5 = document.createElement('td');
-                    td5.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением купить">${element.buy_price}</strong>`;
-                    td5.className = 'onlineBuy';
-                    td5.align = 'right';
+
                     let td6 = document.createElement('td');
                     td6.className = '';
                     let alert_date = new Date(Date.parse(element.best_before));
@@ -692,6 +688,9 @@ function create_alert_table(data_list) {
                     } else td6.innerHTML = element.best_before ? (alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString())
                         : 'бессрочно';
                     td6.align = 'center';
+                    if (element.orderId) {
+                        if (opacity_rate < 0) tr.className = 'isOnlineOrderSell'; else tr.className = 'isOnlineOrderBuy';
+                    }
                     let td7 = document.createElement('td');
                     td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
                         style: 'percent',
@@ -708,11 +707,11 @@ function create_alert_table(data_list) {
                     tr.appendChild(td2);
                     tr.appendChild(td3);
                     tr.appendChild(td4);
-                    if (!element.orderId) tr.appendChild(td5);
+
                     tr.appendChild(td6);
                     tr.appendChild(td7);
-                    tr.appendChild(td8);
-                    tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
+                    //tr.appendChild(td8);
+                    //tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
 
                     table.appendChild(tr);
                     //setRefreshHandler();
@@ -759,6 +758,7 @@ document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'block';
     document.getElementById('sort_by_nearest').style.display = 'inline';
     document.getElementById('label_sort_by_nearest').style.display = 'inline';
+    document.getElementById('graphic_table').style.display = 'none';
 });
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
@@ -766,6 +766,46 @@ document.getElementById('add_alert_list').addEventListener('change', function (e
     document.getElementById('sort_by_nearest').style.display = 'none';
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'block';
+    document.getElementById('graphic_table').style.display = 'none';
+});
+document.getElementById('graphic').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('orders_table').style.display = 'none';
+    document.getElementById('sort_by_nearest').style.display = 'none';
+    document.getElementById('label_sort_by_nearest').style.display = 'none';
+    document.getElementById('price_table').style.display = 'none';
+    document.getElementById('graphic_table').style.display = 'block';
+    // общий список
+    new TradingView.widget(
+        {
+            "width": 720,
+            "height": 610,
+            "symbol": "LSIN:TCS",
+            "interval": "D",
+            "timezone": "Europe/Moscow",
+            "theme": "Light",
+            "style": "1",
+            "locale": "ru",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "hide_side_toolbar": false,
+            "allow_symbol_change": true,
+            "watchlist": [
+                "LSIN:TCS"
+            ],
+            "details": true,
+            "calendar": true,
+            "studies": [
+                "MACD@tv-basicstudies",
+                "BB@tv-basicstudies",
+                "StochasticRSI@tv-basicstudies"
+            ],
+            "show_popup_button": true,
+            "popup_width": "1000",
+            "popup_height": "650",
+            "container_id": "tradingview_bbf09"
+        }
+    );
 });
 /*
 document.getElementById('add_orders').addEventListener('change', function (e) {

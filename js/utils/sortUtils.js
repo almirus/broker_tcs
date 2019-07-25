@@ -16,5 +16,5 @@ export function giveLessDiffToTarget(desireTicker) {
     if (desireTicker.buy_price && desireTicker.online_buy_price) diffToBuy = (desireTicker.online_buy_price - desireTicker.buy_price) / desireTicker.online_buy_price;
     if (desireTicker.sell_price && desireTicker.online_sell_price) diffToSell = (desireTicker.sell_price - desireTicker.online_sell_price) / desireTicker.online_sell_price;
     if (diffToBuy + diffToSell === 200) return 0;
-    return (diffToBuy < diffToSell) ? diffToBuy : diffToSell;
+    return (diffToBuy < diffToSell) ? diffToBuy :diffToSell;
 }

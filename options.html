@@ -115,13 +115,41 @@
                          title="Итоговые суммы будут приведены в рублях на основе биржевого курс брокера&#013;Обновление произойдет в течении минуты">
                     <div id="alphavantage_option" style="display: none">
                         <input type="checkbox" value="0" name="alphavantage" id="alphavantage">
-                        <label for="alphavantage">Использовать сервис <a
-                                href="https://www.alphavantage.co/support/#api-key" target="_blank"
+                        <label for="alphavantage">Использовать сервис
+                            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="15px" height="8px" viewBox="0 0 15 8" enable-background="new 0 0 15 8" xml:space="preserve">
+<image width="15" height="8" x="0" y="0" href="
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAIEAYAAAB2Q3mxAAAABGdBTUEAALGPC/xhBQAAACBjSFJN
+AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0T///////8JWPfcAAAA
+CXBIWXMAAA7DAAAOwwHHb6hkAAAAB3RJTUUH4wcZADseBYjV0gAAArpJREFUKM9lkl1IU3EYxn/n
+bM5tfkyHGLMlZTZaWEhCIUSNPugDq1kKKcnOLiITUll+EV5EF4ldGBRRENWpZFhYWUhCerGoC3GF
+VF6MEpRW4k3NZTo1d04Xf6mL3uvned7ned5XYmWUUqVUKQV8+PABIUKEKtwYMWJs9KKhoT1OECVK
+9Fo/ZsyYl8fVQXVQHeTv+CZ9k75JkJqlZqkZ0NHR13uQkZHdN1hiiaWBcvkvI5988oEhhhgq9JJC
+CikXLIKw4ZEw0NKGEyfOXT/IJZdcUIqVYqX432IpIAWkADDHHHPGPixYsLQMkEoqqXUuDBgwmDRZ
+8SpexQvEiRM3NAlg4zASEpL2igQJEoeLhOyHQmGorZwFFliwJXHhwgVKmVKmlAHppJMOZJFF1j6j
+0DnqEY11R8gmm+zEJxkbNmyAHTt2T7sAHm8nSZLklT6spGEdeSaInStCmy+Kqk/2UEABBSASAbPM
+MmsfFQ21ukXVbw6KBp5amGGGGZCJESNmPyEqaK0ghwg/R6p+rlqdYznd1zDa4ptaZ3DbP8cPNDq2
+hHso1m8x3tMr8A1tTDDBhKuETDLJBNJII015u3LbgGjmclwYTRQQIUIEZDLIIKP2gUjiluTK337N
+33F2PLo/7LjvXCdXJ8/pzheDv56v2mYe2n3J9Hru9rKh64yofnkYEyZMDVdFopImYajOJhbfbddr
+9Bq9ZmQT00wzDeqYOqaOgSyA9U0rN6i+U9pde+/IcFCu/71Hq4zNoqGjvdwrr0m+03dGD02c90Ry
+PV9M4hRdeeL5TpSIRE8+Cp3vT8T33gxKQSkoBTmlhtSQGvr3hEYWWWSxMyAIvXmKy9/vb8X//tjJ
+jWtHv5pZ4BuOug49xjjGZKrj7ei32DIwT5L5h9exYsW6tUgE2LFd6Fx048CBY6qKMGHC/Dd/AMhX
+Eoko1F+mAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTA3LTI1VDA3OjU5OjMwLTA3OjAwBXmGAgAA
+ACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wNy0yNVQwNzo1OTozMC0wNzowMHQkPr4AAAAYdEVYdFNv
+ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII=" />
+</svg>
+                        <a href="https://www.alphavantage.co/support/#api-key" target="_blank"
                                 title="Перейти на сайт и зарегистрировать ключ">alphavantage</a> для OTC</label>
                         <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                             title="Для получения доходности за день и рыночной цены внебиржевых бумаг будет использован сторониий сервис alphavantage&#013;Необходимо зарегистрироваться, получить ключ и ввести его в поле">
+                             title="Для получения доходности за день и рыночной цены внебиржевых&#013;бумаг будет использован сторониий сервис alphavantage&#013;Необходимо зарегистрироваться, получить ключ и ввести его в поле">
                         <input type="text" name="alphavantage_key" id="alphavantage_key"
                                placeholder="Введите ключ alphavantage" maxlength="20">
+                        </div>
+                    <div id="tradingview_option">
+                        <input type="checkbox" value="0" name="tradingview" id="tradingview">
+                        <label for="tradingview">Использовать сервис <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 19" width="15"><path fill="#2196F3" d="M29.032 7.382a5.47 5.47 0 0 1 .963 2.872A4.502 4.502 0 0 1 28.5 19H6a5.98 5.98 0 0 1-4.222-1.737l9.546-7.556c.35.187.75.293 1.176.293a2.49 2.49 0 0 0 1.066-.238l4.55 3.981a2.5 2.5 0 1 0 4.711-.157l6.205-6.204zm-1.414-1.414l-6.204 6.204A2.494 2.494 0 0 0 20.5 12a2.49 2.49 0 0 0-1.066.238l-4.55-3.981a2.5 2.5 0 1 0-4.801-.118L.608 15.638A6 6 0 0 1 6.061 7a8.001 8.001 0 0 1 15.625-1.227A5.474 5.474 0 0 1 24.5 5c1.157 0 2.231.358 3.118.968z"></path></svg> <a href="https://ru.tradingview.com/" target="_blank" title="Перейти на сайт">tradingview</a></label>
+                        <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                             title="Будут использованы виджеты сервиса tradingview, например, для построения графиков">
+                    
                     </div>
                 </fieldset>
                 <p><strong>Данное приложение неофициальное.</strong><br>Написано для себя, в виду отсутствия
@@ -144,7 +172,11 @@
             <input type="radio" value="0" checked="checked" name="list_type" id="alert_list">
             <label for="alert_list">Список отслеживаемых</label>
             <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Цветной строкой отмечены онлайн заявки (покупка/продажа)&#013;Снимаются автоматически брокером после закрытия биржи">
+                 title="Цветной строкой отмечены онлайн заявки (покупка/продажа/takeProfit/stopLoss)&#013;Уведомления срабатывают и на мобильном">
+            <input type="radio" value="3" name="list_type" id="graphic">
+            <label for="graphic">График</label>
+            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                 title="Динамический график по избранным">
             <input type="radio" value="1" name="list_type" id="add_alert_list">
             <label for="add_alert_list">Добавить для отслеживания</label>
             <!--
@@ -170,8 +202,47 @@
                 <input id="order_symbol_name" name="symbol_name" maxlength="10" placeholder="Введите название акции">
                 <div id="order_table"></div>
             </div>
+            <div id="graphic_table" style="display: none">
+                <!-- TradingView Widget BEGIN -->
+                <div class="tradingview-widget-container">
+                    <div id="tradingview_bbf09"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+                </div>
+                <!-- TradingView Widget END -->
+            </div>
         </fieldset>
     </div>
 </div>
+<!-- TradingView Widget BEGIN -->
+<div class="tradingview-widget-container">
+    <div class="tradingview-widget-container__widget"></div>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+        {
+            "symbols": [
+            {
+                "title": "S&P 500",
+                "proName": "INDEX:SPX"
+            },
+            {
+                "title": "Shanghai Composite",
+                "proName": "INDEX:XLY0"
+            },
+            {
+                "title": "EUR/USD",
+                "proName": "FX_IDC:EURUSD"
+            },
+            {
+                "description": "Тинькофф",
+                "proName": "LSIN:TCS"
+            }
+        ],
+            "colorTheme": "light",
+            "isTransparent": false,
+            "displayMode": "adaptive",
+            "locale": "ru"
+        }
+    </script>
+</div>
+<!-- TradingView Widget END -->
 </body>
 </html>
