@@ -37,6 +37,7 @@ import {
     SELL_LINK,
     SET_ALERT_URL,
     STOP_URL,
+    SUBSCRIPTIONS_URL,
     SYMBOL_EXTENDED_LINK,
     SYMBOL_FUNDAMENTAL_URL,
     SYMBOL_LINK,
@@ -601,6 +602,25 @@ function getAvailableCash(brokerName) {
     })
 }
 
+function getSubscriptions(session_id) {
+    return new Promise((resolve, reject) => {
+        console.log('Get Subscriptions');
+        fetch(SUBSCRIPTIONS_URL + session_id)
+            .then(response => response.json())
+            .then(json => {
+                if (json.status === 'Error') {
+                    console.log('cant get Subscriptions', json);
+                    reject([]);
+                } else
+                    console.log('success get Subscriptions');
+                resolve(json.payload.subscriptions);
+            }).catch(ex => {
+            console.log('cant get Subscriptions', ex);
+            reject(undefined);
+        })
+    })
+}
+
 function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
     return new Promise(function (resolve, reject) {
         console.log(`Get price for ${tickerName}`);
@@ -615,21 +635,17 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                 }
             }).then(response => response.json())
                 .then(res => {
-                    if (res.status.toLocaleUpperCase() === 'OK') {
-                        fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
-                            .then(extendInfo => {
-                                res.payload.isFavorite = extendInfo.payload.isFavorite;
-                                res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
-                                res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
-                                resolve(res);
-                            }).catch(e => {
-                            console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
-                            reject(res)
-                        });
-                    } else {
-                        console.log(`Сервис цен для ${tickerName} недоступен`);
+                    fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                        .then(extendInfo => {
+                            res.payload.isFavorite = extendInfo.payload.isFavorite;
+                            //res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
+                            //res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
+                            res.payload.subscriptions = extendInfo.payload.priceAlert;
+                            resolve(res);
+                        }).catch(e => {
+                        console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
                         reject(res)
-                    }
+                    });
                 }).catch(e => {
                 console.log(e);
                 reject(undefined);
@@ -812,50 +828,48 @@ function getStop(session_id) {
 function updateAlertPrices() {
     return new Promise(function (resolve) {
         MainProperties.getSession().then(session_id => {
-            chrome.storage.sync.get([TICKER_LIST], data => {
-                Promise.all([
-                    getOrders(session_id).then(orders => {
-                        return (orders)
-                    }),
-                    getStop(session_id).then(stops => {
-                        return (stops)
+            Promise.all([
+                getOrders(session_id).then(orders => {
+                    return (orders)
+                }),
+                getStop(session_id).then(stops => {
+                    return (stops)
+                }),
+                getSubscriptions(session_id).then(subscriptions => {
+                    return (subscriptions)
+                }),
+            ]).then(async ([orders, stops, subscriptions]) => {
+                let alert_data = [].concat(orders, stops, subscriptions);
+                let i = 0;
+                for (const item of alert_data) {
+                    //alert_data.forEach(function (item, i, alertList) {
+                    await getPriceInfo(item.ticker, undefined, session_id).then(res => {
+                        alert_data[i] = {
+                            ticker: item.ticker,
+                            securityType: (item.symbolType || item.securityType || 'stock').toLowerCase()+'s',
+                            showName: item.showName,
+                            buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
+                            sell_price: item.sell_price,
+                            best_before: item.best_before,
+                            active: item.active,
+                            earnings: res.payload.earnings,
+                            exchangeStatus: res.payload.exchangeStatus,
+                            currency: !res.payload.last ? 'USD' : res.payload.last.currency,
+                            online_average_price: !res.payload.last ? 0 : res.payload.last.value,
+                            online_buy_price: res.payload.buy ? res.payload.buy.value : '',
+                            online_sell_price: res.payload.sell ? res.payload.sell.value : '',
+                            orderId: item.orderId,
+                            timeToExpire: item.timeToExpire,
+                            status: item.status,
+                            isFavorite: res.payload.isFavorite,
+                            subscriptPrice: item.subscriptions,
+                            quantity: item.quantity,
+                        };
+                        i++;
                     })
-                ]).then(async ([orders, stops]) => {
-                    let alert_data = [].concat(orders, stops);
-                    let i = 0;
-                    for (const item of alert_data.concat(data[TICKER_LIST] || [])) {
-                        //alert_data.forEach(function (item, i, alertList) {
-                        await getPriceInfo(item.ticker, undefined, session_id).then(res => {
-
-                            alert_data[i] = {
-                                ticker: item.ticker,
-                                securityType: (item.securityType || 'stocks').toLowerCase(),
-                                showName: item.showName,
-                                buy_price: item.buy_price,
-                                sell_price: item.sell_price,
-                                best_before: item.best_before,
-                                active: item.active,
-                                earnings: res.payload.earnings,
-                                exchangeStatus: res.payload.exchangeStatus,
-                                currency: !res.payload.last ? 'USD' : res.payload.last.currency,
-                                online_average_price: !res.payload.last ? 0 : res.payload.last.value,
-                                online_buy_price: res.payload.buy ? res.payload.buy.value : '',
-                                online_sell_price: res.payload.sell ? res.payload.sell.value : '',
-                                orderId: item.orderId,
-                                timeToExpire: item.timeToExpire,
-                                status: item.status,
-                                isFavorite: res.payload.isFavorite,
-                                subscriptId: res.payload.subscriptId,
-                                subscriptPrice: res.payload.subscriptPrice,
-                                quantity: item.quantity,
-                            };
-                            i++;
-                        })
-                    }
-                    resolve(Object.assign({}, {result: "listAlerts"}, {stocks: alert_data}));
-                });
-
-            })
+                }
+                resolve(Object.assign({}, {result: "listAlerts"}, {stocks: alert_data}));
+            });
         })
     })
 }

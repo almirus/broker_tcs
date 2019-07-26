@@ -379,7 +379,7 @@ function create_portfolio_table(divId, data) {
         td3.align = 'left';
         let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
         if (element.symbol.averagePositionPrice.value === 0)
-            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка в данных у брокера</div>`;
+            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка у брокера</div>`;
         else
             td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Средняя цена. Посмотреть транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
                 style: 'currency',
@@ -637,7 +637,7 @@ function create_alert_table(data_list) {
                         (element.orderId && !element.timeToExpire ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                         (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
-                        `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbolType)}${element.ticker}" target="_blank">
+                        `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
 
                     let td2 = document.createElement('td');
