@@ -16,6 +16,7 @@ import {
     HOST_URL,
     INFO_URL,
     INTERVAL_TO_CHECK,
+    LIQUID_URL,
     LOGIN_URL,
     OPERATIONS_URL,
     OPTION_ALERT,
@@ -168,7 +169,7 @@ function getAllSum() {
  * @return {object} данные для отображения на форме
  */
 function updatePopup() {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         let date = new Date();
         let time_str = {timestamp: date.toLocaleDateString() + ' ' + date.toLocaleTimeString()};
         getAllSum().then(function (sums) {
@@ -185,7 +186,7 @@ function updatePopup() {
  * @return {object} данные для отображения на форме
  */
 function getUserInfo() {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             fetch(USER_URL + session_id)
                 .then(response => {
@@ -221,7 +222,7 @@ function getUserInfo() {
  * @return {Promise<any>}
  */
 function getPortfolio(sessionId) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         Promise.all([
             fetch(PORTFOLIO_URL + sessionId, { // tcs+bcs
                 method: "POST",
@@ -335,11 +336,11 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
  * @return {Promise<any>}
  */
 function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
-    return new Promise(function (resolve, reject) {
-        MainProperties.getSession().then(function (session_id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
             fetch(CANCEL_ORDER.replace('${orderId}', orderId).replace('${brokerAccountType}', brokerAccountType) + session_id)
                 .then(response => response.json())
-                .then(function (json) {
+                .then(json => {
                     if (json.status === 'Error') {
                         console.log('cant delete order', json);
                         reject(undefined);
@@ -361,8 +362,8 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
  * @return {Promise<any>}
  */
 function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
-    return new Promise(function (resolve, reject) {
-        MainProperties.getSession().then(function (session_id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
             fetch(CANCEL_STOP + session_id, {
                 method: "POST",
                 body: JSON.stringify({
@@ -375,7 +376,7 @@ function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
                 }
             })
                 .then(response => response.json())
-                .then(function (json) {
+                .then(json => {
                     if (json.status === 'Error') {
                         console.log('cant delete order', json);
                         reject(undefined);
@@ -396,8 +397,8 @@ function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
  * @return {Promise<any>}
  */
 function exportPortfolio(brokerAccountType = 'Tinkoff') {
-    return new Promise(function (resolve, reject) {
-        MainProperties.getSession().then(function (session_id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
             fetch(OPERATIONS_URL + session_id, {
                 method: "POST",
                 body: JSON.stringify({
@@ -431,7 +432,7 @@ function exportPortfolio(brokerAccountType = 'Tinkoff') {
  * @return {object} данные для отображения на форме
  */
 function getListStock(name) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log('try to get list');
         MainProperties.getSession().then(session_id => {
             if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
@@ -470,7 +471,7 @@ function getListStock(name) {
                     })
                 } else
                     findTicker(name, session_id)
-                        .then(function (json) {
+                        .then(json => {
                             console.log('found list');
                             let return_data = [];
                             json.payload.values.forEach(item => {
@@ -538,7 +539,7 @@ function getListStock(name) {
 }
 
 function findTicker(search, session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
             // POST
             fetch(SEARCH_URL + session_id, {
                 method: "POST",
@@ -572,7 +573,7 @@ function findTicker(search, session_id) {
 }
 
 function getAvailableCash(brokerName) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log('try to get available cash');
         MainProperties.getSession().then(session_id => {
                 // POST
@@ -622,7 +623,7 @@ function getSubscriptions(session_id) {
 }
 
 function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log(`Get price for ${tickerName}`);
         if (tickerName) {
             // POST
@@ -656,7 +657,7 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
 }
 
 function getSymbolInfo(tickerName, securityType, sessionId) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         // POST
         console.log('try to get symbolInfo for', tickerName);
         fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
@@ -732,7 +733,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
 }
 
 function checkTicker(item) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             getPriceInfo(item.ticker, undefined, session_id).then(res => {
                 let last_price = res.payload.last.value;
@@ -766,10 +767,10 @@ function deleteFromAlert(ticker, sell_price, buy_price) {
 }
 
 function getOrders(session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         fetch(ORDERS_URL + session_id)
             .then(response => response.json())
-            .then(function (json) {
+            .then(json => {
                 let return_data = [];
                 json.payload.orders.forEach(element => {
                     return_data.push({
@@ -796,10 +797,10 @@ function getOrders(session_id) {
 }
 
 function getStop(session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         fetch(STOP_URL + session_id)
             .then(response => response.json())
-            .then(function (json) {
+            .then(json => {
                 let return_data = [];
                 json.payload.orders.forEach(element => {
                     return_data.push({
@@ -825,6 +826,35 @@ function getStop(session_id) {
     })
 }
 
+function getLiquidList(brokerAccountType = 'Tinkoff') {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(LIQUID_URL + session_id, {
+                method: "POST",
+                body: JSON.stringify({
+                    brokerAccountType: brokerAccountType
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get liquid', json);
+                        reject(undefined);
+                    } else
+                        console.log('success get liquid list');
+                    resolve(json.payload);
+                }).catch(ex => {
+                console.log('cant get liquid', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
 function updateAlertPrices() {
     return new Promise(function (resolve) {
         MainProperties.getSession().then(session_id => {
@@ -846,7 +876,7 @@ function updateAlertPrices() {
                     await getPriceInfo(item.ticker, undefined, session_id).then(res => {
                         alert_data[i] = {
                             ticker: item.ticker,
-                            securityType: (item.symbolType || item.securityType || 'stock').toLowerCase()+'s',
+                            securityType: (item.symbolType || item.securityType || 'stock').toLowerCase() + 's',
                             showName: item.showName,
                             buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
                             sell_price: item.sell_price,
@@ -912,7 +942,7 @@ function checkPortfolioAlerts() {
 }
 
 function getOldRelative(ticker) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         chrome.storage.local.get([ALERT_TICKER_LIST], data => {
             let alert_data = data[ALERT_TICKER_LIST] || {};
             console.log(`get relative for ${ticker}=${alert_data[ticker]}`);
@@ -1088,7 +1118,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
                 break;
             case 'getSession':
-                MainProperties.getSession().then(function (session_id) {
+                MainProperties.getSession().then(session_id => {
                     console.log("send message session .....");
                     port.postMessage(Object.assign({}, {result: "session"}, {sessionId: session_id}));
                 }).catch(e => {
@@ -1133,7 +1163,7 @@ chrome.runtime.onConnect.addListener(function (port) {
             case 'getVersionAPI':
                 fetch(CHECK_VERSION_URL)
                     .then(response => response.json())
-                    .then(async function (json) {
+                    .then(async json => {
                         port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
                     });
                 break;
@@ -1194,6 +1224,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                             console.log(`cant send data for export, because ${e}`)
                         });
                 break;
+            case 'getLiquid':
+                portfolio.getLiquid().then(list => {
+                    port.postMessage(Object.assign({},
+                        {result: "listLiquid"},
+                        {list: list}));
+                    console.log("send liquid list .....");
+                });
+                break;
             default:
                 port.postMessage('unknown request');
         }
@@ -1240,7 +1278,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
 });
 
 async function getRate(fromTo) {
-    await MainProperties.getSession().then(async function (session_id) {
+    await MainProperties.getSession().then(async session_id => {
         await getPriceInfo(fromTo, session_id).then(ticker => {
             return ticker.payload.last.value;
         })
@@ -1397,3 +1435,15 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
         }
     }
 });
+
+let portfolio = class {
+    static async getLiquid() {
+        if (!(this._liquidList === undefined)) {
+            return this._liquidList
+        }
+        return await getLiquidList().then(list => {
+            this._liquidList = list;
+            return list;
+        })
+    }
+}

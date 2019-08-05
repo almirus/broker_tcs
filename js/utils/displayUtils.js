@@ -110,6 +110,66 @@ export function drawDayProgress(element) {
     return canvas;
 }
 
+export function createTradingviewGraphic(container, symbols = []) {
+    if (symbols.length > 1) // общий список
+        new TradingView.widget(
+            {
+                "width": 720,
+                "height": 610,
+                "symbol": "LSIN:TCS",
+                "interval": "D",
+                "timezone": "Europe/Moscow",
+                "theme": "Light",
+                "style": "1",
+                "locale": "ru",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "watchlist": [
+                    symbols
+                ],
+                "details": true,
+                "calendar": true,
+                "studies": [
+                    "MACD@tv-basicstudies",
+                    "BB@tv-basicstudies",
+                    "StochasticRSI@tv-basicstudies"
+                ],
+                "show_popup_button": true,
+                "popup_width": "1000",
+                "popup_height": "650",
+                "container_id": container
+            }
+        );
+    else // график определенного symbol
+        new TradingView.widget(
+            {
+                "width": 720,
+                "height": 610,
+                "symbol": "LSIN:TCS",
+                "interval": "D",
+                "timezone": "Europe/Moscow",
+                "theme": "Light",
+                "style": "1",
+                "locale": "ru",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": false,
+
+                "studies": [
+                    "MACD@tv-basicstudies",
+                    "BB@tv-basicstudies",
+                    "StochasticRSI@tv-basicstudies"
+                ],
+                "show_popup_button": true,
+                "popup_width": "1000",
+                "popup_height": "650",
+                "container_id": container
+            }
+        );
+}
 
 export function drawGraph(data, canvas) {
     function getPoints(data) {

@@ -32,12 +32,13 @@ export const SYMBOL_EXTENDED_LINK = 'https://api.tinkoff.ru/trading/symbols/user
 export const SYMBOL_FUNDAMENTAL_URL = 'https://api.tinkoff.ru/trading/stocks/fundamentals?sessionId=';
 export const OPERATIONS_URL = 'https://api.tinkoff.ru/trading/user/operations?sessionId='; //{"from":"2015-03-01T00:00:00Z","to":"2019-07-24T08:42:44Z","overnightsDisabled":true}
 export const SUBSCRIPTIONS_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_subscriptions?sessionId=';
+export const LIQUID_URL = 'https://api.tinkoff.ru/trading/portfolio/liquid_portfolio?sessionId=';
 
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';
-export const ACCOUNTS_URL='https://api.tinkoff.ru/trading/user/broker_accounts?appName=invest_terminal&appVersion=1.0.0&sessionId=';
+export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts?appName=invest_terminal&appVersion=1.0.0&sessionId=';
 
 //{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
@@ -68,6 +69,13 @@ export let port = chrome.runtime.connect({
     name: "tcs_trader"
 });
 
+export class Ticker {
+    constructor(name, ticker) {
+        this.name = name;
+        this.ticker = ticker;
+    }
+}
+
 export class Price {
     constructor(value, currency) {
         this.value = value;
@@ -82,7 +90,7 @@ export class Symbol {
 }
 
 
-export class Portfolio{
+export class Portfolio {
 
 
 }
