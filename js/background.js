@@ -775,7 +775,7 @@ function getOrders(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: (element.securityType || 'stock').toLowerCase() + 's',
+                        securityType: (element.securityType || 'stock').toLowerCase(),
                         showName: element.showName,
                         quantity: element.quantity,
                         buy_price: element.operationType === 'Buy' ? element.price.value : '',
@@ -805,7 +805,7 @@ function getStop(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: element.securityType.toLowerCase() + 's',
+                        securityType: element.securityType.toLowerCase(),
                         showName: element.showName,
                         quantity: element.quantity,
                         buy_price: element.operationType === 'Buy' ? element.stopPrice : '',
