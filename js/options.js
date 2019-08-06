@@ -638,7 +638,7 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
-                        (element.orderId && !element.timeToExpire ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
+                        (element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                         (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
                         `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
@@ -679,7 +679,7 @@ function create_alert_table(data_list) {
                         td4.className = '';
                         td4.align = 'center';
 
-                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="${(element.orderId).length > 6 ? 'Удалить заявку' : 'Удалить takeprofit/stoploss'}" class="close"></span>, <strong title="${opacity_rate < 0 ? 'StopLoss' : 'TakeProfit'} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
+                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="${(element.orderId).length > 6 ? 'Удалить заявку' : 'Удалить takeprofit/stoploss'}" class="close"></span>, <strong title="${element.status === 'New' ? 'Заявка' : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
                         else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}"  title="Удалить уведомление" class="close"></span>`).join('');
                     }
 
@@ -688,7 +688,9 @@ function create_alert_table(data_list) {
                     let alert_date = new Date(Date.parse(element.best_before));
                     if (element.orderId) {
                         td6.innerHTML = element.timeToExpire ? '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>'
-                            : (element.status === 'progress' ? (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit') : '');
+                            : (element.status === 'progress' ? (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit') :
+                                    (element.status === 'New' ? 'Заявка' : '')
+                            );
                     } else td6.innerHTML = element.best_before ? (alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString())
                         : 'бессрочно';
                     td6.align = 'center';
