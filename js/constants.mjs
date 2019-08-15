@@ -1,6 +1,7 @@
 'use strict';
 export const INFO_URL = 'https://api.tinkoff.ru/v1/session_status?appName=invest_terminal&appVersion=1.0.0&sessionid=';
 export const LOGIN_URL = 'https://www.tinkoff.ru/login/?redirectTo=/invest/broker_account/';
+export const SIGN_OUT_URL = 'https://api.tinkoff.ru/v1/sign_out?appName=invest_terminal&appVersion=1.0.0&sessionid=';
 export const HOST_URL = 'https://www.tinkoff.ru/';
 export const FAVORITE_URL = 'https://api.tinkoff.ru/trading/user/get_favorites?sessionId=';
 export const ADD_FAFORITE_URL = 'https://api.tinkoff.ru/trading/user/add_to_favorites?sessionId=';
@@ -64,7 +65,17 @@ export const AV_SYMBOL_URL = 'https://www.alphavantage.co/query?function=GLOBAL_
 
 export const USD_RUB = 'USDRUB';
 export const EUR_RUB = 'EURRUB';
-
+export const HEALTH = {
+    MarginCall: {
+        heart: "❤", title: 'Тобi пiзда'
+    },
+    Demand: {
+        heart: "💛", title: 'Необходимо пополнить счет'
+    },
+    Normal: {
+        heart: "💚", title: 'Торговля без ограничений'
+    }
+};
 export let port = chrome.runtime.connect({
     name: "tcs_trader"
 });

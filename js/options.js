@@ -19,6 +19,7 @@ import {
     OPTION_SORT_BY_NEAREST,
     port,
     PROGNOS_LINK,
+    SIGN_OUT_URL,
     SYMBOL_LINK,
     TICKER_LIST
 } from "/js/constants.mjs";
@@ -75,7 +76,7 @@ port.onMessage.addListener(function (msg) {
         case 'session':
             if (msg.sessionId) {
                 document.getElementById('message').innerText = 'Активная сессия';
-                document.getElementById('error_message').innerHTML = '';
+                document.getElementById('error_message').innerHTML = `<a target="_blank" href="${SIGN_OUT_URL+msg.sessionId}">Разлогиниться</a>&nbsp;`;
             } else {
                 document.getElementById('message').innerText = '';
                 document.getElementById('error_message').innerHTML = `Сессия истекла. <a target="_blank" href="${LOGIN_URL}">Залогиниться</a>`;
@@ -1030,6 +1031,7 @@ port.postMessage({method: "getAvailableCashBCS"});
 port.postMessage({method: "getAvailableCashIIS"});
 port.postMessage({method: "getVersionAPI"});
 port.postMessage({method: "getLiquid"});
+port.postMessage({method: "getPrognosis"});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
@@ -1061,5 +1063,6 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 });
 
 let liquidList = {};
+let prognosisList = {};
 
 

@@ -1,6 +1,8 @@
 'use strict';
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
+import {HEALTH} from "/js/constants.mjs";
+
 export function fillCashData(msg, cash_str, cash_element_id) {
     let resultCash = 0;
     for (let cash in msg.cash.payload.data) {
@@ -64,11 +66,11 @@ function getAccountHtmlInfo(accountName, accountInfo) {
         (accountName === 'Tinkoff') ? "ТКС" :
             (accountName === 'TinkoffIis') ? "ИИС" : accountName;
 
-    let htmlTotalAmount = `<span title="${accountInfo.marginAttributes ? (accountInfo.marginAttributes.marginAccountStatus === 'Normal' ? 'Торговля без ограничений' : 'Предупреждение') : ''}" style="font-weight: bold" class="${accountInfo.marginAttributes ? (accountInfo.marginAttributes.marginAccountStatus === 'Normal' ? 'onlineBuy' : 'onlineSell') : ''}">${toCurrency(accountInfo.totalAmountPortfolio)}</span>`;
+    let htmlTotalAmount = `<span style="font-weight: bold">${toCurrency(accountInfo.totalAmountPortfolio)}</span>`;
     let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYieldPerDay)}</span>`;
     let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYield)}</span>`;
-
-    return `Счет ${rusAccountName} ${htmlTotalAmount}, 
+    let heart = accountInfo.marginAttributes ? `<span title="${HEALTH[accountInfo.marginAttributes.marginAccountStatus].title}">${HEALTH[accountInfo.marginAttributes.marginAccountStatus].heart}</span>`:'';
+    return `Счет ${heart} ${rusAccountName} ${htmlTotalAmount}, 
             доход по счету ${htmlExpectedYield}, 
             доход сегодня ${htmlExpectedYieldPerDay}<br>`;
 }

@@ -855,6 +855,34 @@ function getLiquidList(brokerAccountType = 'Tinkoff') {
     })
 }
 
+function getPrognosisList() {
+    return new Promise((resolve, reject) => {
+            MainProperties.getSession().then(session_id => {
+                getPortfolio(session_id).then(portfolio => {
+                        let portfolioList = [].concat(portfolio.tcs.payload.data, portfolio.iis.payload.data);
+                        portfolioList.forEach(item => {
+                            if (item.contentMarker.prognosis) {
+                                fetch(PROGNOSIS_URL.replace('${ticker}', item.symbol.ticker) + session_id).then(response => response.json())
+                                    .then(prognosis => {
+                                        res.payload.symbol.consensus = prognosis.payload.consensus;
+                                        resolve(res);
+                                    })
+                                    .catch(e => {
+                                        console.log('Сервис прогнозов недоступен', e);
+                                        resolve(res);
+                                    });
+                            }
+                        })
+                    }
+                );
+            }).catch(function (ex) {
+                console.log('parsing failed', ex);
+                reject(undefined);
+            });
+        }
+    )
+}
+
 function updateAlertPrices() {
     return new Promise(function (resolve) {
         MainProperties.getSession().then(session_id => {
@@ -1232,6 +1260,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send liquid list .....");
                 });
                 break;
+            case 'getPrognosis':
+                portfolio.getPrognosis().then(list => {
+                    port.postMessage(Object.assign({},
+                        {result: "listPrognosis"},
+                        {list: list}));
+                    console.log("send prognosis list .....");
+                });
+                break;
             default:
                 port.postMessage('unknown request');
         }
@@ -1443,6 +1479,16 @@ let portfolio = class {
         }
         return await getLiquidList().then(list => {
             this._liquidList = list;
+            return list;
+        })
+    }
+
+    static async getPrognosis() {
+        if (!(this._prognosisList === undefined)) {
+            return this._prognosisList
+        }
+        return await getPrognosisList().then(list => {
+            this._prognosisList = list;
             return list;
         })
     }
