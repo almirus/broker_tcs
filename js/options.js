@@ -401,7 +401,7 @@ function create_portfolio_table(divId, data) {
             currency: element.symbol.averagePositionPrice.currency,
             minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
         }) + '*' : ''}</div>
-        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${element.earnings ? element.earnings.relative.toLocaleString('ru-RU', {
+        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.isOTC && element.symbol.expectedYieldPerDayRelative ? element.symbol.expectedYieldPerDayRelative.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
         }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {

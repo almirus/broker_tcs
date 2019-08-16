@@ -312,6 +312,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
                     lotSize: element.currentBalance,
                     expectedYieldRelative: element.expectedYieldRelative,
+                    expectedYieldPerDayRelative: element.expectedYieldPerDayRelative/100,
                     expectedYield: expected_yield,
                     currentPrice: element.currentPrice,
                     currentAmount: current_amount,

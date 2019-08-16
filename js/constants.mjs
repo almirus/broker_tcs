@@ -5,7 +5,7 @@ export const SIGN_OUT_URL = 'https://api.tinkoff.ru/v1/sign_out?appName=invest_t
 export const HOST_URL = 'https://www.tinkoff.ru/';
 export const FAVORITE_URL = 'https://api.tinkoff.ru/trading/user/get_favorites?sessionId=';
 export const ADD_FAFORITE_URL = 'https://api.tinkoff.ru/trading/user/add_to_favorites?sessionId=';
-export const PORTFOLIO_URL = 'https://api.tinkoff.ru/trading/portfolio/purchased_securities?sessionId=';
+export const PORTFOLIO_URL = 'https://api.tinkoff.ru/trading/portfolio/purchased_securities?appName=invest_terminal&appVersion=1.0.0&sessionId=';
 export const ALL_ACCOUNTS = 'https://api.tinkoff.ru/trading/portfolio/all_accounts?sessionId=';
 export const BUY_LINK = 'https://www.tinkoff.ru/invest/buy/';
 export const SELL_LINK = 'https://www.tinkoff.ru/invest/sell/';
