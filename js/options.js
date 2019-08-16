@@ -983,6 +983,7 @@ port.postMessage({method: "getAvailableCashTCS"});
 port.postMessage({method: "getAvailableCashBCS"});
 port.postMessage({method: "getAvailableCashIIS"});
 port.postMessage({method: "getVersionAPI"});
+port.postMessage({method: "getLiquid"});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
@@ -999,6 +1000,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         port.postMessage({method: "getAvailableCashBCS"});
         port.postMessage({method: "getAvailableCashIIS"});
         port.postMessage({method: "getSession"});
+        port.postMessage({method: "getLiquid"});
     }
 });
 
@@ -1012,4 +1014,5 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     }
 });
 
+let liquidList = {};
 
