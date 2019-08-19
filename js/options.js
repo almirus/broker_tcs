@@ -76,7 +76,7 @@ port.onMessage.addListener(function (msg) {
         case 'session':
             if (msg.sessionId) {
                 document.getElementById('message').innerText = 'Активная сессия';
-                document.getElementById('error_message').innerHTML = `<a target="_blank" href="${SIGN_OUT_URL+msg.sessionId}">Разлогиниться</a>&nbsp;`;
+                document.getElementById('error_message').innerHTML = `<a target="_blank" href="${SIGN_OUT_URL + msg.sessionId}">Разлогиниться</a>&nbsp;`;
             } else {
                 document.getElementById('message').innerText = '';
                 document.getElementById('error_message').innerHTML = `Сессия истекла. <a target="_blank" href="${LOGIN_URL}">Залогиниться</a>`;
@@ -401,7 +401,7 @@ function create_portfolio_table(divId, data) {
             currency: element.symbol.averagePositionPrice.currency,
             minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
         }) + '*' : ''}</div>
-        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.isOTC && element.symbol.expectedYieldPerDayRelative ? element.symbol.expectedYieldPerDayRelative.toLocaleString('ru-RU', {
+        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.symbol.expectedYieldPerDayRelative ? element.symbol.expectedYieldPerDayRelative.toLocaleString('ru-RU', {
             style: 'percent',
             maximumSignificantDigits: 2
         }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
@@ -415,7 +415,7 @@ function create_portfolio_table(divId, data) {
             style: 'currency',
             currency: element.symbol.currentAmount.currency
         }) + '*' : ''}</div>`;
-        if (element.symbol.isOTC) td4.className = element.symbol.relativeOTC / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+        if (element.symbol.isOTC) td4.className = (element.symbol.expectedYieldPerDayRelative || element.symbol.relativeOTC) / 1 < 0 ? 'onlineSell' : 'onlineBuy';
         else td4.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
 
 
