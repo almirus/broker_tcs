@@ -902,7 +902,7 @@ function updateAlertPrices() {
                 let i = 0;
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
-                    await getPriceInfo(item.ticker, undefined, session_id).then(res => {
+                    await getPriceInfo(item.ticker, (item.symbolType || item.securityType || 'stock').toLowerCase() + 's', session_id).then(res => {
                         alert_data[i] = {
                             ticker: item.ticker,
                             securityType: (item.symbolType || item.securityType || 'stock').toLowerCase() + 's',
