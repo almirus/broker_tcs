@@ -29,7 +29,11 @@
 }
 
 tr.process td{
-    background-color: #d4d4d4;
+     background-color: #d4d4d4;
+}
+
+tr.short td{
+    background-color: rgba(0, 138, 255, 0.15);
 }
 .tickerPrice {
     width: 100px;
