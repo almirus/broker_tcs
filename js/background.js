@@ -273,58 +273,104 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
             let current_amount = element.currentAmount;
             let expected_yield = element.expectedYield || {};
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
-            if (symbol.payload.symbol.isOTC) {
-                earning_today = symbol.payload.absoluteOTC * element.currentBalance;
-                //expected_yield.value = symbol.payload.relativeOTC;
-            }
-            if (needToConvert && current_amount.currency === 'USD') {
-                earning_today = earning_today * currencyCourse.payload.last.value;
-                current_amount.value = current_amount.value * currencyCourse.payload.last.value;
-                current_amount.currency = 'RUB';
-                expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
-                expected_yield.currency = 'RUB';
-            }
-
-            return_data.push({
-                prices: symbol.payload.prices,
-                earnings: symbol.payload.earnings,
-                contentMarker: symbol.payload.contentMarker,
-                symbol: {
-                    dayLow: symbol.payload.symbol.dayLow,
-                    dayHigh: symbol.payload.symbol.dayHigh,
-                    dayOpen: symbol.payload.symbol.dayOpen,
-                    lastOTC: symbol.payload.lastOTC || '',
-                    absoluteOTC: symbol.payload.absoluteOTC || 0,
-                    relativeOTC: symbol.payload.relativeOTC || 0,
-                    consensus: symbol.payload.symbol.consensus,
-                    symbolType: symbol.payload.symbol.symbolType,
-                    isOTC: symbol.payload.symbol.isOTC,
-                    sessionOpen: symbol.payload.symbol.sessionOpen,
-                    sessionClose: symbol.payload.symbol.sessionClose,
-                    premarketStartTime: symbol.payload.symbol.premarketStartTime,
-                    premarketEndTime: symbol.payload.symbol.premarketEndTime,
-                    marketEndTime: symbol.payload.symbol.marketEndTime,
-                    marketStartTime: symbol.payload.symbol.marketStartTime,
-                    securityType: securityType,
-                    ticker: element.ticker,
-                    isin: element.isin,
-                    status: element.status,
-                    showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
-                    lotSize: element.currentBalance,
-                    expectedYieldRelative: element.expectedYieldRelative,
-                    expectedYieldPerDayRelative: element.expectedYieldPerDayRelative/100,
-                    expectedYield: expected_yield,
-                    currentPrice: element.currentPrice,
-                    currentAmount: current_amount,
-                    earningToday: earning_today,
-                    averagePositionPrice: element.averagePositionPrice || {
-                        value: 0,
-                        currency: element.currentPrice.currency
+            if (!symbol.payload.symbol) {
+                return_data.push({
+                    prices: undefined,
+                    earnings: undefined,
+                    contentMarker: undefined,
+                    symbol: {
+                        dayLow: 0,
+                        dayHigh: 0,
+                        dayOpen: 0,
+                        lastOTC: '',
+                        absoluteOTC: 0,
+                        relativeOTC: 0,
+                        consensus: 0,
+                        symbolType: 'Note',
+                        isOTC: false,
+                        sessionOpen: '',
+                        sessionClose: '',
+                        premarketStartTime: '',
+                        premarketEndTime: '',
+                        marketEndTime: '',
+                        marketStartTime: '',
+                        securityType: securityType,
+                        ticker: element.ticker,
+                        isin: element.isin,
+                        status: element.status,
+                        showName: symbol.payload.showName,
+                        lotSize: element.currentBalance,
+                        expectedYieldRelative: element.expectedYieldRelative,
+                        expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
+                        expectedYield: expected_yield,
+                        currentPrice: element.currentPrice,
+                        currentAmount: current_amount || {
+                            value: symbol.payload.nominal * element.currentBalance,
+                            currency: symbol.payload.currency
+                        },
+                        earningToday: earning_today,
+                        averagePositionPrice: element.averagePositionPrice || {
+                            value: symbol.payload.nominal,
+                            currency: symbol.payload.currency
+                        },
+                        timeToOpen: '',
                     },
-                    timeToOpen: symbol.payload.symbol.timeToOpen,
-                },
-                exchangeStatus: symbol.payload.exchangeStatus
-            });
+                    exchangeStatus: ''
+                });
+            } else {
+                if (symbol.payload.symbol.isOTC) {
+                    earning_today = symbol.payload.absoluteOTC * element.currentBalance;
+                    //expected_yield.value = symbol.payload.relativeOTC;
+                }
+                if (needToConvert && current_amount.currency === 'USD') {
+                    earning_today = earning_today * currencyCourse.payload.last.value;
+                    current_amount.value = current_amount.value * currencyCourse.payload.last.value;
+                    current_amount.currency = 'RUB';
+                    expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
+                    expected_yield.currency = 'RUB';
+                }
+
+                return_data.push({
+                    prices: symbol.payload.prices,
+                    earnings: symbol.payload.earnings,
+                    contentMarker: symbol.payload.contentMarker,
+                    symbol: {
+                        dayLow: symbol.payload.symbol.dayLow,
+                        dayHigh: symbol.payload.symbol.dayHigh,
+                        dayOpen: symbol.payload.symbol.dayOpen,
+                        lastOTC: symbol.payload.lastOTC || '',
+                        absoluteOTC: symbol.payload.absoluteOTC || 0,
+                        relativeOTC: symbol.payload.relativeOTC || 0,
+                        consensus: symbol.payload.symbol.consensus,
+                        symbolType: symbol.payload.symbol.symbolType,
+                        isOTC: symbol.payload.symbol.isOTC,
+                        sessionOpen: symbol.payload.symbol.sessionOpen,
+                        sessionClose: symbol.payload.symbol.sessionClose,
+                        premarketStartTime: symbol.payload.symbol.premarketStartTime,
+                        premarketEndTime: symbol.payload.symbol.premarketEndTime,
+                        marketEndTime: symbol.payload.symbol.marketEndTime,
+                        marketStartTime: symbol.payload.symbol.marketStartTime,
+                        securityType: securityType,
+                        ticker: element.ticker,
+                        isin: element.isin,
+                        status: element.status,
+                        showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
+                        lotSize: element.currentBalance,
+                        expectedYieldRelative: element.expectedYieldRelative,
+                        expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
+                        expectedYield: expected_yield,
+                        currentPrice: element.currentPrice,
+                        currentAmount: current_amount,
+                        earningToday: earning_today,
+                        averagePositionPrice: element.averagePositionPrice || {
+                            value: 0,
+                            currency: element.currentPrice.currency
+                        },
+                        timeToOpen: symbol.payload.symbol.timeToOpen,
+                    },
+                    exchangeStatus: symbol.payload.exchangeStatus
+                });
+            }
         })
     }
     return return_data;
@@ -663,14 +709,14 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
         console.log('try to get symbolInfo for', tickerName);
         fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
             method: "POST",
-            body: JSON.stringify({ticker: tickerName}),
+            body: securityType.includes('notes') ? JSON.stringify({isin: tickerName}) : JSON.stringify({ticker: tickerName}),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             }
         }).then(response => response.json())
             .then(res => {
-                if (res.status.toLocaleUpperCase() === 'OK') {
+                if (res.status.toLocaleUpperCase() === 'OK' && !securityType.includes('notes')) {
                     fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
                         method: "POST",
                         body: JSON.stringify({
@@ -687,7 +733,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                             res.payload.symbol.dayLow = json.payload.dayLow;
                             res.payload.symbol.dayOpen = json.payload.dayOpen;
 
-                            if (res.payload.contentMarker.prognosis) {
+                            if (res.payload.contentMarker) {
                                 console.log('try to get prognosis for', tickerName);
                                 fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
                                     .then(prognosis => {
@@ -724,7 +770,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
 
                 } else {
                     console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
-                    reject(res)
+                    resolve(res)
                 }
             }).catch(e => {
             console.log('cant get symbolInfo, because', e);
@@ -862,7 +908,7 @@ function getPrognosisList() {
                 getPortfolio(session_id).then(portfolio => {
                         let portfolioList = [].concat(portfolio.tcs.payload.data, portfolio.iis.payload.data);
                         portfolioList.forEach(item => {
-                            if (item.contentMarker.prognosis) {
+                            if (item.contentMarker) {
                                 fetch(PROGNOSIS_URL.replace('${ticker}', item.symbol.ticker) + session_id).then(response => response.json())
                                     .then(prognosis => {
                                         res.payload.symbol.consensus = prognosis.payload.consensus;

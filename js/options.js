@@ -346,41 +346,45 @@ function create_portfolio_table(divId, data) {
             let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
             let bond = element.symbol.symbolType === 'Bond' ? '<span title="Облигации">📒</span>' : '';
             let short = element.symbol.lotSize < 0 ? '<span title="Short">📉</span>' : '';
+            let note = element.symbol.symbolType === 'Note' ? '<span title="Структурная нота">🗂</span>' : '';
             let liquid = liquidList.positions ? liquidList.positions.filter(liquid => liquid.ticker === element.symbol.ticker).length > 0 ? '<span title="Входит в список ликвидных бумаг">💼</span>' : '' : '';
             let country = '';
-            if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
+            //if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
             let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
+            let prognosis_style = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
+            let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
+                                ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
+                style: 'currency',
+                currency: element.symbol.consensus.currency,
+                minimumFractionDigits: element.symbol.consensus.consensus < 0.1 ? 4 : 2
+            })}
+                                </a><span class="percent" title="Прогнозируемое изменение с учетом текущей цены">
+                                ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
+                                </span>` : '';
             td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}</span>
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}${note}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
             if (element.symbol.dayLow) {
                 td1.appendChild(document.createElement("br"));
                 td1.appendChild(drawDayProgress(element));
             }
             let td2 = document.createElement('td');
-            td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${Object.keys(element.prices).length ? element.prices.last.value : 'нет'}</div>` +
-                (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
-                (element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
+            if (element.prices) {
+                td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices && Object.keys(element.prices).length ? element.prices.last.value : 'нет'}</div>` +
+                    (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
+                    (element.prices && element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/buy" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: element.prices.buy.currency,
-                    minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
-                }) : ''}</a></div>` : '') +
-                (element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
+                        style: 'currency',
+                        currency: element.prices.buy.currency,
+                        minimumFractionDigits: element.prices.buy.value < 0.1 ? 4 : 2
+                    }) : ''}</a></div>` : '') +
+                    (element.prices && element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/sell" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
-            let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-            let prognosis_link = element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
-        ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.symbol.consensus.currency,
-                minimumFractionDigits: element.symbol.consensus.consensus < 0.1 ? 4 : 2
-            })}
-        </a><span class="percent" title="Прогнозируемое изменение с учетом текущей цены">
-        ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
-        </span>` : '';
 
+            }
             let td3 = document.createElement('td');
+
             td3.width = '120';
             td3.align = 'left';
             let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
@@ -392,58 +396,65 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
                 })}</a>${prognosis_link}</div>`;
+
             let td4 = document.createElement('td');
-            td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.earnings.absolute.currency,
-                minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 1 ? 4 : 2
-            }) : element.symbol.isOTC && element.symbol.absoluteOTC ? element.symbol.absoluteOTC.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.symbol.averagePositionPrice.currency,
-                minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
-            }) + '*' : ''}</div>
+            if (element.prices) {
+                td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: element.earnings.absolute.currency,
+                    minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 1 ? 4 : 2
+                }) : element.symbol.isOTC && element.symbol.absoluteOTC ? element.symbol.absoluteOTC.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: element.symbol.averagePositionPrice.currency,
+                    minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
+                }) + '*' : ''}</div>
         <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.symbol.expectedYieldPerDayRelative ? (element.symbol.expectedYieldPerDayRelative * Math.sign(element.symbol.lotSize)).toLocaleString('ru-RU', {
-                style: 'percent',
-                maximumSignificantDigits: 2
-            }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
-                style: 'percent',
-                maximumSignificantDigits: 2
-            }) + '*' : ''}</strong></div>
+                    style: 'percent',
+                    maximumSignificantDigits: 2
+                }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
+                    style: 'percent',
+                    maximumSignificantDigits: 2
+                }) + '*' : ''}</strong></div>
         <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.symbol.currentAmount.currency
-            }) : element.symbol.isOTC && element.symbol.earningToday ? element.symbol.earningToday.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.symbol.currentAmount.currency
-            }) + '*' : ''}</div>`;
-            if (element.symbol.isOTC) td4.className = (element.symbol.relativeOTC || element.symbol.expectedYieldPerDayRelative) / 1 < 0 ? 'onlineSell' : 'onlineBuy';
-            else td4.className = element.earnings ? element.earnings.absolute.value / 1 * (element.symbol.lotSize) < 0 ? 'onlineSell' : 'onlineBuy' : ''; // если lotSize < 0 то шорт
+                    style: 'currency',
+                    currency: element.symbol.currentAmount.currency
+                }) : element.symbol.isOTC && element.symbol.earningToday ? element.symbol.earningToday.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: element.symbol.currentAmount.currency
+                }) + '*' : ''}</div>`;
 
+                if (element.symbol.isOTC) td4.className = (element.symbol.relativeOTC || element.symbol.expectedYieldPerDayRelative) / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+                else td4.className = element.earnings ? element.earnings.absolute.value / 1 * (element.symbol.lotSize) < 0 ? 'onlineSell' : 'onlineBuy' : ''; // если lotSize < 0 то шорт
 
+            }
             let td5 = document.createElement('td');
+
             td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize}</div>`;
 
             let td6 = document.createElement('td');
+
             td6.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.currentAmount.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.currentAmount.currency
             })}</div>`;
 
             let td7 = document.createElement('td');
-            if (element.symbol.expectedYield.value === 0 && element.symbol.status === 'process') {
-                td7.innerHTML = `<div data-ticker="${element.symbol.ticker}" title="Лимитная заявка">Еще не исполнена</div>`;
-                tr.className = 'process';
-            } else {
-                if (element.symbol.lotSize < 0) tr.className = 'short';
-                td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+            if (element.prices) {
+                if (element.symbol.expectedYield.value === 0 && element.symbol.status === 'process') {
+                    td7.innerHTML = `<div data-ticker="${element.symbol.ticker}" title="Лимитная заявка">Еще не исполнена</div>`;
+                    tr.className = 'process';
+                } else {
+                    if (element.symbol.lotSize < 0) tr.className = 'short';
+                    td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
 
-                td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
-                    style: 'currency',
-                    currency: element.symbol.expectedYield.currency
-                })}<br>${(element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
-                    style: 'percent',
-                    maximumSignificantDigits: 2
-                })}</div>`;
+                    td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
+                        style: 'currency',
+                        currency: element.symbol.expectedYield.currency
+                    })}<br>${(element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
+                        style: 'percent',
+                        maximumSignificantDigits: 2
+                    })}</div>`;
+                }
             }
             tr.appendChild(td1);
             tr.appendChild(td2);
