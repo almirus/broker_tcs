@@ -276,3 +276,101 @@ input[type="datetime-local"] {
 .close:hover {
     opacity: 1;
 }
+#news_table{
+    max-width: 725px;
+}
+#news_table .nav{
+    width: 725px;
+    height: 50px;
+}
+ul.navigation {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+.newsNav{
+    background-color: #e6dbf6;
+    padding: 5px;
+    cursor: pointer;
+    margin-right: 15px;
+    margin-bottom: 5px;
+    border-radius: 12px;
+    display: inline;
+    float: left;
+}
+.newsBody{
+    display: none;
+}
+.newsBody div,img{
+    max-width: 725px !important;
+}
+.newsAnnounce {
+    width: 725px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+.bordered{
+    border-bottom: solid 1px black;
+}
+.vedomosti{
+    background-color: #fff6f1;
+}
+h2.header{
+    padding-left: 10px;
+}
+h2.black{
+    color: black;
+    text-shadow: 2px 2px 5px #e6dbf6;
+}
+h2.white{
+    color: aliceblue;
+    text-shadow: 2px 2px 5px #756f7e;
+}
+.newsAnnounce .date{
+    padding: 10px;
+}
+.newsAnnounce .announce{
+    padding-left: 10px;
+}
+.newsAnnounce .black{
+    color: black;
+    text-shadow: 1px 1px 1px #d8d8d8;
+}
+.newsAnnounce .white{
+     color: white;
+     text-shadow: 1px 1px 1px #000000;
+}
+.forecast{
+    width: 725px;
+    cursor: pointer;
+}
+.forecast a{
+    width: 100%;
+    text-align: left;
+}
+.forecast h2.header{
+    max-width: 80%;
+    display:inline-block;
+}
+.forecast .recommendation{
+    color: white;
+    padding: 10px;
+    text-shadow: 1px 1px 1px #000000;
+    font-size: 12pt;
+}
+.forecast .logo{
+    border-radius: 50%;
+    float: right;
+    height: 60px;
+    width: 60px;
+    margin: 5px;
+}
+.dayNumber{
+    background: linear-gradient(to top left, #3399ff 0%, #ff66ff 100%);
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: white;
+    cursor: pointer;
+}

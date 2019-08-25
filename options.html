@@ -151,6 +151,8 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII=" />
                              title="Будут использованы виджеты сервиса tradingview, например, для построения графиков">
                     
                     </div>
+                    <input type="checkbox" name="sort_by_nearest" id="sort_by_nearest">
+                    <label id="label_sort_by_nearest" for="sort_by_nearest">Сортировать таблицу по "близости" к цели</label>
                 </fieldset>
                 <p><strong>Данное приложение неофициальное.</strong><br>Написано для себя, в виду отсутствия
                     необходимого функционала в TCS Broker.</p>
@@ -179,12 +181,8 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII=" />
                  title="Динамический график по избранным">
             <input type="radio" value="1" name="list_type" id="add_alert_list">
             <label for="add_alert_list">Добавить для отслеживания</label>
-            <!--
-            <input type="radio" value="2" name="list_type" id="add_orders" disabled>
-            <label for="add_orders">Онлайн заявки (скоро) 🤟</label><br>
-            -->
-            <input type="checkbox" name="sort_by_nearest" id="sort_by_nearest">
-            <label id="label_sort_by_nearest" for="sort_by_nearest">Сортировать таблицу по "близости" к цели</label>
+            <input type="radio" value="2" name="list_type" id="news">
+            <label for="news">Новости</label><br>
             <div id="alert_table"></div>
             <div id="price_table" style="display: none">
                 <label for="add_list_type">Добавить бумаги из</label>
@@ -209,6 +207,8 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII=" />
                     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
                 </div>
                 <!-- TradingView Widget END -->
+            </div>
+            <div id="news_table" style="display: none">
             </div>
         </fieldset>
     </div>

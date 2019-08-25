@@ -1,7 +1,7 @@
 'use strict';
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
-import {HEALTH} from "/js/constants.mjs";
+import {HEALTH, PROGNOS_LINK} from "/js/constants.mjs";
 
 export function fillCashData(msg, cash_str, cash_element_id) {
     let resultCash = 0;
@@ -13,6 +13,57 @@ export function fillCashData(msg, cash_str, cash_element_id) {
         }
     }
     document.getElementById(cash_element_id).innerHTML = (resultCash !== 0) ? cash_str : '';
+}
+
+export function renderNews(msg) {
+    let buffer = '<div class="nav"><ul class="navigation">' + (msg.news.nav_id ? '<li class="newsNav" data-nav="">Вся лента</li>' : '');
+    const itemType = {
+        review: 'Обзор',
+        news: '',
+        forecast: 'Прогноз',
+        company_news: 'Новости компаний',
+        day_number: 'Цифра дня'
+    };
+    buffer += msg.news.navs.map(item => {
+        return `<li class="newsNav" data-nav="${item.id}">${item.id === 49 ? '👑' : ''}${item.name}</li>`
+    }).join('') + '</ul></div>';
+    buffer += msg.news.items.map(news => {
+        switch (news.type) {
+            case 'forecast': {
+                news.item.logo_name = 'https://static.tinkoff.ru/brands/traiding/' + news.item.logo_name.replace('.', 'x160.');
+                let back_ground_color = shadeColor(news.item.logo_base_color, -20);
+                return `
+<div class="forecast bordered" style="background-color: ${back_ground_color}">
+<a href="${PROGNOS_LINK.replace('${symbol}', news.item.ticker).replace('${securityType}', 'stocks')}" target="_blank">
+        <h2 class="header white">${news.item.analyst} из ${news.item.company} про ${news.item.ticker}</h2>
+        <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(${news.item.logo_name});"></div>
+        <div class="recommendation">${news.item.recommendation}</div>
+</a>
+</div>`
+            }
+            case 'news':
+            case 'review': {
+                let is_vedomosti = news.item.provider && news.item.provider.id === 9;
+                let is_has_background = news.item.img_big;
+                return `
+<div data-id="${news.item.id}" class="newsAnnounce ${is_vedomosti ? 'vedomosti' : ''} bordered" title="Читать"
+     ${is_vedomosti ? '' : 'style="background-size: cover; background-image: url(' + news.item.img_big + ');"'}>
+     <h2 data-id="${news.item.id}" class="header ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.is_wm_content ? '👑' : ''}${news.item.title}</h2>
+     <div data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
+     <div data-id="${news.item.id}" class="date ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${itemType[news.type]} ${new Date(news.item.date).toLocaleDateString()}</div>
+</div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
+            }
+            case 'day_number': {
+                return `
+<div data-id="${news.item.id}" class="dayNumber">
+<h4 data-id="${news.item.id}">ЦИФРА ДНЯ ${new Date(news.item.date).toLocaleDateString()}</h4>
+<h2 data-id="${news.item.id}">${news.item.title}</h2>
+<div data-id="${news.item.id}" class="announce white">${news.item.announce}</div>
+</div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
+            }
+        }
+    }).join('');
+    document.getElementById('news_table').innerHTML = buffer;
 }
 
 // Функция преобразующая число в локальную валюту
@@ -69,7 +120,7 @@ function getAccountHtmlInfo(accountName, accountInfo) {
     let htmlTotalAmount = `<span style="font-weight: bold">${toCurrency(accountInfo.totalAmountPortfolio)}</span>`;
     let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYieldPerDay)}</span>`;
     let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYield)}</span>`;
-    let heart = accountInfo.marginAttributes ? `<span title="${HEALTH[accountInfo.marginAttributes.marginAccountStatus].title}">${HEALTH[accountInfo.marginAttributes.marginAccountStatus].heart}</span>`:'';
+    let heart = accountInfo.marginAttributes ? `<span title="${HEALTH[accountInfo.marginAttributes.marginAccountStatus].title}">${HEALTH[accountInfo.marginAttributes.marginAccountStatus].heart}</span>` : '';
     return `Счет ${heart} ${rusAccountName} ${htmlTotalAmount}, 
             доход по счету ${htmlExpectedYield}, 
             доход сегодня ${htmlExpectedYieldPerDay}<br>`;
@@ -273,4 +324,25 @@ export function drawGraph(data, canvas) {
     ctx.strokeRect(0, 0, width, height);
     ctx.restore();
     document.getElementById(canvas).appendChild(el);
+}
+
+function shadeColor(color, percent) {
+
+    let R = parseInt(color.substring(1, 3), 16);
+    let G = parseInt(color.substring(3, 5), 16);
+    let B = parseInt(color.substring(5, 7), 16);
+
+    R = parseInt(R * (100 + percent) / 100);
+    G = parseInt(G * (100 + percent) / 100);
+    B = parseInt(B * (100 + percent) / 100);
+
+    R = (R < 255) ? R : 255;
+    G = (G < 255) ? G : 255;
+    B = (B < 255) ? B : 255;
+
+    let RR = ((R.toString(16).length == 1) ? "0" + R.toString(16) : R.toString(16));
+    let GG = ((G.toString(16).length == 1) ? "0" + G.toString(16) : G.toString(16));
+    let BB = ((B.toString(16).length == 1) ? "0" + B.toString(16) : B.toString(16));
+
+    return "#" + RR + GG + BB;
 }

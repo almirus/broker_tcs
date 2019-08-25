@@ -18,6 +18,7 @@ import {
     INTERVAL_TO_CHECK,
     LIQUID_URL,
     LOGIN_URL,
+    NEWS_URL,
     OPERATIONS_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
@@ -279,37 +280,19 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     earnings: undefined,
                     contentMarker: undefined,
                     symbol: {
-                        dayLow: 0,
-                        dayHigh: 0,
-                        dayOpen: 0,
-                        lastOTC: '',
-                        absoluteOTC: 0,
-                        relativeOTC: 0,
-                        consensus: 0,
                         symbolType: 'Note',
                         isOTC: false,
-                        sessionOpen: '',
-                        sessionClose: '',
-                        premarketStartTime: '',
-                        premarketEndTime: '',
-                        marketEndTime: '',
-                        marketStartTime: '',
                         securityType: securityType,
                         ticker: element.ticker,
                         isin: element.isin,
                         status: element.status,
                         showName: symbol.payload.showName,
                         lotSize: element.currentBalance,
-                        expectedYieldRelative: element.expectedYieldRelative,
-                        expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
-                        expectedYield: expected_yield,
-                        currentPrice: element.currentPrice,
-                        currentAmount: current_amount || {
+                        currentAmount: {
                             value: symbol.payload.nominal * element.currentBalance,
                             currency: symbol.payload.currency
                         },
-                        earningToday: earning_today,
-                        averagePositionPrice: element.averagePositionPrice || {
+                        averagePositionPrice: {
                             value: symbol.payload.nominal,
                             currency: symbol.payload.currency
                         },
@@ -665,6 +648,27 @@ function getSubscriptions(session_id) {
             }).catch(ex => {
             console.log('cant get Subscriptions', ex);
             reject(undefined);
+        })
+    })
+}
+
+function getNews(nav_id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Get News');
+            fetch(NEWS_URL.replace('${nav_id}', nav_id) + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get News', json);
+                        reject([]);
+                    } else
+                        console.log('success get News');
+                    resolve(json.payload);
+                }).catch(ex => {
+                console.log('cant get News', ex);
+                reject(undefined);
+            })
         })
     })
 }
@@ -1313,6 +1317,15 @@ chrome.runtime.onConnect.addListener(function (port) {
                         {result: "listPrognosis"},
                         {list: list}));
                     console.log("send prognosis list .....");
+                });
+                break;
+            case 'getNews':
+                getNews(msg.params.nav_id).then(news => {
+                    news['nav_id'] = msg.params.nav_id
+                    port.postMessage(Object.assign({},
+                        {result: "news"},
+                        {news: news}));
+                    console.log("send news list .....");
                 });
                 break;
             default:

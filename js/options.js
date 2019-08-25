@@ -30,6 +30,7 @@ import {
     getAllAccountsHtmlInfo,
     getExportAccountHtml,
     msToTime,
+    renderNews,
     toCurrency,
     toPercent
 } from "./utils/displayUtils.js";
@@ -177,8 +178,31 @@ port.onMessage.addListener(function (msg) {
         case 'listLiquid':
             liquidList = msg.list;
             break;
+        case 'news':
+            renderNews(msg);
+            setNewsButton();
+            setNewsToggleButton();
+            break;
     }
 });
+
+function setNewsButton() {
+    Array.from(document.getElementsByClassName("newsNav")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            port.postMessage({method: "getNews", params: {nav_id: button.dataset.nav}});
+        })
+    })
+}
+
+function setNewsToggleButton() {
+    Array.from(document.querySelectorAll(".newsAnnounce, .dayNumber")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            document.getElementById(button.dataset.id).style.display = document.getElementById(button.dataset.id).style.display === "none" ? 'block' : 'none'
+        })
+    })
+}
 
 // назначаем динамически handler для отслеживания кнопки Добавить
 function setAddButtonHandler() {
@@ -352,7 +376,7 @@ function create_portfolio_table(divId, data) {
             //if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
             let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
             let prognosis_style = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-            let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
+            let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker).replace('${securityType}', element.symbol.securityType)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
                                 ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.consensus.currency,
@@ -829,15 +853,15 @@ document.getElementById('graphic').addEventListener('change', function (e) {
         }
     );
 });
-/*
-document.getElementById('add_orders').addEventListener('change', function (e) {
+
+document.getElementById('news').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('sort_by_nearest').style.display = 'none';
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
-    document.getElementById('orders_table').style.display = 'block';
+    document.getElementById('news_table').style.display = 'block';
 });
-*/
+
 // подгрузка списка акций по названию
 document.getElementById('symbol_name').addEventListener('input', function (e) {
     if (e.target.value) {
@@ -1047,6 +1071,7 @@ port.postMessage({method: "getAvailableCashIIS"});
 port.postMessage({method: "getVersionAPI"});
 port.postMessage({method: "getLiquid"});
 port.postMessage({method: "getPrognosis"});
+port.postMessage({method: "getNews", params: {nav_id: ''}});
 
 
 // запускаем фоновый пинг сервера + в нем все проверки
