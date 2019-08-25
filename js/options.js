@@ -199,7 +199,8 @@ function setNewsToggleButton() {
     Array.from(document.querySelectorAll(".newsAnnounce, .dayNumber")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
-            document.getElementById(button.dataset.id).style.display = document.getElementById(button.dataset.id).style.display === "none" ? 'block' : 'none'
+            document.getElementById(button.dataset.id).style.display = document.getElementById(button.dataset.id).style.display === "none"
+            || document.getElementById(button.dataset.id).style.display === ""? 'block' : 'none'
         })
     })
 }
