@@ -806,6 +806,7 @@ document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('sort_by_nearest').style.display = 'inline';
     document.getElementById('label_sort_by_nearest').style.display = 'inline';
     document.getElementById('graphic_table').style.display = 'none';
+    document.getElementById('news_table').style.display = 'none';
 });
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
@@ -814,6 +815,7 @@ document.getElementById('add_alert_list').addEventListener('change', function (e
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'block';
     document.getElementById('graphic_table').style.display = 'none';
+    document.getElementById('news_table').style.display = 'none';
 });
 document.getElementById('graphic').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
@@ -822,6 +824,7 @@ document.getElementById('graphic').addEventListener('change', function (e) {
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('graphic_table').style.display = 'block';
+    document.getElementById('news_table').style.display = 'none';
     // общий список
     new TradingView.widget(
         {
