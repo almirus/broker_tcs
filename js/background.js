@@ -737,7 +737,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                             res.payload.symbol.dayLow = json.payload.dayLow;
                             res.payload.symbol.dayOpen = json.payload.dayOpen;
 
-                            if (res.payload.contentMarker) {
+                            if (res.payload.contentMarker.prognosis) {
                                 console.log('try to get prognosis for', tickerName);
                                 fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
                                     .then(prognosis => {
