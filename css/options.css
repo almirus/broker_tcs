@@ -277,10 +277,10 @@ input[type="datetime-local"] {
     opacity: 1;
 }
 #news_table{
-    max-width: 725px;
+
 }
 #news_table .nav{
-    width: 725px;
+
     margin-top: 20px;
 }
 ul.navigation {
@@ -305,7 +305,7 @@ ul.navigation {
     max-width: 725px !important;
 }
 .newsAnnounce {
-    width: 725px;
+
     background-position: center center;
     background-repeat: no-repeat;
     cursor: pointer;
@@ -342,7 +342,6 @@ h2.white{
      text-shadow: 1px 1px 1px #000000;
 }
 .forecast{
-    width: 725px;
     cursor: pointer;
 }
 .forecast a{
