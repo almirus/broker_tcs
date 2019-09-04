@@ -63,7 +63,7 @@ export const ALERT_TICKER_LIST = 'alertTickerList';
 //up to 5 API requests per minute and 500 requests per day
 export const ALPHAVANTAGE_KEY = 'M3JMJM8U22EIIO2Y';
 export const AV_SYMBOL_URL = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=';
-
+//https://rest-demo.tradingview.com/tradingview/v1/mapping
 export const USD_RUB = 'USDRUB';
 export const EUR_RUB = 'EURRUB';
 export const HEALTH = {
@@ -96,16 +96,66 @@ export class Price {
 }
 
 export class Symbol {
-    constructor() {
+    couponsAcquired;
+    currentPrice;
+    stopOrders = [];
+    isin;
+    averagePositionPrice;
+    securityType;
+    currentBalance;
+    expectedYield;
+    expectedYieldPerDayRelative;
+    couponsYield;
+    ticker;
+    expectedYieldPerDay;
+    limits;
+    expectedYieldRelative;
+    currentAmount;
+    symbolOwner;
+    prognosis;
+    constructor(data) {
+        Object.assign(this, data);
+    }
 
+    set prognosis(prognosis) {
+        this.prognosis = prognosis;
     }
 }
 
 
-export class Portfolio {
+class StockList {
+    list = [];
 
+    constructor(data = []) {
+        data.forEach(item => {
+            this.list.push(new Symbol(item))
+        })
+    }
 
+    add(symbol, symbolOwner) {
+        this.list.push(symbol);
+    }
+
+    remove(isin) {
+
+    }
 }
+
+export class Portfolio extends StockList {
+    totalAmountNotes;
+    benefits;
+    totalAmountCurrencies;
+    totalAmountEtf;
+    totalAmountStocks;
+    totalAmountBonds;
+    expectedYield;
+    expectedYieldPerDayRelative;
+    portfolioAmountByCurrency;
+    totalAmountPortfolio;
+    expectedYieldPerDay;
+    expectedYieldRelative;
+}
+
 
 //hold
 /*{

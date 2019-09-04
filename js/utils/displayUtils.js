@@ -26,7 +26,7 @@ export function renderNews(msg) {
     };
     buffer += msg.news.navs.map(item => {
         return `<li class="newsNav" data-nav="${item.id}">${item.id === 49 ? '👑' : ''}${item.name}</li>`
-    }).join('') + '</ul></div>';
+    }).join('') + '</ul></div><div style="clear: both;"></div>';
     buffer += msg.news.items.map(news => {
         switch (news.type) {
             case 'forecast': {

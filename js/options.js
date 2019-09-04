@@ -190,6 +190,7 @@ function setNewsButton() {
     Array.from(document.getElementsByClassName("newsNav")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
+            document.getElementById('news_table').innerHTML="<h2>Загрузка</h2>";
             port.postMessage({method: "getNews", params: {nav_id: button.dataset.nav}});
         })
     })
@@ -433,7 +434,7 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
                 }) + '*' : ''}</div>
-        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.symbol.expectedYieldPerDayRelative ? (element.symbol.expectedYieldPerDayRelative * Math.sign(element.symbol.lotSize)).toLocaleString('ru-RU', {
+        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.symbol.expectedYieldPerDayRelative!==undefined ? (element.symbol.expectedYieldPerDayRelative * Math.sign(element.symbol.lotSize)).toLocaleString('ru-RU', {
                     style: 'percent',
                     maximumSignificantDigits: 2
                 }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
@@ -719,8 +720,11 @@ function create_alert_table(data_list) {
                     if (element.orderId || element.subscriptPrice) { //StopLoss TakeProfit Subscriptions
                         td4.className = '';
                         td4.align = 'center';
-
-                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="${(element.orderId).length > 6 ? 'Удалить заявку' : 'Удалить takeprofit/stoploss'}" class="close"></span>, <strong title="${element.status === 'New' ? 'Заявка' : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
+                        let status = {
+                            PartiallyFill: 'Частично исполненная заявка',
+                            New: 'Заявка'
+                        };
+                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="${(element.orderId).length > 6 ? 'Удалить заявку' : 'Удалить takeprofit/stoploss'}" class="close"></span>, <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
                         else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}"  title="Удалить уведомление" class="close"></span>`).join('');
                     }
 
@@ -1107,6 +1111,6 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 });
 
 let liquidList = {};
-let prognosisList = {};
+let portfolioList = {};
 
 
