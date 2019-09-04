@@ -288,7 +288,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                         status: element.status,
                         showName: symbol.payload.showName,
                         lotSize: element.currentBalance,
-                        currentAmount: {
+                        currentAmount: element.currentAmount ? element.currentAmount : {
                             value: symbol.payload.nominal * element.currentBalance,
                             currency: symbol.payload.currency
                         },
