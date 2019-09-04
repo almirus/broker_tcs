@@ -34,6 +34,7 @@ export const SYMBOL_FUNDAMENTAL_URL = 'https://api.tinkoff.ru/trading/stocks/fun
 export const OPERATIONS_URL = 'https://api.tinkoff.ru/trading/user/operations?sessionId='; //{"from":"2015-03-01T00:00:00Z","to":"2019-07-24T08:42:44Z","overnightsDisabled":true}
 export const SUBSCRIPTIONS_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_subscriptions?sessionId=';
 export const LIQUID_URL = 'https://api.tinkoff.ru/trading/portfolio/liquid_portfolio?sessionId=';
+export const RECALIBRATION_LINK = 'https://www.tinkoff.ru/invest/recommendations/recalibration/';
 
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';

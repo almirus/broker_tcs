@@ -21,7 +21,8 @@ import {
     PROGNOS_LINK,
     SIGN_OUT_URL,
     SYMBOL_LINK,
-    TICKER_LIST
+    TICKER_LIST,
+    RECALIBRATION_LINK
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
@@ -35,7 +36,6 @@ import {
     toPercent
 } from "./utils/displayUtils.js";
 import {debounce, throttle} from "./utils/systemUtils.js";
-
 
 Array.from(document.getElementsByClassName('toggle')).forEach(function (input) {
     input.addEventListener('click', function (event) {
@@ -190,7 +190,7 @@ function setNewsButton() {
     Array.from(document.getElementsByClassName("newsNav")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
-            document.getElementById('news_table').innerHTML="<h2>Загрузка</h2>";
+            document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";
             port.postMessage({method: "getNews", params: {nav_id: button.dataset.nav}});
         })
     })
@@ -201,7 +201,7 @@ function setNewsToggleButton() {
         input.addEventListener('click', function (e) {
             let button = e.target;
             document.getElementById(button.dataset.id).style.display = document.getElementById(button.dataset.id).style.display === "none"
-            || document.getElementById(button.dataset.id).style.display === ""? 'block' : 'none'
+            || document.getElementById(button.dataset.id).style.display === "" ? 'block' : 'none'
         })
     })
 }
@@ -377,6 +377,7 @@ function create_portfolio_table(divId, data) {
             let country = '';
             //if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
             let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
+            let warning = element.contentMarker && element.contentMarker.recalibration ? '<span title="Есть негативные новости по иструменту"><a href="'+RECALIBRATION_LINK+element.symbol.ticker+'" target="_blank">💀</a></span>' : '';
             let prognosis_style = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
             let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker).replace('${securityType}', element.symbol.securityType)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
                                 ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
@@ -388,7 +389,7 @@ function create_portfolio_table(divId, data) {
                                 ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
                                 </span>` : '';
             td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}${note}</span>
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}${note}${warning}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
             if (element.symbol.dayLow) {
                 td1.appendChild(document.createElement("br"));
@@ -434,7 +435,7 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
                 }) + '*' : ''}</div>
-        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.symbol.expectedYieldPerDayRelative!==undefined ? (element.symbol.expectedYieldPerDayRelative * Math.sign(element.symbol.lotSize)).toLocaleString('ru-RU', {
+        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.symbol.expectedYieldPerDayRelative !== undefined ? (element.symbol.expectedYieldPerDayRelative * Math.sign(element.symbol.lotSize)).toLocaleString('ru-RU', {
                     style: 'percent',
                     maximumSignificantDigits: 2
                 }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
@@ -455,7 +456,7 @@ function create_portfolio_table(divId, data) {
             }
             let td5 = document.createElement('td');
 
-            td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize}</div>`;
+            td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize} ${element.blocked ? '<div>🔒' + element.blocked + '</div>' : ''}</div>`;
 
             let td6 = document.createElement('td');
 
