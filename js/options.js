@@ -18,7 +18,7 @@ import {
     OPTION_SESSION,
     OPTION_SORT_BY_NEAREST,
     port,
-    PROGNOS_LINK,
+    PROGNOSIS_LINK,
     RECALIBRATION_LINK,
     SIGN_OUT_URL,
     SYMBOL_LINK,
@@ -378,15 +378,15 @@ function create_portfolio_table(divId, data) {
             //if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
             let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
             let warning = element.contentMarker && element.contentMarker.recalibration ? '<span title="Есть негативные новости по иструменту"><a href="' + RECALIBRATION_LINK + element.symbol.ticker + '" target="_blank">💀</a></span>' : '';
-            let prognosis_style = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-            let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker).replace('${securityType}', element.symbol.securityType)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
+            let prognosis_style = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
+            let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', element.symbol.ticker).replace('${securityType}', element.symbol.securityType)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.recommendation}">
                                 ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.consensus.currency,
                 minimumFractionDigits: element.symbol.consensus.consensus < 0.1 ? 4 : 2
             })}
                                 </a><span class="percent" title="Прогнозируемое изменение с учетом текущей цены">
-                                ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
+                                ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.price_change_rel.toFixed(2)} %
                                 </span>` : '';
             td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}${note}${warning}</span>

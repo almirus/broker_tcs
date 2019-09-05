@@ -10,7 +10,7 @@ export const ALL_ACCOUNTS = 'https://api.tinkoff.ru/trading/portfolio/all_accoun
 export const BUY_LINK = 'https://www.tinkoff.ru/invest/buy/';
 export const SELL_LINK = 'https://www.tinkoff.ru/invest/sell/';
 export const EVENTS_LINK = 'https://www.tinkoff.ru/invest/stocks/${symbol}/events/';
-export const PROGNOS_LINK = 'https://www.tinkoff.ru/invest/${securityType}/${symbol}/prognosis/';
+export const PROGNOSIS_LINK = 'https://www.tinkoff.ru/invest/${securityType}/${symbol}/prognosis/';
 //export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/broker_account/stock/';
 export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/${securityType}/';
 export const PING_URL = 'https://api.tinkoff.ru/v1/ping?sessionid=';
@@ -18,7 +18,7 @@ export const PRICE_URL = 'https://api.tinkoff.ru/trading/${securityType}/price?s
 export const CURRENCY_PRICE_URL = 'https://api.tinkoff.ru/trading/currency/price?sessionId=';
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/${securityType}/get?sessionId=';
 export const CURRENCY_SYMBOL_URL = 'https://api.tinkoff.ru/trading/currency/get?sessionId=';
-export const PROGNOSIS_URL = 'https://api.tinkoff.ru/trading/stocks/prognosis?ticker=${ticker}&sessionId=';
+export const PROGNOSIS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/instruments/${ticker}/forecasts?id_kind=ticker&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const SET_ALERT_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_alert?ticker=${ticker}&price=${price}&sessionId=';
 export const ORDERS_URL = 'https://api.tinkoff.ru/trading/user/orders?sessionId=';
 export const STOP_URL = 'https://api.tinkoff.ru/trading/user/stop_orders?appName=invest_terminal&appVersion=1.0.0&sessionId=';

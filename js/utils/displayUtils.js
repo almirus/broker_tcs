@@ -1,7 +1,7 @@
 'use strict';
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
-import {HEALTH, PROGNOS_LINK} from "/js/constants.mjs";
+import {HEALTH, PROGNOSIS_LINK} from "/js/constants.mjs";
 
 export function fillCashData(msg, cash_str, cash_element_id) {
     let resultCash = 0;
@@ -35,7 +35,7 @@ export function renderNews(msg) {
                 let back_ground_color = shadeColor(news.item.logo_base_color, -20);
                 return `
 <div class="forecast bordered" style="background-color: ${back_ground_color}">
-<a href="${PROGNOS_LINK.replace('${symbol}', news.item.ticker).replace('${securityType}', 'stocks')}" target="_blank">
+<a href="${PROGNOSIS_LINK.replace('${symbol}', news.item.ticker).replace('${securityType}', 'stocks')}" target="_blank">
         <h2 class="header white">${news.item.analyst} из ${news.item.company} про ${news.item.ticker}</h2>
         <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(${news.item.logo_name});"></div>
         <div class="recommendation">${news.item.recommendation}</div>
