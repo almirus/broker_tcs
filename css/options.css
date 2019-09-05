@@ -383,3 +383,12 @@ h2.white{
     color: white;
     cursor: pointer;
 }
+.pulse{
+    text-align: left;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: black;
+    border-top: solid black 1px;
+    border-bottom: solid black 1px;
+;
+}

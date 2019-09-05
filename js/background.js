@@ -1361,6 +1361,15 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send news list .....");
                 });
                 break;
+                case 'getPulse':
+                getNews(msg.params.nav_id).then(news => {
+                    news['nav_id'] = msg.params.nav_id;
+                    port.postMessage(Object.assign({},
+                        {result: "pulse"},
+                        {news: news}));
+                    console.log("send puls list .....");
+                });
+                break;
             default:
                 port.postMessage('unknown request');
         }

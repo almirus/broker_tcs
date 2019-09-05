@@ -45,7 +45,7 @@ export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts
 
 //{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
-export const NEWS_URL = 'https://api-invest.tinkoff.ru//smartfeed-public/v1/feed/api/main?nav_id=${nav_id}&limit=30&deviceId=2cb59723b132726c&appVersion=3.7.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${nav_id}&limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 
 export const INTERVAL_TO_CHECK = 1;//min
 export const OPTION_COSMETICS = 'cosmetic';

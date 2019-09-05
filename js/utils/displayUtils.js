@@ -16,7 +16,7 @@ export function fillCashData(msg, cash_str, cash_element_id) {
 }
 
 export function renderNews(msg) {
-    let buffer = '<div class="nav"><ul class="navigation">' + (msg.news.nav_id ? '<li class="newsNav" data-nav="">Вся лента</li>' : '');
+    let buffer = '<div class="nav"><ul class="navigation">' + (msg.news.nav_id && msg.news.navs.length > 0 ? '<li class="newsNav" data-nav="">Вся лента</li>' : '');
     const itemType = {
         review: 'Обзор',
         news: '',
@@ -61,6 +61,19 @@ export function renderNews(msg) {
 <h2 data-id="${news.item.id}">${news.item.title}</h2>
 <div data-id="${news.item.id}" class="announce white">${news.item.announce}</div>
 </div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
+            }
+            case 'social_operation': {
+                return `
+<div data-id="${news.item.id}" class="pulse">
+<h4 data-id="${news.item.id}">${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
+${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${news.item.price}
+</h4></div>`
+            }
+            case 'social_post': {
+                return `
+<div data-id="${news.item.id}" class="pulse">
+<h4 data-id="${news.item.id}">${news.item.profile.nickname} написал ${new Date(news.item.date).toLocaleDateString()} 
+</h4>${news.item.text}</div>`
             }
         }
     }).join('');

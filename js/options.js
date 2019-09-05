@@ -183,6 +183,9 @@ port.onMessage.addListener(function (msg) {
             setNewsButton();
             setNewsToggleButton();
             break;
+        case 'pulse':
+            renderNews(msg);
+            break;
     }
 });
 
@@ -264,6 +267,7 @@ function setDeleteButtonHandler() {
             if (/^\d+$/.test(id) && confirm(`${status === 'progress' ? 'TakeProfit/StopLoss будет снят, Вы уверены?' : 'Заявка будет снята, Вы уверены?'}`)) {
                 if (status === 'progress') port.postMessage({method: "cancelStop", params: id}); // takeprofit или stoploss
                 else port.postMessage({method: "deleteOrder", params: id});
+                // иначе уведомление
             } else if (id) port.postMessage({method: "unsubscribe", params: id});
         }, {
             once: true,
@@ -863,6 +867,15 @@ document.getElementById('news').addEventListener('change', function (e) {
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'block';
+    port.postMessage({method: "getNews", params: {nav_id: ''}});
+});
+document.getElementById('pulse').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('sort_by_nearest').style.display = 'none';
+    document.getElementById('label_sort_by_nearest').style.display = 'none';
+    document.getElementById('price_table').style.display = 'none';
+    document.getElementById('news_table').style.display = 'block';
+    port.postMessage({method: "getPulse", params: {nav_id: 61}});
 });
 
 // подгрузка списка акций по названию
