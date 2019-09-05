@@ -35,7 +35,7 @@ import {
     toCurrency,
     toPercent
 } from "./utils/displayUtils.js";
-import {debounce, throttle} from "./utils/systemUtils.js";
+import {throttle} from "./utils/systemUtils.js";
 
 Array.from(document.getElementsByClassName('toggle')).forEach(function (input) {
     input.addEventListener('click', function (event) {
@@ -215,7 +215,7 @@ function setAddButtonHandler() {
             let showName = button.dataset.showname;
             let buy_price = document.getElementById('buy_price_' + button.dataset.ticker).value;
             let sell_price = document.getElementById('sell_price_' + button.dataset.ticker).value;
-            let mobile_alert = document.getElementById('mobile_alert_' + button.dataset.ticker).checked;
+            let mobile_alert = 1;
             let date = document.getElementById('datetime_' + button.dataset.ticker).value;
             let mobile_alert_price;
             if (mobile_alert && buy_price && sell_price) {
@@ -259,19 +259,12 @@ function setDeleteButtonHandler() {
             let button = e.target;
             let id = button.dataset.index;
             let status = button.dataset.status;
-            // если число, то это уведомление с сервера с OrderId, иначе чисто наше уведомление о достижении цены
-            if (/^\d+$/.test(id) && confirm("Заявка будет снята, Вы уверены?")) {
-                if (status) port.postMessage({method: "cancelStop", params: id}); // takeprofit или stoploss
+            button.style.display = 'none';
+            // только числа - заявка
+            if (/^\d+$/.test(id) && confirm(`${status === 'progress' ? 'TakeProfit/StopLoss будет снят, Вы уверены?' : 'Заявка будет снята, Вы уверены?'}`)) {
+                if (status === 'progress') port.postMessage({method: "cancelStop", params: id}); // takeprofit или stoploss
                 else port.postMessage({method: "deleteOrder", params: id});
-            } else
-                chrome.storage.sync.get([TICKER_LIST], function (data) {
-                    let alert_data = data[TICKER_LIST] || [];
-                    let new_alert_date = alert_data.filter(item => !(!!item && (item.ticker + (item.sell_price || '0') + (item.buy_price || '0')) === id));
-                    chrome.storage.sync.set({[TICKER_LIST]: new_alert_date}, function () {
-                        console.log('Save ticker ' + JSON.stringify(new_alert_date));
-                        //create_alert_table(alert_data);
-                    })
-                });
+            } else if (id) port.postMessage({method: "unsubscribe", params: id});
         }, {
             once: true,
         });
@@ -554,7 +547,7 @@ function create_table(data) {
             td5.innerHTML = `<input type="datetime-local" id="datetime_${element.symbol.ticker}" title="Если не установлено, то бессрочно. Не забудьте добавить время">`;
             let td6 = document.createElement('td');
             //td6.width = '50';
-            td6.innerHTML = `<input type="checkbox" id="mobile_alert_${element.symbol.ticker}" title="При достижении цены оповещение также сработает на телефоне в приложении Брокера&#013;Уведомления на телефоне бессрочные и срабатывают только по last price"><label class="icon" for="mobile_alert_${element.symbol.ticker}">📳</label>`;
+            //td6.innerHTML = `<input type="checkbox" id="mobile_alert_${element.symbol.ticker}" title="При достижении цены оповещение также сработает на телефоне в приложении Брокера&#013;Уведомления на телефоне бессрочные и срабатывают только по last price"><label class="icon" for="mobile_alert_${element.symbol.ticker}">📳</label>`;
             let td7 = document.createElement('td');
             td7.className = 'tickerCol';
             td7.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
@@ -725,8 +718,8 @@ function create_alert_table(data_list) {
                             PartiallyFill: 'Частично исполненная заявка',
                             New: 'Заявка'
                         };
-                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" title="${(element.orderId).length > 6 ? 'Удалить заявку' : 'Удалить takeprofit/stoploss'}" class="close"></span>, <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
-                        else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}"  title="Удалить уведомление" class="close"></span>`).join('');
+                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span>, <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
+                        else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('');
                     }
 
                     let td6 = document.createElement('td');
@@ -741,7 +734,7 @@ function create_alert_table(data_list) {
                         : 'бессрочно';
                     td6.align = 'center';
                     if (element.orderId) {
-                        if (element.operationType ==='Sell') tr.className = element.status === 'PartiallyFill' ? 'onlineSellPartial' : 'isOnlineOrderSell';
+                        if (element.operationType === 'Sell') tr.className = element.status === 'PartiallyFill' ? 'onlineSellPartial' : 'isOnlineOrderSell';
                         else tr.className = element.status === 'PartiallyFill' ? 'onlineBuyPartial' : 'isOnlineOrderBuy';
                     }
                     let td7 = document.createElement('td');
@@ -751,11 +744,11 @@ function create_alert_table(data_list) {
                     })}</strong>`;
                     td7.className = '';
                     td7.align = 'center';
-                    let td8 = document.createElement('td');
-                    // hash for delete = ticker+sellprice+buyprice
-                    if (element.orderId && element.status || !element.orderId)
-                        td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" data-status="${element.status}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
-                    else td8.innerHTML = '';
+                    /*                    let td8 = document.createElement('td');
+                                        // hash for delete = ticker+sellprice+buyprice
+                                        if (element.orderId && element.status || !element.orderId)
+                                            td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" data-status="${element.status}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
+                                        else td8.innerHTML = '';*/
                     tr.appendChild(td1);
                     tr.appendChild(td2);
                     tr.appendChild(td3);
@@ -1107,7 +1100,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     for (let key in changes) {
 
         // перерисовываем таблицу с уведомлениями при изменении Storage
-        if (key === TICKER_LIST) debounce(create_alert_table(), 1000);
+        //if (key === TICKER_LIST) debounce(create_alert_table(), 1000);
 
     }
 });

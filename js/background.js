@@ -45,6 +45,7 @@ import {
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
+    UNSUBSCRIBE,
     USD_RUB,
     USER_URL
 } from "/js/constants.mjs";
@@ -386,6 +387,31 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
 }
 
 /**
+ * Удаляет уведомление с мобильного
+ * @param orderId
+ * @return {Promise<any>}
+ */
+function unsubscribe(orderId) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(UNSUBSCRIBE.replace('${orderId}', orderId) + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant delete subscribe', json);
+                        reject(undefined);
+                    } else
+                        console.log('success subscribe order');
+                    resolve(json);
+                }).catch(ex => {
+                console.log('cant delete subscribe', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
+/**
  * Отменяет тейкпрофит и стоплосс
  * @param orderId
  * @param brokerAccountType
@@ -394,27 +420,17 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
 function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
-            fetch(CANCEL_STOP + session_id, {
-                method: "POST",
-                body: JSON.stringify({
-                    orderId: orderId,
-                    brokerAccountType: brokerAccountType
-                }),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                }
-            })
+            fetch(CANCEL_STOP.replace('${orderId}', orderId).replace('${brokerAccountType}', brokerAccountType) + session_id)
                 .then(response => response.json())
                 .then(json => {
                     if (json.status === 'Error') {
-                        console.log('cant delete order', json);
+                        console.log('cant delete stop', json);
                         reject(undefined);
                     } else
-                        console.log('success deleting order');
+                        console.log('success deleting stop');
                     resolve(json);
                 }).catch(ex => {
-                console.log('cant delete order', ex);
+                console.log('cant delete stop', ex);
                 reject(undefined);
             })
         })
@@ -1267,6 +1283,20 @@ chrome.runtime.onConnect.addListener(function (port) {
                 cancelStop(msg.params)
                     .then(result => {
                             console.log('try to delete order', result);
+                            updateAlertPrices().then(function (alert_list) {
+                                console.log("send message tickerInfo .....");
+                                port.postMessage(alert_list);
+                            })
+                        }
+                    )
+                    .catch(e => {
+                        console.log(`cant send delete order, because ${e}`)
+                    });
+                break;
+            case 'unsubscribe':
+                unsubscribe(msg.params)
+                    .then(result => {
+                            console.log('try to unsubscribe', result);
                             updateAlertPrices().then(function (alert_list) {
                                 console.log("send message tickerInfo .....");
                                 port.postMessage(alert_list);

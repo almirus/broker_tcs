@@ -254,7 +254,9 @@ input[type="datetime-local"] {
     border-radius: 15%;
     display: inline-block;
 }
-
+.subscribePrice:active {
+    background-color: red;
+}
 .close {
     position: absolute;
     border-radius: 50%;
