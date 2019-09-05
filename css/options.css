@@ -55,6 +55,14 @@ tr.short td{
     color: red !important;
 }
 
+.onlineBuyPartial {
+    background-color: #009900;
+}
+
+.onlineSellPartial {
+    background-color: #c50000;
+}
+
 div.fieldsetRow {
     display: flex;
 }

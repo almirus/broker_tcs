@@ -19,10 +19,10 @@ import {
     OPTION_SORT_BY_NEAREST,
     port,
     PROGNOS_LINK,
+    RECALIBRATION_LINK,
     SIGN_OUT_URL,
     SYMBOL_LINK,
-    TICKER_LIST,
-    RECALIBRATION_LINK
+    TICKER_LIST
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
@@ -377,7 +377,7 @@ function create_portfolio_table(divId, data) {
             let country = '';
             //if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
             let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
-            let warning = element.contentMarker && element.contentMarker.recalibration ? '<span title="Есть негативные новости по иструменту"><a href="'+RECALIBRATION_LINK+element.symbol.ticker+'" target="_blank">💀</a></span>' : '';
+            let warning = element.contentMarker && element.contentMarker.recalibration ? '<span title="Есть негативные новости по иструменту"><a href="' + RECALIBRATION_LINK + element.symbol.ticker + '" target="_blank">💀</a></span>' : '';
             let prognosis_style = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
             let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker).replace('${securityType}', element.symbol.securityType)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
                                 ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
@@ -741,7 +741,8 @@ function create_alert_table(data_list) {
                         : 'бессрочно';
                     td6.align = 'center';
                     if (element.orderId) {
-                        if (opacity_rate < 0) tr.className = 'isOnlineOrderSell'; else tr.className = 'isOnlineOrderBuy';
+                        if (element.operationType ==='Sell') tr.className = element.status === 'PartiallyFill' ? 'onlineSellPartial' : 'isOnlineOrderSell';
+                        else tr.className = element.status === 'PartiallyFill' ? 'onlineBuyPartial' : 'isOnlineOrderBuy';
                     }
                     let td7 = document.createElement('td');
                     td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
