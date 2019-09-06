@@ -358,7 +358,7 @@ h2.white{
 .forecast{
     cursor: pointer;
 }
-.forecast a{
+.forecast a.width100, .pulse a.width100{
     width: 100%;
     text-align: left;
 }
@@ -379,6 +379,17 @@ h2.white{
     width: 60px;
     margin: 5px;
 }
+.newsAnnounce .logo{
+    border-radius: 50%;
+    float: right;
+    height: 30px;
+    width: 30px;
+    margin-left: -15px;
+}
+.logoContainer{
+    float: right;
+    margin-right: 20px;
+}
 .dayNumber{
     background: linear-gradient(to top left, #3399ff 0%, #ff66ff 100%);
     text-align: center;
@@ -394,5 +405,5 @@ h2.white{
     color: black;
     border-top: solid black 1px;
     border-bottom: solid black 1px;
-;
+    cursor: default !important;
 }

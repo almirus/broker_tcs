@@ -1,7 +1,7 @@
 'use strict';
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
-import {HEALTH, PROGNOSIS_LINK} from "/js/constants.mjs";
+import {HEALTH, PROGNOSIS_LINK, SYMBOL_LINK} from "/js/constants.mjs";
 
 export function fillCashData(msg, cash_str, cash_element_id) {
     let resultCash = 0;
@@ -35,7 +35,7 @@ export function renderNews(msg) {
                 let back_ground_color = shadeColor(news.item.logo_base_color, -20);
                 return `
 <div class="forecast bordered" style="background-color: ${back_ground_color}">
-<a title="Открыть прогноз в новом окне" href="${PROGNOSIS_LINK.replace('${symbol}', news.item.ticker).replace('${securityType}', 'stocks')}" target="_blank">
+<a class="width100" title="Открыть прогноз в новом окне" href="${PROGNOSIS_LINK.replace('${symbol}', news.item.ticker).replace('${securityType}', 'stocks')}" target="_blank">
         <h2 class="header white">${news.item.analyst} из ${news.item.company} про ${news.item.ticker}</h2>
         <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(${news.item.logo_name});"></div>
         <div class="recommendation">${news.item.recommendation}</div>
@@ -46,10 +46,15 @@ export function renderNews(msg) {
             case 'review': {
                 let is_vedomosti = news.item.provider && news.item.provider.id === 9;
                 let is_has_background = news.item.img_big;
+                let tickers = news.item.tickers.map(item => {
+                    return `<div class="logo" title = "${item.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + item.logo_name.replace('.', 'x160.')});"></div>`;
+                }).join('');
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce ${is_vedomosti ? 'vedomosti' : ''} bordered" title="Читать"
      ${is_vedomosti ? '' : 'style="background-size: cover; background-image: url(' + news.item.img_big + ');"'}>
-     <h2 data-id="${news.item.id}" class="header ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.is_wm_content ? '👑' : ''}${news.item.title}</h2>
+     <h2 data-id="${news.item.id}" class="header ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.is_wm_content ? '👑' : ''}${news.item.title}
+     <div class="logoContainer">${tickers}</div>
+     </h2>     
      <div data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
      <div data-id="${news.item.id}" class="date ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${itemType[news.type]} ${new Date(news.item.date).toLocaleDateString()}</div>
 </div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
@@ -63,17 +68,27 @@ export function renderNews(msg) {
 </div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
             }
             case 'social_operation': {
+                let ticker = news.item.ticker ? `<div class="logo" title = "${news.item.ticker.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + news.item.ticker.logo_name.replace('.', 'x160.')});"></div>` : '';
+                let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
                 return `
-<div data-id="${news.item.id}" class="pulse">
-<h4 data-id="${news.item.id}">${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
-${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${news.item.price}
-</h4></div>`
+<div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
+<a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', news.item.ticker.type + 's') + news.item.ticker.ticker}" target="_blank">
+<h2 class="header white" data-id="${news.item.id}">🔥 ${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
+${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(2))}
+<div class="logoContainer">${ticker}</div>
+</h2>${likes}</a></div>`
             }
             case 'social_post': {
+                let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
+                let text = news.item.text;
+                news.item.tickers.forEach(item => {
+                    let regex = "\{\$" + item.ticker + "\}";
+                    text = text.split(regex).join(`<a href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">${item.ticker}</a>`);
+                });
                 return `
-<div data-id="${news.item.id}" class="pulse">
-<h4 data-id="${news.item.id}">${news.item.profile.nickname} написал ${new Date(news.item.date).toLocaleDateString()} 
-</h4>${news.item.text}</div>`
+<div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
+<h2 data-id="${news.item.id}">${news.item.profile.nickname} написал ${new Date(news.item.date).toLocaleDateString()} 
+</h2>${text}<br>${likes}</div>`
             }
         }
     }).join('');
