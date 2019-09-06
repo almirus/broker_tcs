@@ -317,7 +317,9 @@ ul.navigation {
 }
 .newsBody div,img{
     max-width: 725px !important;
+    margin: 0 !important;
 }
+
 .newsAnnounce {
 
     background-position: center center;
