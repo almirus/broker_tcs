@@ -263,12 +263,15 @@ function setDeleteButtonHandler() {
             let id = button.dataset.index;
             let status = button.dataset.status;
             button.style.display = 'none';
+            let prevNode = button.previousElementSibling;
+            prevNode.style.display = 'none';
             // только числа - заявка
             if (/^\d+$/.test(id) && confirm(`${status === 'progress' ? 'TakeProfit/StopLoss будет снят, Вы уверены?' : 'Заявка будет снята, Вы уверены?'}`)) {
                 if (status === 'progress') port.postMessage({method: "cancelStop", params: id}); // takeprofit или stoploss
                 else port.postMessage({method: "deleteOrder", params: id});
                 // иначе уведомление
             } else if (id) port.postMessage({method: "unsubscribe", params: id});
+            port.postMessage({method: "updateAlertPrices"});
         }, {
             once: true,
         });
@@ -831,7 +834,7 @@ document.getElementById('graphic').addEventListener('change', function (e) {
     // общий список
     new TradingView.widget(
         {
-            "width": 720,
+            "width": "100%",
             "height": 610,
             "symbol": "LSIN:TCS",
             "interval": "D",
@@ -867,6 +870,7 @@ document.getElementById('news').addEventListener('change', function (e) {
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'block';
+    document.getElementById('graphic_table').style.display = 'none';
     port.postMessage({method: "getNews", params: {nav_id: ''}});
 });
 document.getElementById('pulse').addEventListener('change', function (e) {
@@ -875,6 +879,7 @@ document.getElementById('pulse').addEventListener('change', function (e) {
     document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'block';
+    document.getElementById('graphic_table').style.display = 'none';
     port.postMessage({method: "getPulse", params: {nav_id: 61}});
 });
 

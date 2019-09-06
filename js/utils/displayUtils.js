@@ -197,7 +197,7 @@ export function createTradingviewGraphic(container, symbols = []) {
     if (symbols.length > 1) // общий список
         new TradingView.widget(
             {
-                "width": 720,
+                "width": "100%",
                 "height": 610,
                 "symbol": "LSIN:TCS",
                 "interval": "D",
@@ -228,7 +228,7 @@ export function createTradingviewGraphic(container, symbols = []) {
     else // график определенного symbol
         new TradingView.widget(
             {
-                "width": 720,
+                "width": "100%",
                 "height": 610,
                 "symbol": "LSIN:TCS",
                 "interval": "D",
