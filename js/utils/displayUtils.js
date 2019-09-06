@@ -57,7 +57,7 @@ export function renderNews(msg) {
      </h2>     
      <div data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
      <div data-id="${news.item.id}" class="date ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${itemType[news.type]} ${new Date(news.item.date).toLocaleDateString()}</div>
-</div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
+</div><span class="newsBody ${is_vedomosti ? 'vedomosti' : ''}" id="${news.item.id}">${news.item.body}</span>`
             }
             case 'day_number': {
                 return `
@@ -81,9 +81,10 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
             case 'social_post': {
                 let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
                 let text = news.item.text;
+                // заменяем шорткоды в теле текста на ссылки акций
                 news.item.tickers.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
-                    text = text.split(regex).join(`<a href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">${item.ticker}</a>`);
+                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">${item.ticker}</a>`);
                 });
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
