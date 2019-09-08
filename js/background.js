@@ -8,6 +8,7 @@ import {
     CANCEL_ORDER,
     CANCEL_STOP,
     CHECK_VERSION_URL,
+    COMMENTS_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
@@ -668,19 +669,52 @@ function getSubscriptions(session_id) {
     })
 }
 
+function getComments(id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Get Comments');
+            fetch(COMMENTS_URL.replace('${commentId}', id) + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get Comments', json);
+                        resolve([]);
+                    } else
+                        console.log('success get Comments');
+                    resolve(json.payload);
+                }).catch(ex => {
+                console.log('cant get Comments', ex);
+                resolve([]);
+            })
+        })
+    })
+}
+
 function getNews(nav_id) {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             console.log('Get News');
-            fetch(NEWS_URL.replace('${nav_id}', nav_id) + session_id)
+            fetch(NEWS_URL.replace('${navId}', nav_id) + session_id)
                 .then(response => response.json())
                 .then(json => {
-                    if (json.status === 'Error') {
-                        console.log('cant get News', json);
-                        reject([]);
-                    } else
-                        console.log('success get News');
-                    resolve(json.payload);
+                    const allowed = ['social_operation', 'social_post'];
+                    const getFilteredComments = (news) => {
+                        return news.map(async item => {
+                            if (allowed.includes(item.type))
+                                await getComments(item.item.id).then(comments => {
+                                    return item['comments'] = comments; // модифицируем исходный массив, добавляем комменты
+                                });
+                            else return item;
+                        })
+                    };
+                    Promise.all(getFilteredComments(json.payload.items)).then(() => {
+                        if (json.status === 'Error') {
+                            console.log('cant get News', json);
+                            reject([]);
+                        } else
+                            console.log('success get News');
+                        resolve(json.payload);
+                    });
                 }).catch(ex => {
                 console.log('cant get News', ex);
                 reject(undefined);
@@ -1361,7 +1395,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send news list .....");
                 });
                 break;
-                case 'getPulse':
+            case 'getPulse':
                 getNews(msg.params.nav_id).then(news => {
                     news['nav_id'] = msg.params.nav_id;
                     port.postMessage(Object.assign({},

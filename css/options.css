@@ -379,18 +379,22 @@ h2.white{
     float: right;
     height: 60px;
     width: 60px;
-    margin: 5px;
+    margin-right: 15px;
+    margin-top: 20px;
+
 }
 .newsAnnounce .logo{
     border-radius: 50%;
     float: right;
     height: 30px;
     width: 30px;
-    margin-left: -15px;
+    margin-left: -10px;
 }
 .logoContainer{
     float: right;
-    margin-right: 20px;
+    margin-right: 15px;
+    height: 100%;
+    padding-left: 10px;
 }
 .dayNumber{
     background: linear-gradient(to top left, #3399ff 0%, #ff66ff 100%);
@@ -408,4 +412,7 @@ h2.white{
     border-top: solid black 1px;
     border-bottom: solid black 1px;
     cursor: default !important;
+}
+.pulse .logoContainer{
+    margin-top: -40px;
 }

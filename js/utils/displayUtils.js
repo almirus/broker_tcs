@@ -53,8 +53,8 @@ export function renderNews(msg) {
 <div data-id="${news.item.id}" class="newsAnnounce ${is_vedomosti ? 'vedomosti' : ''} bordered" title="Читать"
      ${is_vedomosti ? '' : 'style="background-size: cover; background-image: url(' + news.item.img_big + ');"'}>
      <h2 data-id="${news.item.id}" class="header ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.is_wm_content ? '👑' : ''}${news.item.title}
-     <div class="logoContainer">${tickers}</div>
-     </h2>     
+     
+     </h2><div class="logoContainer">${tickers}</div>  
      <div data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
      <div data-id="${news.item.id}" class="date ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${itemType[news.type]} ${new Date(news.item.date).toLocaleDateString()}</div>
 </div><span class="newsBody ${is_vedomosti ? 'vedomosti' : ''}" id="${news.item.id}">${news.item.body}</span>`
@@ -75,21 +75,21 @@ export function renderNews(msg) {
 <a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', news.item.ticker.type + 's') + news.item.ticker.ticker}" target="_blank">
 <h2 class="header white" data-id="${news.item.id}">🔥 ${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
 ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(2))}
-<div class="logoContainer">${ticker}</div>
-</h2>${likes}</a></div>`
+</h2><div class="logoContainer">${ticker}</div>${likes}</a></div>`
             }
             case 'social_post': {
                 let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
                 let text = news.item.text;
+                let comments = news.comments.items || [];
                 // заменяем шорткоды в теле текста на ссылки акций
                 news.item.tickers.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
-                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">${item.ticker}</a>`);
+                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
                 });
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.item.id}">${news.item.profile.nickname} написал ${new Date(news.item.date).toLocaleDateString()} 
-</h2>${text}<br>${likes}</div>`
+</h2>${text}<br>${likes}${comments.length}</div>`
             }
         }
     }).join('');
