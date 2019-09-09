@@ -80,7 +80,21 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
             case 'social_post': {
                 let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
                 let text = news.item.text;
-                let comments = news.comments.items || [];
+                let comments_obj = news.comments.items || [];
+                let comments =
+                    `<div data-id="${news.item.id}" class="answerLink">ответить</div>
+                    <div id="${news.item.id}_answer" class="answer" style="display: none">
+                    <textarea id="${news.item.id}_text"></textarea><button class="answerButton" data-id="${news.item.id}">ответить</button>
+                    </div>`;
+                if (comments_obj.length > 0) {
+                    comments += `
+                    <div data-id="${news.item.id}" class="commentLink">комментариев (${(news.comments.items || []).length})</div>
+                    <div id="${news.item.id}" class="comments" style="display: none">${comments_obj.map(item => {
+                        let likes = item.likesCount > 0 ? '❤ ' + item.likesCount : '';
+                        return `<div class="comment"><strong>${item.nickname}</strong><br>${item.text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
+                    }).join('')}</div>`;
+                }
+
                 // заменяем шорткоды в теле текста на ссылки акций
                 news.item.tickers.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
@@ -89,7 +103,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.item.id}">${news.item.profile.nickname} написал ${new Date(news.item.date).toLocaleDateString()} 
-</h2>${text}<br>${likes}${comments.length}</div>`
+</h2>${text}<br>${likes}${comments}</div>`
             }
         }
     }).join('');

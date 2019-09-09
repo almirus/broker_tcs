@@ -723,6 +723,26 @@ function getNews(nav_id) {
     })
 }
 
+function postComment(postId, text) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Post comment');
+            // POST
+            fetch(COMMENTS_URL.replace('${commentId}', postId) + session_id, {
+                method: "POST",
+                body: JSON.stringify({text: text}),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => response.json())
+                .then(res => {
+
+                })
+        });
+    })
+}
+
 function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
     return new Promise((resolve, reject) => {
         console.log(`Get price for ${tickerName}`);
@@ -1402,6 +1422,11 @@ chrome.runtime.onConnect.addListener(function (port) {
                         {result: "pulse"},
                         {news: news}));
                     console.log("send puls list .....");
+                });
+                break;
+            case 'postComment':
+                postComment(msg.params.postId, msg.params.text).then(res => {
+                    console.log("post comment .....");
                 });
                 break;
             default:

@@ -182,9 +182,12 @@ port.onMessage.addListener(function (msg) {
             renderNews(msg);
             setNewsButton();
             setNewsToggleButton();
+            setCommentToggleButton();
             break;
         case 'pulse':
             renderNews(msg);
+            setCommentToggleButton();
+            setAnswerToggleButton();
             break;
     }
 });
@@ -205,6 +208,35 @@ function setNewsToggleButton() {
             let button = e.target;
             document.getElementById(button.dataset.id).style.display = document.getElementById(button.dataset.id).style.display === "none"
             || document.getElementById(button.dataset.id).style.display === "" ? 'block' : 'none'
+        })
+    })
+}
+
+function setCommentToggleButton() {
+    Array.from(document.querySelectorAll(".commentLink")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            document.getElementById(button.dataset.id).style.display = document.getElementById(button.dataset.id).style.display === "none"
+            || document.getElementById(button.dataset.id).style.display === "" ? 'block' : 'none'
+        })
+    })
+}
+
+function setAnswerToggleButton() {
+    Array.from(document.querySelectorAll(".answerLink")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            document.getElementById(button.dataset.id + '_answer').style.display = document.getElementById(button.dataset.id + '_answer').style.display === "none"
+            || document.getElementById(button.dataset.id + '_answer').style.display === "" ? 'block' : 'none'
+        })
+    });
+    Array.from(document.querySelectorAll(".answerButton")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            let comment_for_submit = document.getElementById(button.dataset.id + '_text').value;
+            port.postMessage({method: "postComment", params: {postId: button.dataset.id, text: comment_for_submit}});
+            document.getElementById(button.dataset.id + '_text').value = '';
+            document.getElementById(button.dataset.id + '_answer').style.display = 'none';
         })
     })
 }

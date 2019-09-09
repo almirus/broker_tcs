@@ -409,10 +409,27 @@ h2.white{
     margin-top: 10px;
     margin-bottom: 10px;
     color: black;
-    border-top: solid black 1px;
+
     border-bottom: solid black 1px;
     cursor: default !important;
 }
 .pulse .logoContainer{
     margin-top: -40px;
+}
+
+.pulse .answerLink,.commentLink{
+    float: right;
+    cursor: pointer;
+    text-decoration-style:  dashed;
+    padding-left: 5px;
+}
+.pulse .comment{
+    margin-left: 30px;
+    margin-bottom: 5px;
+    background-color: #e6dbf6;
+    border-radius: 15px;
+    padding: 5px;
+}
+.pulse .answer textarea{
+    width:100%;
 }
