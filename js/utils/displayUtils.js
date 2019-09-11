@@ -47,7 +47,9 @@ export function renderNews(msg) {
                 let is_vedomosti = news.item.provider && news.item.provider.id === 9;
                 let is_has_background = news.item.img_big;
                 let tickers = news.item.tickers.map(item => {
-                    return `<div class="logo" title = "${item.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + item.logo_name.replace('.', 'x160.')});"></div>`;
+                    return `<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">
+                            <div class="logo" title = "${item.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + item.logo_name.replace('.', 'x160.')});"></div>
+                            </a>`;
                 }).join('');
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce ${is_vedomosti ? 'vedomosti' : ''} bordered" title="Читать"
@@ -62,7 +64,7 @@ export function renderNews(msg) {
             case 'day_number': {
                 return `
 <div data-id="${news.item.id}" class="dayNumber">
-<h4 data-id="${news.item.id}">ЦИФРА ДНЯ ${new Date(news.item.date).toLocaleDateString()}</h4>
+<h4 data-id="${news.item.id}">ЦИФРА ДНЯ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLocaleTimeString()}</h4>
 <h2 data-id="${news.item.id}">${news.item.title}</h2>
 <div data-id="${news.item.id}" class="announce white">${news.item.announce}</div>
 </div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
@@ -74,11 +76,11 @@ export function renderNews(msg) {
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
 <a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', news.item.ticker.type + 's') + news.item.ticker.ticker}" target="_blank">
 <h2 class="header white" data-id="${news.item.id}">🔥 ${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
-${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(2))}
+${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
 </h2><div class="logoContainer">${ticker}</div>${likes}</a></div>`
             }
             case 'social_post': {
-                let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
+                let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '🤍 ';
                 let text = news.item.text;
                 let comments_obj = news.comments.items || [];
                 let comments =
@@ -88,9 +90,9 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                     </div>`;
                 if (comments_obj.length > 0) {
                     comments += `
-                    <div data-id="${news.item.id}" class="commentLink">комментариев (${(news.comments.items || []).length})</div>
+                    <div data-id="${news.item.id}" class="commentLink">комментариев (${comments_obj.length})</div>
                     <div id="${news.item.id}" class="comments" style="display: none">${comments_obj.map(item => {
-                        let likes = item.likesCount > 0 ? '❤ ' + item.likesCount : '';
+                        let likes = item.likesCount > 0 ? '❤ ' + item.likesCount : '🤍 ';
                         return `<div class="comment"><strong>${item.nickname}</strong><br>${item.text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
                     }).join('')}</div>`;
                 }
@@ -103,7 +105,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.item.id}">${news.item.profile.nickname} написал ${new Date(news.item.date).toLocaleDateString()} 
-</h2>${text}<br>${likes}${comments}</div>`
+</h2><div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`
             }
         }
     }).join('');

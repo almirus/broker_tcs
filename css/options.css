@@ -294,7 +294,6 @@ input[type="datetime-local"] {
 
 }
 #news_table .nav{
-
     margin-top: 20px;
 }
 ul.navigation {
@@ -334,6 +333,7 @@ ul.navigation {
 }
 h2.header{
     padding-left: 10px;
+    width: 98%;
 }
 h2.black{
     color: black;
@@ -390,6 +390,7 @@ h2.white{
     width: 30px;
     margin-left: -10px;
 }
+
 .logoContainer{
     float: right;
     margin-right: 15px;
@@ -432,4 +433,11 @@ h2.white{
 }
 .pulse .answer textarea{
     width:100%;
+}
+
+.pulse h2{
+    padding-left: 10px;
+}
+.pulse .post{
+    padding-left: 10px;
 }
