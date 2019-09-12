@@ -32,6 +32,7 @@ import {
     getExportAccountHtml,
     msToTime,
     renderNews,
+    renderPulse,
     toCurrency,
     toPercent
 } from "./utils/displayUtils.js";
@@ -182,10 +183,10 @@ port.onMessage.addListener(function (msg) {
             renderNews(msg);
             setNewsButton();
             setNewsToggleButton();
-            setCommentToggleButton();
             break;
         case 'pulse':
-            renderNews(msg);
+            renderPulse(msg);
+            setPulseButton();
             setCommentToggleButton();
             setAnswerToggleButton();
             break;
@@ -202,6 +203,15 @@ function setNewsButton() {
     })
 }
 
+function setPulseButton() {
+    Array.from(document.getElementsByClassName("pulseNav")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";
+            port.postMessage({method: "getPulse", params: {nav_id: button.dataset.nav}});
+        })
+    })
+}
 function setNewsToggleButton() {
     Array.from(document.querySelectorAll(".newsAnnounce, .dayNumber")).forEach(function (input) {
         input.addEventListener('click', function (e) {

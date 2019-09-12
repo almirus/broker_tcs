@@ -301,7 +301,7 @@ ul.navigation {
     padding: 0;
     list-style-type: none;
 }
-.newsNav{
+.newsNav, .pulseNav{
     background-color: #e6dbf6;
     padding: 5px;
     cursor: pointer;

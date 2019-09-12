@@ -25,7 +25,7 @@ export function renderNews(msg) {
         day_number: 'Цифра дня'
     };
     buffer += msg.news.navs.map(item => {
-        return `<li class="newsNav" data-nav="${item.id}">${item.id === 49 ? '👑' : ''}${item.id === 61 ? '🔥' : ''}${item.name}</li>`
+        return (item.id === 61) ? '' : `<li class="newsNav" data-nav="${item.id}">${item.id === 49 ? '👑' : ''}${item.name}</li>`
     }).join('') + '</ul></div><div style="clear: both;"></div>';
     msg.news.items = msg.news.items || [];
     buffer += msg.news.items.map(news => {
@@ -69,6 +69,19 @@ export function renderNews(msg) {
 <div data-id="${news.item.id}" class="announce white">${news.item.announce}</div>
 </div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
             }
+        }
+    }).join('');
+    document.getElementById('news_table').innerHTML = buffer;
+}
+
+export function renderPulse(msg) {
+    let buffer = '<div class="nav"><ul class="navigation"><li class="pulseNav" data-nav="61">Обновить</li><li class="pulseNav" data-nav="self">Мои</li>';
+    buffer += msg.news.navs.map(item => {
+        return `<li class="pulseNav" data-nav="${item.id}">${item.name}</li>`
+    }).join('') + '</ul></div><div style="clear: both;"></div>';
+    msg.news.items = msg.news.items || [];
+    buffer += msg.news.items.map(news => {
+        switch (news.type) {
             case 'social_operation': {
                 let ticker = news.item.ticker ? `<div class="logo" title = "${news.item.ticker.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + news.item.ticker.logo_name.replace('.', 'x160.')});"></div>` : '';
                 let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
