@@ -212,6 +212,7 @@ function setPulseButton() {
         })
     })
 }
+
 function setNewsToggleButton() {
     Array.from(document.querySelectorAll(".newsAnnounce, .dayNumber")).forEach(function (input) {
         input.addEventListener('click', function (e) {
@@ -432,7 +433,7 @@ function create_portfolio_table(divId, data) {
                                 </span>` : '';
             td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}${note}${warning}</span>
-        <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong>${element.symbol.ticker}</strong></a>`;
+        <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong class="ticker">${element.symbol.ticker}</strong></a>`;
             if (element.symbol.dayLow) {
                 td1.appendChild(document.createElement("br"));
                 td1.appendChild(drawDayProgress(element));
@@ -767,7 +768,8 @@ function create_alert_table(data_list) {
                             PartiallyFill: 'Частично исполненная заявка',
                             New: 'Заявка'
                         };
-                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span>, <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">${element.quantity} шт</strong>`;
+                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
+                        <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
                         else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('');
                     }
 
@@ -873,6 +875,14 @@ document.getElementById('graphic').addEventListener('change', function (e) {
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('graphic_table').style.display = 'block';
     document.getElementById('news_table').style.display = 'none';
+    // получаем список бумаг в портфеле
+    let string_array_of_ticker = [];
+    Array.from(document.getElementsByClassName("ticker")).forEach(input => {
+        let name = input.innerText;
+        name = name === 'TCS' ? 'LSIN:TCS' : name;
+        string_array_of_ticker.push(name);
+    });
+
     // общий список
     new TradingView.widget(
         {
@@ -880,17 +890,15 @@ document.getElementById('graphic').addEventListener('change', function (e) {
             "height": 610,
             "symbol": "LSIN:TCS",
             "interval": "D",
-            "timezone": "Europe/Moscow",
+            "timezone": Intl.DateTimeFormat().resolvedOptions().timeZone,
             "theme": "Light",
             "style": "1",
             "locale": "ru",
             "toolbar_bg": "#f1f3f6",
             "enable_publishing": false,
-            "hide_side_toolbar": false,
+            "hide_side_toolbar": true,
             "allow_symbol_change": true,
-            "watchlist": [
-                "LSIN:TCS"
-            ],
+            "watchlist": string_array_of_ticker,
             "details": true,
             "calendar": true,
             "studies": [

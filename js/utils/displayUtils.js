@@ -36,7 +36,7 @@ export function renderNews(msg) {
                 return `
 <div class="forecast bordered" style="background-color: ${back_ground_color}">
 <a class="width100" title="Открыть прогноз в новом окне" href="${PROGNOSIS_LINK.replace('${symbol}', news.item.ticker).replace('${securityType}', 'stocks')}" target="_blank">
-        <h2 class="header white">${news.item.analyst} из ${news.item.company} про ${news.item.ticker}</h2>
+        <h2 class="header white">${news.item.analyst && !news.item.analyst.search('^[^0-9]*$') ? news.item.analyst + ' из' : ''} ${news.item.company} про ${news.item.ticker}</h2>
         <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(${news.item.logo_name});"></div>
         <div class="recommendation">${news.item.recommendation}</div>
 </a>
