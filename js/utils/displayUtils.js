@@ -111,7 +111,8 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                     <div data-id="${news.item.id}" class="commentLink">комментариев (${comments_obj.length})</div>
                     <div id="${news.item.id}" class="comments" style="display: none">${comments_obj.map(item => {
                         let likes = item.likesCount > 0 ? '❤ ' + item.likesCount : '🤍 ';
-                        return `<div class="comment"><strong>${item.nickname}</strong><br>${item.text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
+                        let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">`;
+                        return `<div class="comment">${avatar}<strong>${item.nickname}</strong><br>${item.text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
                     }).join('')}</div>`;
                 }
 
@@ -185,9 +186,13 @@ function getAccountHtmlInfo(accountName, accountInfo) {
     let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYieldPerDay)}</span>`;
     let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYield)}</span>`;
     let heart = accountInfo.marginAttributes ? `<span title="${HEALTH[accountInfo.marginAttributes.marginAccountStatus].title}">${HEALTH[accountInfo.marginAttributes.marginAccountStatus].heart}</span>` : '';
+    let marginFee = accountInfo.marginAttributes ? 'Комиссия по марж. торговле ' + accountInfo.marginAttributes.marginFeeAmount.value.toLocaleString('ru-RU', {
+        style: 'currency',
+        currency: accountInfo.marginAttributes.marginFeeAmount.currency
+    }) : '';
     return `Счет ${heart} ${rusAccountName} ${htmlTotalAmount}, 
             доход по счету ${htmlExpectedYield}, 
-            доход сегодня ${htmlExpectedYieldPerDay}<br>`;
+            доход сегодня ${htmlExpectedYieldPerDay} ${marginFee}<br>`;
 }
 
 export function getExportAccountHtml(accounts) {
