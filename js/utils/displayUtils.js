@@ -1,7 +1,7 @@
 'use strict';
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
-import {HEALTH, PROGNOSIS_LINK, SYMBOL_LINK} from "/js/constants.mjs";
+import {HEALTH, PROGNOSIS_LINK, SYMBOL_LINK, AVATAR_URL} from "/js/constants.mjs";
 
 export function fillCashData(msg, cash_str, cash_element_id) {
     let resultCash = 0;
@@ -64,7 +64,7 @@ export function renderNews(msg) {
      <div id="${news.item.id}_announce" data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
      <div data-id="${news.item.id}" class="date ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${itemType[news.type]} ${new Date(news.item.date).toLocaleDateString()}</div>
 </div><span class="newsBody ${is_vedomosti ? 'vedomosti' : ''}" id="${news.item.id}_body">${news.item.body}</span>
-${is_eng ? '<div data-id="'+news.item.id+'" class="translate" title="Перевести текст на русский">перевести</div>' : ''}`
+${is_eng ? '<div data-id="' + news.item.id + '" class="translate" title="Перевести текст на русский">перевести</div>' : ''}`
             }
             case 'day_number': {
                 return `
@@ -90,10 +90,11 @@ export function renderPulse(msg) {
             case 'social_operation': {
                 let ticker = news.item.ticker ? `<div class="logo" title = "${news.item.ticker.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + news.item.ticker.logo_name.replace('.', 'x160.')});"></div>` : '';
                 let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
+                let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">`;
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
 <a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', news.item.ticker.type + 's') + news.item.ticker.ticker}" target="_blank">
-<h2 class="header white" data-id="${news.item.id}">🔥 ${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
+<h2 class="header white" data-id="${news.item.id}">${avatar}${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
 ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
 </h2><div class="logoContainer">${ticker}</div>${likes}</a></div>`
             }
@@ -121,10 +122,12 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                     let regex = "\{\$" + item.ticker + "\}";
                     text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
                 });
+                let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">`;
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
-<h2 data-id="${news.item.id}">${news.item.profile.nickname} написал ${new Date(news.item.date).toLocaleDateString()} 
-</h2><div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`
+<h2 data-id="${news.item.id}">${avatar}${news.item.profile.nickname}</h2>
+<div class="postTime">${new Date(news.item.date).toLocaleDateString()}</div>
+<div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`
             }
         }
     }).join('');

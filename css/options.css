@@ -446,3 +446,15 @@ h2.white{
 .pulse .post{
     padding-left: 10px;
 }
+.pulse .postTime{
+    padding-left: 10px;
+    color:gray;
+    font-size: small;
+    margin-top: -15px;
+}
+.pulse img.avatar{
+    width: 25px;
+    border-radius: 50%;
+    vertical-align:middle;
+    padding-right: 5px;
+}
