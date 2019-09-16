@@ -22,7 +22,8 @@ import {
     RECALIBRATION_LINK,
     SIGN_OUT_URL,
     SYMBOL_LINK,
-    TICKER_LIST
+    TICKER_LIST,
+    YANDEX_TRANSLATE
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
@@ -183,6 +184,7 @@ port.onMessage.addListener(function (msg) {
             renderNews(msg);
             setNewsButton();
             setNewsToggleButton();
+            setTranslateButton();
             break;
         case 'pulse':
             renderPulse(msg);
@@ -217,9 +219,35 @@ function setNewsToggleButton() {
     Array.from(document.querySelectorAll(".newsAnnounce, .dayNumber")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
-            document.getElementById(button.dataset.id).style.display = document.getElementById(button.dataset.id).style.display === "none"
-            || document.getElementById(button.dataset.id).style.display === "" ? 'block' : 'none'
+            document.getElementById(button.dataset.id + '_body').style.display = document.getElementById(button.dataset.id + '_body').style.display === "none"
+            || document.getElementById(button.dataset.id + '_body').style.display === "" ? 'block' : 'none'
         })
+    })
+}
+
+function setTranslateButton() {
+    Array.from(document.querySelectorAll(".translate")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            ['_header', '_announce', '_body'].map(itemForTranslate => {
+                let body = `text=${encodeURIComponent(document.getElementById(button.dataset.id + itemForTranslate).innerHTML)}`;
+                fetch(
+                    `${YANDEX_TRANSLATE}&lang=ru&format=html`,
+                    {
+                        method: "POST",
+                        body: body,
+                        headers: new Headers({
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        })
+                    }
+                )
+                    .then(res => res.json())
+                    .then(res => document.getElementById(button.dataset.id + itemForTranslate).innerHTML = res.text.join());
+            });
+        }, {
+            once: true,
+        })
+
     })
 }
 

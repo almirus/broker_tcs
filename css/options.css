@@ -390,7 +390,12 @@ h2.white{
     width: 30px;
     margin-left: -10px;
 }
-
+.translate{
+    float: right;
+    padding: 10px;
+    cursor: pointer;
+    margin-top: -35px;
+}
 .logoContainer{
     float: right;
     margin-right: 15px;

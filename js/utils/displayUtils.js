@@ -46,6 +46,10 @@ export function renderNews(msg) {
             case 'review': {
                 let is_vedomosti = news.item.provider && news.item.provider.id === 9;
                 let is_has_background = news.item.img_big;
+                let is_eng = false;
+                chrome.i18n.detectLanguage(news.item.title, result => {
+                    is_eng = result.languages[0].language === 'en'
+                });
                 let tickers = news.item.tickers.map(item => {
                     return `<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">
                             <div class="logo" title = "${item.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + item.logo_name.replace('.', 'x160.')});"></div>
@@ -54,12 +58,13 @@ export function renderNews(msg) {
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce ${is_vedomosti ? 'vedomosti' : ''} bordered" title="Читать"
      ${is_vedomosti ? '' : 'style="background-size: cover; background-image: url(' + news.item.img_big + ');"'}>
-     <h2 data-id="${news.item.id}" class="header ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.is_wm_content ? '👑' : ''}${news.item.title}
+     <h2 id="${news.item.id}_header" data-id="${news.item.id}" class="header ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.is_wm_content ? '👑' : ''}${news.item.title}
      
      </h2><div class="logoContainer">${tickers}</div>  
-     <div data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
+     <div id="${news.item.id}_announce" data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
      <div data-id="${news.item.id}" class="date ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${itemType[news.type]} ${new Date(news.item.date).toLocaleDateString()}</div>
-</div><span class="newsBody ${is_vedomosti ? 'vedomosti' : ''}" id="${news.item.id}">${news.item.body}</span>`
+</div><span class="newsBody ${is_vedomosti ? 'vedomosti' : ''}" id="${news.item.id}_body">${news.item.body}</span>
+${is_eng ? '<div data-id="'+news.item.id+'" class="translate" title="Перевести текст на русский">перевести</div>' : ''}`
             }
             case 'day_number': {
                 return `
