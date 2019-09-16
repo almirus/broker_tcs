@@ -72,7 +72,7 @@ ${is_eng ? '<div data-id="' + news.item.id + '" class="translate" title="Пер�
 <h4 data-id="${news.item.id}">ЦИФРА ДНЯ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLocaleTimeString()}</h4>
 <h2 data-id="${news.item.id}">${news.item.title}</h2>
 <div data-id="${news.item.id}" class="announce white">${news.item.announce}</div>
-</div><span class="newsBody" id="${news.item.id}">${news.item.body}</span>`
+</div><span class="newsBody" id="${news.item.id}_body">${news.item.body}</span>`
             }
         }
     }).join('');
