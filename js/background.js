@@ -565,13 +565,18 @@ function getListStock(name) {
                     getPriceInfo(USD_RUB, undefined, session_id).then(currency => {
                         MainProperties.getConvertToRUB().then(needConvert => {
                             console.log('get session option');
-                            getPortfolio(session_id).then(portfolio => {
+                            getPortfolio(session_id).then(allPortfolio => {
+
                                 console.log('list of portfolio');
                                 Promise.all([
-                                        convertPortfolio(portfolio.tcs.payload.data, needConvert, currency, session_id),
-                                        convertPortfolio(portfolio.iis.payload.data, needConvert, currency, session_id)
+                                        convertPortfolio(allPortfolio.tcs.payload.data, needConvert, currency, session_id),
+                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currency, session_id)
                                     ]
                                 ).then(([tcs_data, iis_data]) => {
+                                    portfolio.items = {
+                                        stocks_tcs: tcs_data,
+                                        stocks_iis: iis_data
+                                    };
                                     resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data}));
                                 });
                             }).catch(function (ex) {
@@ -1418,7 +1423,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'getPulse':
                 getNews(msg.params.nav_id).then(news => {
+                    // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
+                    news['navs'] = [].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis).reduce((prev, curr) => {
+                        return [...prev, ...[{id: 0, name: curr.symbol.ticker}]];
+                    }, []);
                     news['nav_id'] = msg.params.nav_id;
+                    //news['tickers_list'] = tickers_list;
                     port.postMessage(Object.assign({},
                         {result: "pulse"},
                         {news: news}));
@@ -1635,6 +1645,15 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 });
 
 let portfolio = class {
+    items;
+    set items(items) {
+        this.items = items;
+    };
+
+    get items() {
+        return this.items;
+    };
+
     static async getLiquid() {
         if (!(this._liquidList === undefined)) {
             return this._liquidList
@@ -1654,4 +1673,4 @@ let portfolio = class {
             return list;
         })
     }
-}
+};

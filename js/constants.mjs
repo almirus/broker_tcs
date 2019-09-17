@@ -90,7 +90,7 @@ export const PLURAL_SECURITY_TYPE = {
     Bonds: 'bonds',
     ETF: 'etfs',
     Note: 'notes'
-}
+};
 export let port = chrome.runtime.connect({
     name: "tcs_trader"
 });
