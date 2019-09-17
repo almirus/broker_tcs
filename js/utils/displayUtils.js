@@ -135,7 +135,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                 return `
 <div data-id="${news.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.id}">${avatar}${news.nickname}</h2>
-<div class="postTime">${new Date(news.inserted).toLocaleDateString()}</div>
+<div class="postTime">${new Date(news.inserted).toLocaleDateString()} ${new Date(news.inserted).toLocaleTimeString()}</div>
 <div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
             case 'social_post': {
@@ -171,7 +171,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.item.id}">${avatar}${news.item.profile.nickname}</h2>
-<div class="postTime">${new Date(news.item.date).toLocaleDateString()}</div>
+<div class="postTime">${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLocaleTimeString()}</div>
 <div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
         }
