@@ -47,6 +47,8 @@ export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
 export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${navId}&limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const COMMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${commentId}/comment?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PULSE_FOR_TICKER_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/instrument/${navId}?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PROFILE_ACTIVITY_URL = 'https://api-invest-gw.tinkoff.r/social/v1/profile/${navId}/post?limit=30deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const AVATAR_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/profile/avatar/${img}?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 
 export const YANDEX_TRANSLATE = 'https://translate.yandex.net/api/v1.5/tr.json/translate?key=trnsl.1.1.20190913T211312Z.13833f619c95d3aa.29ec76510845a30c5b01ab996a071b915eaf96a1';

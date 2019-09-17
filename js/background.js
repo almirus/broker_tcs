@@ -36,7 +36,9 @@ import {
     PLURAL_SECURITY_TYPE,
     PORTFOLIO_URL,
     PRICE_URL,
+    PROFILE_ACTIVITY_URL,
     PROGNOSIS_URL,
+    PULSE_FOR_TICKER_URL,
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
@@ -700,14 +702,25 @@ function getNews(nav_id) {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             console.log('Get News');
-            fetch(NEWS_URL.replace('${navId}', nav_id) + session_id)
+            let url='';
+            switch (true) {
+                case /self/.test(nav_id):
+                    url = PROFILE_ACTIVITY_URL.replace('${navId}', nav_id) + session_id;
+                    break;
+                case /^[A-Z]+$/.test(nav_id):
+                    url = PULSE_FOR_TICKER_URL.replace('${navId}', nav_id) + session_id;
+                    break;
+                default:
+                    url = NEWS_URL.replace('${navId}', nav_id) + session_id
+            }
+            fetch(url)
                 .then(response => response.json())
                 .then(json => {
                     const allowed = ['social_operation', 'social_post'];
                     const getFilteredComments = (news) => {
                         return news.map(async item => {
-                            if (allowed.includes(item.type))
-                                await getComments(item.item.id).then(comments => {
+                            if (item.comments_count > 0 || item.commentsCount > 0)
+                                await getComments(item.id || item.item.id).then(comments => {
                                     return item['comments'] = comments; // модифицируем исходный массив, добавляем комменты
                                 });
                             else return item;
@@ -1425,7 +1438,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getNews(msg.params.nav_id).then(news => {
                     // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
                     news['navs'] = [].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis).reduce((prev, curr) => {
-                        return [...prev, ...[{id: 0, name: curr.symbol.ticker}]];
+                        return [...prev, ...[{id: curr.symbol.ticker, name: curr.symbol.ticker}]];
                     }, []);
                     news['nav_id'] = msg.params.nav_id;
                     //news['tickers_list'] = tickers_list;

@@ -2,9 +2,11 @@
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
 import {AVATAR_URL, HEALTH, PLURAL_SECURITY_TYPE, PROGNOSIS_LINK, SYMBOL_LINK} from "/js/constants.mjs";
-const capitalize = function(str1){
+
+const capitalize = function (str1) {
     return str1.charAt(0).toUpperCase() + str1.slice(1);
 }
+
 export function fillCashData(msg, cash_str, cash_element_id) {
     let resultCash = 0;
     for (let cash in msg.cash.payload.data) {
@@ -92,18 +94,54 @@ export function renderPulse(msg) {
             case 'social_operation': {
                 let ticker = news.item.ticker ? `<div class="logo" title = "${news.item.ticker.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + news.item.ticker.logo_name.replace('.', 'x160.')});"></div>` : '';
                 let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '';
-                let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">`;
+                let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
 <a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[news.item.ticker.type]) + news.item.ticker.ticker}" target="_blank">
 <h2 class="header white" data-id="${news.item.id}">${avatar}${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
 ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
-</h2><div class="logoContainer">${ticker}</div>${likes}</a></div>`
+</h2><div class="logoContainer">${ticker}</div>${likes}</a></div>`;
+            }
+            case undefined: { // по отдельной бумаге, тип не заполняется
+                let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '🤍 ';
+                let text = news.text;
+                let comments_obj = news.commentsCount > 0 ? news.comments.items : [];
+                let comments =
+                    `<div data-id="${news.id}" class="answerLink">ответить</div>
+                    <div id="${news.id}_answer" class="answer" style="display: none">
+                    <textarea id="${news.id}_text"></textarea><button class="answerButton" data-id="${news.id}">ответить</button>
+                    </div>`;
+                if (comments_obj.length > 0) {
+                    comments += `
+                    <div data-id="${news.id}" class="commentLink">комментариев (${comments_obj.length})</div>
+                    <div id="${news.id}" class="comments" style="display: none">${comments_obj.map(item => {
+                        let link = SYMBOL_LINK.replace('${securityType}', 'stocks');
+                        let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig, '<a target="_blank" href="' + link + "$1" + '"><strong>' + "$1" + "</strong></a>");
+                        comment_text = comment_text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '<a target="_blank" href="$1">$1</a>');
+                        let likes = item.likesCount > 0 ? '❤ ' + item.likesCount : '🤍 ';
+                        let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '';
+                        return `<div class="comment">${avatar}<strong>${item.nickname}</strong><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
+                    }).join('')}</div>`;
+                }
+
+                // заменяем шорткоды в теле текста на ссылки акций
+                news.instruments.forEach(item => {
+                    let regex = "\{\$" + item.ticker + "\}";
+                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize('stoks')]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
+                    text = text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '<a target="_blank" href="$1">$1</a>');
+
+                });
+                let avatar = news.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.image)}">` : '';
+                return `
+<div data-id="${news.id}" class="newsAnnounce bordered pulse">
+<h2 data-id="${news.id}">${avatar}${news.nickname}</h2>
+<div class="postTime">${new Date(news.inserted).toLocaleDateString()}</div>
+<div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
             case 'social_post': {
                 let likes = news.likes_count > 0 ? '❤ ' + news.likes_count : '🤍 ';
                 let text = news.item.text;
-                let comments_obj = news.comments.items || [];
+                let comments_obj = news.comments_count > 0 ? news.comments.items : [];
                 let comments =
                     `<div data-id="${news.item.id}" class="answerLink">ответить</div>
                     <div id="${news.item.id}_answer" class="answer" style="display: none">
@@ -114,8 +152,8 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                     <div data-id="${news.item.id}" class="commentLink">комментариев (${comments_obj.length})</div>
                     <div id="${news.item.id}" class="comments" style="display: none">${comments_obj.map(item => {
                         let link = SYMBOL_LINK.replace('${securityType}', 'stocks');
-                        let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig,  '<a target="_blank" href="'+link+"$1"+'"><strong>'+"$1"+"</strong></a>");
-                        comment_text = comment_text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g,  '<a target="_blank" href="$1">$1</a>');
+                        let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig, '<a target="_blank" href="' + link + "$1" + '"><strong>' + "$1" + "</strong></a>");
+                        comment_text = comment_text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '<a target="_blank" href="$1">$1</a>');
                         let likes = item.likesCount > 0 ? '❤ ' + item.likesCount : '🤍 ';
                         let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">`;
                         return `<div class="comment">${avatar}<strong>${item.nickname}</strong><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
@@ -126,15 +164,15 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                 news.item.tickers.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
                     text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
-                    text = text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g,  '<a target="_blank" href="$1">$1</a>');
+                    text = text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '<a target="_blank" href="$1">$1</a>');
 
                 });
-                let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">`;
+                let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.item.id}">${avatar}${news.item.profile.nickname}</h2>
 <div class="postTime">${new Date(news.item.date).toLocaleDateString()}</div>
-<div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`
+<div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
         }
     }).join('');
