@@ -1,8 +1,10 @@
 'use strict';
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
-import {HEALTH, PROGNOSIS_LINK, SYMBOL_LINK, AVATAR_URL} from "/js/constants.mjs";
-
+import {AVATAR_URL, HEALTH, PLURAL_SECURITY_TYPE, PROGNOSIS_LINK, SYMBOL_LINK} from "/js/constants.mjs";
+const capitalize = function(str1){
+    return str1.charAt(0).toUpperCase() + str1.slice(1);
+}
 export function fillCashData(msg, cash_str, cash_element_id) {
     let resultCash = 0;
     for (let cash in msg.cash.payload.data) {
@@ -51,7 +53,7 @@ export function renderNews(msg) {
                     is_eng = result.languages[0].language === 'en'
                 });
                 let tickers = news.item.tickers.map(item => {
-                    return `<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">
+                    return `<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">
                             <div class="logo" title = "${item.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + item.logo_name.replace('.', 'x160.')});"></div>
                             </a>`;
                 }).join('');
@@ -93,7 +95,7 @@ export function renderPulse(msg) {
                 let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">`;
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
-<a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', news.item.ticker.type + 's') + news.item.ticker.ticker}" target="_blank">
+<a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[news.item.ticker.type]) + news.item.ticker.ticker}" target="_blank">
 <h2 class="header white" data-id="${news.item.id}">${avatar}${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
 ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
 </h2><div class="logoContainer">${ticker}</div>${likes}</a></div>`
@@ -111,16 +113,21 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                     comments += `
                     <div data-id="${news.item.id}" class="commentLink">комментариев (${comments_obj.length})</div>
                     <div id="${news.item.id}" class="comments" style="display: none">${comments_obj.map(item => {
+                        let link = SYMBOL_LINK.replace('${securityType}', 'stocks');
+                        let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig,  '<a target="_blank" href="'+link+"$1"+'"><strong>'+"$1"+"</strong></a>");
+                        comment_text = comment_text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g,  '<a target="_blank" href="$1">$1</a>');
                         let likes = item.likesCount > 0 ? '❤ ' + item.likesCount : '🤍 ';
                         let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">`;
-                        return `<div class="comment">${avatar}<strong>${item.nickname}</strong><br>${item.text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
+                        return `<div class="comment">${avatar}<strong>${item.nickname}</strong><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
                     }).join('')}</div>`;
                 }
 
                 // заменяем шорткоды в теле текста на ссылки акций
                 news.item.tickers.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
-                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', item.type + 's') + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
+                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
+                    text = text.replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g,  '<a target="_blank" href="$1">$1</a>');
+
                 });
                 let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">`;
                 return `

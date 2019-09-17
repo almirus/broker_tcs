@@ -33,6 +33,7 @@ import {
     OPTION_SESSION,
     ORDERS_URL,
     PING_URL,
+    PLURAL_SECURITY_TYPE,
     PORTFOLIO_URL,
     PRICE_URL,
     PROGNOSIS_URL,
@@ -271,7 +272,7 @@ function getPortfolio(sessionId) {
 async function convertPortfolio(data = [], needToConvert, currencyCourse, sessionId) {
     let return_data = [];
     for (const element of data) {
-        let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
+        let securityType = PLURAL_SECURITY_TYPE[element.securityType];
         await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
             let current_amount = element.currentAmount;
             let expected_yield = element.expectedYield || {};
@@ -896,7 +897,7 @@ function getOrders(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: (element.securityType || 'stock').toLowerCase(),
+                        securityType: element.securityType || 'Stock',
                         showName: element.showName,
                         quantity: element.quantity,
                         operationType: element.operationType,
@@ -927,7 +928,7 @@ function getStop(session_id) {
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: element.securityType.toLowerCase(),
+                        securityType: element.securityType,
                         showName: element.showName,
                         quantity: element.quantity,
                         operationType: element.operationType,
@@ -1024,10 +1025,10 @@ function updateAlertPrices() {
                 let i = 0;
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
-                    await getPriceInfo(item.ticker, (item.symbolType || item.securityType || 'stock').toLowerCase() + 's', session_id).then(res => {
+                    await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
                         alert_data[i] = {
                             ticker: item.ticker,
-                            securityType: (item.symbolType || item.securityType || 'stock').toLowerCase() + 's',
+                            securityType: PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')],
                             showName: item.showName,
                             buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
                             sell_price: item.sell_price,

@@ -176,8 +176,15 @@ p.info {
 .symbolStatus {
     margin-bottom: -0.35em;
     padding-right: 2px;
+    vertical-align: middle;
 }
-
+.statusProcess{
+    color: #756f7e;
+}
+.statusProcess:after{
+    content: '⏳';
+    font-size: 6pt;
+}
 .maxWidth {
     width: 100px;
     max-width: 100px;
@@ -447,10 +454,11 @@ h2.white{
     padding-left: 10px;
 }
 .pulse .postTime{
-    padding-left: 10px;
-    color:gray;
-    font-size: small;
-    margin-top: -15px;
+    text-align: left;
+    padding-left: 40px;
+    color: gray;
+    font-size: 7pt;
+    margin-top: -20px;
 }
 .pulse img.avatar{
     width: 25px;
