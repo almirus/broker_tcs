@@ -97,7 +97,7 @@ export function renderPulse(msg) {
                 let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
-<a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[news.item.ticker.type]) + news.item.ticker.ticker}" target="_blank">
+<a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(news.item.ticker.type)]) + news.item.ticker.ticker}" target="_blank">
 <h2 class="header white" data-id="${news.item.id}">${avatar}${news.item.profile.nickname} ${news.item.type === "BUY" ? 'купил' : 'продал'} 
 ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
 </h2><div class="logoContainer">${ticker}</div>${likes}</a></div>`;
