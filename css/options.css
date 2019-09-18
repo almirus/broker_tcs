@@ -312,7 +312,7 @@ ul.navigation {
     background-color: #e6dbf6;
     padding: 5px;
     cursor: pointer;
-    margin-right: 15px;
+    margin-right: 5px;
     margin-bottom: 5px;
     border-radius: 12px;
     display: inline;
@@ -465,4 +465,29 @@ h2.white{
     border-radius: 50%;
     vertical-align:middle;
     padding-right: 5px;
+}
+.heart {
+    cursor: pointer;
+    height: 15px;
+    width: 50px;
+    background-image:url( 'https://abs.twimg.com/a/1446542199/img/t1/web_heart_animation.png');
+    background-position: left;
+    background-repeat:no-repeat;
+    background-size:2900%;
+    float: left;
+    margin-left: -18px;
+    margin-right: -15px;
+}
+
+.isLiked {
+    background-position:right;
+}
+
+.is_animating {
+    animation: heart-burst .8s steps(28) 1;
+}
+
+@keyframes heart-burst {
+    from {background-position:left;}
+    to { background-position:right;}
 }

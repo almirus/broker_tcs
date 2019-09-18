@@ -38,7 +38,9 @@ import {
     PRICE_URL,
     PROFILE_ACTIVITY_URL,
     PROGNOSIS_URL,
+    PULSE_COMMENT_LIKE_URL,
     PULSE_FOR_TICKER_URL,
+    PULSE_POST_LIKE_URL,
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
@@ -702,7 +704,7 @@ function getNews(nav_id) {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             console.log('Get News');
-            let url='';
+            let url = '';
             switch (true) {
                 case /self/.test(nav_id):
                     url = PROFILE_ACTIVITY_URL.replace('${navId}', nav_id) + session_id;
@@ -758,6 +760,72 @@ function postComment(postId, text) {
                 .then(res => {
 
                 })
+        });
+    })
+}
+
+function likeComment(commentId, like) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Like comment');
+            if (like)
+            // POST
+                fetch(PULSE_COMMENT_LIKE_URL.replace('${commentId}', commentId) + session_id, {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Comment is liked');
+                    });
+            else {
+                // DELETE
+                fetch(PULSE_COMMENT_LIKE_URL.replace('${commentId}', commentId) + session_id, {
+                    method: "DELETE",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Comment is disliked');
+                    });
+            }
+        });
+    })
+}
+
+function likePost(postId, like) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Like post');
+            if (like)
+            // POST
+                fetch(PULSE_POST_LIKE_URL.replace('${postId}', postId) + session_id, {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Post is liked');
+                    });
+            else {
+                // DELETE
+                fetch(PULSE_POST_LIKE_URL.replace('${postId}', postId) + session_id, {
+                    method: "DELETE",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Post is disliked');
+                    });
+            }
         });
     })
 }
@@ -1451,6 +1519,16 @@ chrome.runtime.onConnect.addListener(function (port) {
             case 'postComment':
                 postComment(msg.params.postId, msg.params.text).then(res => {
                     console.log("post comment .....");
+                });
+                break;
+            case 'setLikeComment':
+                likeComment(msg.params.commentId, msg.params.like).then(res => {
+                    console.log("like comment .....");
+                });
+                break;
+            case 'setLikePost':
+                likePost(msg.params.commentId, msg.params.like).then(res => {
+                    console.log("like post .....");
                 });
                 break;
             default:

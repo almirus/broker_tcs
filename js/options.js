@@ -23,7 +23,7 @@ import {
     SIGN_OUT_URL,
     SYMBOL_LINK,
     TICKER_LIST,
-    YANDEX_TRANSLATE
+    YANDEX_TRANSLATE,
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
@@ -191,6 +191,7 @@ port.onMessage.addListener(function (msg) {
             setPulseButton();
             setCommentToggleButton();
             setAnswerToggleButton();
+            likeToggleButton();
             break;
     }
 });
@@ -201,6 +202,22 @@ function setNewsButton() {
             let button = e.target;
             document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";
             port.postMessage({method: "getNews", params: {nav_id: button.dataset.nav}});
+        })
+    })
+}
+
+function likeToggleButton() {
+    Array.from(document.getElementsByClassName("heart")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            let is_liked = button.classList.contains('isLiked');
+            let is_comment = button.classList.contains('isComment');
+            port.postMessage({
+                method: is_comment ? "setLikeComment" : "setLikePost",
+                params: {commentId: button.dataset.id, like: !is_liked}
+            });
+            if (is_liked) button.classList.remove('isLiked');
+            else button.classList.add('isLiked')
         })
     })
 }
@@ -461,7 +478,7 @@ function create_portfolio_table(divId, data) {
                                 </span>` : '';
             td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}${note}${warning}</span>
-        <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong class="ticker ${element.symbol.status==='process'?'statusProcess':''}">${element.symbol.ticker}</strong></a>`;
+        <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong class="ticker ${element.symbol.status === 'process' ? 'statusProcess' : ''}">${element.symbol.ticker}</strong></a>`;
             if (element.symbol.dayLow) {
                 td1.appendChild(document.createElement("br"));
                 td1.appendChild(drawDayProgress(element));
