@@ -422,7 +422,7 @@ h2.white{
     margin-top: 10px;
     margin-bottom: 10px;
     color: black;
-
+    text-shadow: 1px 0 1px #d8d8d8;
     border-bottom: solid black 1px;
     cursor: default !important;
 }
@@ -436,10 +436,14 @@ h2.white{
     text-decoration-style:  dashed;
     padding-left: 5px;
 }
+.pulse .comments{
+    padding-top: 15px;
+}
 .pulse .comment{
     margin-left: 30px;
     margin-bottom: 5px;
     background-color: #e6dbf6;
+    text-shadow: 1px 0 1px #d8d8d8;
     border-radius: 15px;
     padding: 5px;
 }
@@ -478,7 +482,10 @@ h2.white{
     margin-left: -18px;
     margin-right: -15px;
 }
-
+.heartCount{
+    float: left;
+    padding-right: 15px;
+}
 .isLiked {
     background-position:right;
 }

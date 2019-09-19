@@ -216,8 +216,13 @@ function likeToggleButton() {
                 method: is_comment ? "setLikeComment" : "setLikePost",
                 params: {commentId: button.dataset.id, like: !is_liked}
             });
-            if (is_liked) button.classList.remove('isLiked');
-            else button.classList.add('isLiked')
+            if (is_liked) {
+                button.classList.remove('isLiked');
+                document.getElementById(button.dataset.id + '_heart_count').innerText = parseInt(document.getElementById(button.dataset.id + '_heart_count').innerText || 0) - 1;
+            } else {
+                button.classList.add('isLiked');
+                document.getElementById(button.dataset.id + '_heart_count').innerText = parseInt(document.getElementById(button.dataset.id + '_heart_count').innerText || 0) + 1;
+            }
         })
     })
 }
