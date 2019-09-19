@@ -37,6 +37,7 @@ import {
     PORTFOLIO_URL,
     PRICE_URL,
     PROFILE_ACTIVITY_URL,
+    PROFILE_INSTRUMENTS_URL,
     PROGNOSIS_URL,
     PULSE_COMMENT_LIKE_URL,
     PULSE_FOR_TICKER_URL,
@@ -706,14 +707,18 @@ function getNews(nav_id) {
             console.log('Get News');
             let url = '';
             switch (true) {
-                case /self/.test(nav_id):
-                    url = PROFILE_ACTIVITY_URL.replace('${navId}', nav_id) + session_id;
+                case /profile/.test(nav_id):
+                    url = PROFILE_ACTIVITY_URL.replace('${navId}', nav_id.slice(0, nav_id.search('_profile'))) + session_id;
                     break;
-                case /^[A-Z]+$/.test(nav_id):
+                case /instrument/.test(nav_id):
+                    url = PROFILE_INSTRUMENTS_URL.replace('${navId}', nav_id.slice(0, nav_id.search('_instrument'))) + session_id;
+                    break;
+                case /^[0-9]+$/.test(nav_id) || !nav_id:
+                    url = NEWS_URL.replace('${navId}', nav_id) + session_id;
+                    break;
+                case /^[A-Z0-9]+$/.test(nav_id):
                     url = PULSE_FOR_TICKER_URL.replace('${navId}', nav_id) + session_id;
                     break;
-                default:
-                    url = NEWS_URL.replace('${navId}', nav_id) + session_id
             }
             fetch(url)
                 .then(response => response.json())

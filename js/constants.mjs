@@ -48,7 +48,8 @@ export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_s
 export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${navId}&limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const COMMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${commentId}/comment?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PULSE_FOR_TICKER_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/instrument/${navId}?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PROFILE_ACTIVITY_URL = 'https://api-invest-gw.tinkoff.r/social/v1/profile/${navId}/post?limit=30deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PROFILE_ACTIVITY_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/post?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PROFILE_INSTRUMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/instrument?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const AVATAR_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/profile/avatar/${img}?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PULSE_POST_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${postId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PULSE_COMMENT_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/comment/${commentId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
@@ -89,6 +90,7 @@ export const HEALTH = {
 };
 export const PLURAL_SECURITY_TYPE = {
     Stock: 'stocks',
+    Share: 'stocks',
     Currency: 'currencies',
     Bond: 'bonds',
     Bonds: 'bonds',

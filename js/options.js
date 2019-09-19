@@ -228,7 +228,7 @@ function likeToggleButton() {
 }
 
 function setPulseButton() {
-    Array.from(document.getElementsByClassName("pulseNav")).forEach(function (input) {
+    Array.from(document.querySelectorAll(".pulseNav, .pulseProfile")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
             document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";

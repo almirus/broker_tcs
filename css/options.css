@@ -450,7 +450,9 @@ h2.white{
 .pulse .answer textarea{
     width:100%;
 }
-
+.pulseProfile{
+    cursor: pointer;
+}
 .pulse h2{
     padding-left: 10px;
 }
