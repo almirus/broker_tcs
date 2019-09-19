@@ -429,7 +429,11 @@ h2.white{
 .pulse .logoContainer{
     margin-top: -40px;
 }
-
+.pulse .profile{
+    float: right;
+    margin-top: -40px;
+    padding-right: 70px;
+}
 .pulse .answerLink,.commentLink{
     float: right;
     cursor: pointer;

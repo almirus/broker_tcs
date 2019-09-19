@@ -38,6 +38,7 @@ import {
     PRICE_URL,
     PROFILE_ACTIVITY_URL,
     PROFILE_INSTRUMENTS_URL,
+    PROFILE_URL,
     PROGNOSIS_URL,
     PULSE_COMMENT_LIKE_URL,
     PULSE_FOR_TICKER_URL,
@@ -834,6 +835,27 @@ function likePost(postId, like) {
     })
 }
 
+function getProfile(id='') {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Get profile');
+            fetch(PROFILE_URL.replace('${profileId}', id) + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get profile', json);
+                        resolve([]);
+                    } else
+                        console.log('success get profile');
+                    resolve(json.payload);
+                }).catch(ex => {
+                console.log('cant get profile', ex);
+                resolve([]);
+            })
+        })
+    })
+}
+
 function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
     return new Promise((resolve, reject) => {
         console.log(`Get price for ${tickerName}`);
@@ -1514,10 +1536,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                     }, []);
                     news['nav_id'] = msg.params.nav_id;
                     //news['tickers_list'] = tickers_list;
-                    port.postMessage(Object.assign({},
-                        {result: "pulse"},
-                        {news: news}));
-                    console.log("send puls list .....");
+                    getProfile().then(profile => {
+                        news['profile'] = profile;
+                        port.postMessage(Object.assign({},
+                            {result: "pulse"},
+                            {news: news}));
+                        console.log("send puls list .....");
+                    });
+
                 });
                 break;
             case 'postComment':
@@ -1533,6 +1559,14 @@ chrome.runtime.onConnect.addListener(function (port) {
             case 'setLikePost':
                 likePost(msg.params.commentId, msg.params.like).then(res => {
                     console.log("like post .....");
+                });
+                break;
+            case 'getProfile':
+                getProfile(msg.params.profileId).then(res => {
+                    port.postMessage(Object.assign({},
+                        {result: "profile"},
+                        {profile: res}));
+                    console.log("send profile .....");
                 });
                 break;
             default:

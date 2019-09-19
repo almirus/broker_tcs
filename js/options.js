@@ -33,6 +33,7 @@ import {
     getExportAccountHtml,
     msToTime,
     renderNews,
+    renderProfile,
     renderPulse,
     toCurrency,
     toPercent
@@ -192,6 +193,9 @@ port.onMessage.addListener(function (msg) {
             setCommentToggleButton();
             setAnswerToggleButton();
             likeToggleButton();
+            break;
+        case 'profile':
+            renderProfile(msg);
             break;
     }
 });
