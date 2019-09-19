@@ -718,7 +718,6 @@ function getNews(nav_id) {
             fetch(url)
                 .then(response => response.json())
                 .then(json => {
-                    const allowed = ['social_operation', 'social_post'];
                     const getFilteredComments = (news) => {
                         return news.map(async item => {
                             if (item.comments_count > 0 || item.commentsCount > 0)
@@ -728,10 +727,10 @@ function getNews(nav_id) {
                             else return item;
                         })
                     };
-                    Promise.all(getFilteredComments(json.payload.items)).then(() => {
+                    Promise.all(getFilteredComments(json.payload.items || [])).then(() => {
                         if (json.status === 'Error') {
                             console.log('cant get News', json);
-                            reject([]);
+                            resolve({});
                         } else
                             console.log('success get News');
                         resolve(json.payload);
