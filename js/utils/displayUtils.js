@@ -51,7 +51,7 @@ export function renderNews(msg) {
                 let is_vedomosti = news.item.provider && news.item.provider.id === 9;
                 let is_has_background = news.item.img_big;
                 let is_eng = false;
-                chrome.i18n.detectLanguage(news.item.title, result => {
+                chrome.i18n.detectLanguage(news.item.title+news.item.announce, result => {
                     is_eng = result.languages[0].language === 'en'
                 });
                 let tickers = news.item.tickers.map(item => {
