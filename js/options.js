@@ -523,13 +523,16 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
                 }) + '*' : ''}</div>
-        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.symbol.expectedYieldPerDayRelative !== undefined ? (element.symbol.expectedYieldPerDayRelative * Math.sign(element.symbol.lotSize)).toLocaleString('ru-RU', {
+        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.relativeOTC && element.earnings ? (element.earnings.relative * Math.sign(element.symbol.lotSize)).toLocaleString('ru-RU', {
                     style: 'percent',
                     maximumSignificantDigits: 2
                 }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
                     style: 'percent',
                     maximumSignificantDigits: 2
-                }) + '*' : ''}</strong></div>
+                }) + '*' : (element.symbol.expectedYieldPerDayRelative || 0).toLocaleString('ru-RU', {
+                    style: 'percent',
+                    maximumSignificantDigits: 2
+                })}</strong></div>
         <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: element.symbol.currentAmount.currency
