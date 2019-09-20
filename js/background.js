@@ -835,7 +835,7 @@ function likePost(postId, like) {
     })
 }
 
-function getProfile(id='') {
+function getProfile(id = '') {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             console.log('Get profile');
@@ -1530,8 +1530,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'getPulse':
                 getNews(msg.params.nav_id).then(news => {
+                    const filtered = ['Stock'];
                     // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
-                    news['navs'] = [].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis).reduce((prev, curr) => {
+                    // пульс доступен только для акций, поэтому фильтруем
+                    news['navs'] = [].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis).filter(item => {
+                        return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
+                    }).reduce((prev, curr) => {
                         return [...prev, ...[{id: curr.symbol.ticker, name: curr.symbol.ticker}]];
                     }, []);
                     news['nav_id'] = msg.params.nav_id;
