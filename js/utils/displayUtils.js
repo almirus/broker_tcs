@@ -140,7 +140,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 let comments_obj = news.commentsCount > 0 ? news.comments.items : [];
                 let tickers = news.instruments.map(item => {
                     return `<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">
-                            <div class="logo" title = "${item.ticker}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + item.image.replace('.', 'x160.')});"></div>
+                            <div class="logo" title = "${item.ticker}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + (item.image || '').replace('.', 'x160.')});"></div>
                             </a>`;
                 }).join('');
                 let comments =
@@ -240,7 +240,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 export function renderProfile(profile) {
     Array.from(document.querySelectorAll('.profile[data-id="' + profile.profile.id + '_profile"]')).forEach(input => {
         input.innerHTML =
-    `<img src="/icons/yeld_ico.png" title="Доходность за год">${profile.profile.statistics.yearRelativeYield}%
+            `<img src="/icons/yeld_ico.png" title="Доходность за год">${profile.profile.statistics.yearRelativeYield}%
      <img src="/icons/amount_ico.png" title="Размер портфеля">${profile.profile.statistics.totalAmountRange.lower ? 'от ' + profile.profile.statistics.totalAmountRange.lower : 'до ' + profile.profile.statistics.totalAmountRange.upper} руб
      <img src="/icons/operation_count.png" title="Количество операций за месяц">${profile.profile.statistics.monthOperationsCount} шт`;
     });

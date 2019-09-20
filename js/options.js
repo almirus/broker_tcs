@@ -293,6 +293,7 @@ function setAnswerToggleButton() {
             let button = e.target;
             document.getElementById(button.dataset.id + '_answer').style.display = document.getElementById(button.dataset.id + '_answer').style.display === "none"
             || document.getElementById(button.dataset.id + '_answer').style.display === "" ? 'block' : 'none'
+            document.getElementById(button.dataset.id + '_text').focus();
         })
     });
     Array.from(document.querySelectorAll(".answerButton")).forEach(function (input) {
