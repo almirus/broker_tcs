@@ -427,12 +427,13 @@ h2.white{
     cursor: default !important;
 }
 .pulse .logoContainer{
-    margin-top: -40px;
+    margin-top: -50px;
 }
 .pulse .profile{
-    float: right;
-    margin-top: -40px;
-    padding-right: 70px;
+    font-size: 9pt;
+    margin-left: 10px;
+    text-shadow: none;
+    font-weight: normal;
 }
 .pulse .answerLink,.commentLink{
     float: right;
@@ -456,6 +457,11 @@ h2.white{
 }
 .pulseProfile{
     cursor: pointer;
+}
+.profile img{
+    width: 16px;
+    vertical-align: middle;
+    padding-right: 3px;
 }
 .pulse h2{
     padding-left: 10px;

@@ -125,12 +125,14 @@ export function renderPulse(msg) {
             case 'social_operation': {
                 let ticker = news.item.ticker ? `<div class="logo" title = "${news.item.ticker.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + news.item.ticker.logo_name.replace('.', 'x160.')});"></div>` : '';
                 //let likes = '<div class="heart"></div>' + (news.likes_count > 0 ? news.likes_count : '');
+                profiles.add(news.item.profile.id);
                 let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
 <h2 class="header white" data-id="${news.item.id}">${avatar}<strong class="pulseProfile" data-nav="${news.item.profile.id}_instrument">${news.item.profile.nickname}</strong> ${news.item.type === "BUY" ? 'купил' : 'продал'} 
-${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
-</h2><a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(news.item.ticker.type)]) + news.item.ticker.ticker}" target="_blank"><div class="logoContainer">${ticker}</div></a></div>`;
+${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLocaleTimeString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
+</h2><span class="profile white" data-id="${news.item.profile.id}_profile"></span>
+<a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(news.item.ticker.type)]) + news.item.ticker.ticker}" target="_blank"><div class="logoContainer">${ticker}</div></a></div>`;
             }
             case undefined: { // по отдельной бумаге, тип не заполняется
                 let likes = `<div class="heart ${news.isLiked ? 'isLiked' : ''}" data-id="${news.id}"></div><div id="${news.id}_heart_count" class="heartCount">${(news.likesCount > 0 ? news.likesCount : '')}</div>`;
@@ -156,7 +158,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                         comment_text = createTextLinks(comment_text);
                         let likes = `<div class="heart isComment ${item.isLiked ? 'isLiked' : ''}" data-id="${item.id}"></div><div id="${item.id}_heart_count" class="heartCount">${(item.likesCount > 0 ? item.likesCount : '')}</div>`;
                         let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '';
-                        return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
+                        return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><span class="profile" data-id="${news.profileId}_profile"></span><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
                     }).join('')}</div>`;
                 }
                 // заменяем шорткоды в теле текста на ссылки акций
@@ -170,8 +172,10 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                 profiles.add(news.profileId);
                 return `
 <div data-id="${news.id}" class="newsAnnounce bordered pulse">
-<h2 data-id="${news.id}" class="pulseProfile" data-nav="${news.profileId}_profile">${avatar}${news.nickname}</h2>
-<div class="logoContainer">${tickers}</div><div class="profile" data-id="${news.profileId}_profile"></div>
+<h2 data-id="${news.id}" class="pulseProfile" data-nav="${news.profileId}_profile">${avatar}${news.nickname}
+<span class="profile" data-id="${news.profileId}_profile"></span>
+</h2>
+<div class="logoContainer">${tickers}</div>
 <div class="postTime">${new Date(news.inserted).toLocaleDateString()} ${new Date(news.inserted).toLocaleTimeString()}</div>
 <div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
@@ -199,7 +203,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                         comment_text = createTextLinks(comment_text);
                         let likes = `<div class="heart isComment ${item.isLiked ? 'isLiked' : ''}" data-id="${item.id}"></div><div id="${item.id}_heart_count" class="heartCount">${(item.likesCount > 0 ? item.likesCount : '')}</div>`;
                         let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">`;
-                        return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
+                        return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><span class="profile" data-id="${item.profileId}_profile"></span><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
                     }).join('')}</div>`;
                 }
 
@@ -214,8 +218,10 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
                 let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
-<h2 data-id="${news.item.id}" class="pulseProfile" data-nav="${news.item.profile.id}_profile">${avatar}${news.item.profile.nickname}</h2>
-<div class="logoContainer">${tickers}</div><div class="profile" data-id="${news.item.profile.id}_profile"></div>
+<h2 data-id="${news.item.id}" class="pulseProfile" data-nav="${news.item.profile.id}_profile">${avatar}${news.item.profile.nickname}
+<span class="profile" data-id="${news.item.profile.id}_profile"></span>
+</h2>
+<div class="logoContainer">${tickers}</div>
 <div class="postTime">${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLocaleTimeString()}</div>
 <div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
@@ -234,9 +240,9 @@ ${new Date(news.item.date).toLocaleDateString()} ${news.item.ticker.name} за $
 export function renderProfile(profile) {
     Array.from(document.querySelectorAll('.profile[data-id="' + profile.profile.id + '_profile"]')).forEach(input => {
         input.innerHTML =
-            `Доход за год ${profile.profile.statistics.yearRelativeYield} 
-        объем портфеля ${profile.profile.statistics.totalAmountRange.lower ? 'от ' + profile.profile.statistics.totalAmountRange.lower : 'до ' + profile.profile.statistics.totalAmountRange.upper}
-        операций за месяц ${profile.profile.statistics.monthOperationsCount}`;
+    `<img src="/icons/yeld_ico.png" title="Доходность за год">${profile.profile.statistics.yearRelativeYield}%
+     <img src="/icons/amount_ico.png" title="Размер портфеля">${profile.profile.statistics.totalAmountRange.lower ? 'от ' + profile.profile.statistics.totalAmountRange.lower : 'до ' + profile.profile.statistics.totalAmountRange.upper} руб
+     <img src="/icons/operation_count.png" title="Количество операций за месяц">${profile.profile.statistics.monthOperationsCount} шт`;
     });
 }
 
