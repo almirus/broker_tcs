@@ -1147,7 +1147,7 @@ function updateAlertPrices() {
                     return {
                         symbol: {
                             ticker: item.ticker,
-                            symbolType: 'Stock'
+                            symbolType: (item.symbolType || item.securityType || 'Stock')
                         }
                     };
                 });
@@ -1550,11 +1550,11 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getNews(msg.params.nav_id).then(news => {
                     // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
                     // пульс доступен только для акций, поэтому фильтруем
-                    news['navs'] = [].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders).filter(item => {
+                    news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders).filter(item => {
                         return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
                     }).reduce((prev, curr) => {
-                        return [...prev, ...[{id: curr.symbol.ticker, name: curr.symbol.ticker}]];
-                    }, []);
+                        return [...prev, ...[curr.symbol.ticker]];
+                    }, []))];
                     news['nav_id'] = msg.params.nav_id;
                     //news['tickers_list'] = tickers_list;
                     getProfile().then(profile => {

@@ -108,7 +108,7 @@ export function renderPulse(msg) {
 <li class="pulseNav ${(msg.news.profile.id + '_profile') === msg.news.nav_id ? 'current' : ''}" data-nav="${msg.news.profile.id}_profile">Мои посты</li>
 <li class="pulseNav ${'users' === msg.news.nav_id ? 'current' : ''}" data-nav="users">Профили</li>`;
     buffer += msg.news.navs.map(item => {
-        return `<li class="pulseNav ${item.id === msg.news.nav_id ? 'current' : ''}" data-nav="${item.id}">${item.name}</li>`
+        return `<li class="pulseNav ${item === msg.news.nav_id ? 'current' : ''}" data-nav="${item}">${item}</li>`
     }).join('') + '</ul></div><div style="clear: both;"></div>';
     msg.news.items = msg.news.items || [];
     let profiles = new Set();
