@@ -1143,6 +1143,14 @@ function updateAlertPrices() {
                     return (subscriptions)
                 }),
             ]).then(async ([orders, stops, subscriptions]) => {
+                portfolio.orders = orders.map(item => {
+                    return {
+                        symbol: {
+                            ticker: item.ticker,
+                            symbolType: 'Stock'
+                        }
+                    };
+                });
                 let alert_data = [].concat(orders, stops, subscriptions);
                 let i = 0;
                 for (const item of alert_data) {
@@ -1788,12 +1796,22 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 
 const portfolio = class {
     items;
+    orders;
+
     set items(items) {
         this.items = items;
     };
 
     get items() {
         return this.items;
+    };
+
+    set orders(orders) {
+        this.orders = orders;
+    };
+
+    get orders() {
+        return this.orders;
     };
 
     static async getLiquid() {
