@@ -318,6 +318,9 @@ ul.navigation {
     display: inline;
     float: left;
 }
+.current{
+    background-color: #938aa0;
+}
 .newsBody{
     display: none;
 }

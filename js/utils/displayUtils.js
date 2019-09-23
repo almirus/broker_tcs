@@ -104,14 +104,23 @@ ${is_eng ? '<div data-id="' + news.item.id + '" class="translate" title="Пер�
 }
 
 export function renderPulse(msg) {
-    let buffer = `<div class="nav"><ul class="navigation"><li class="pulseNav" data-nav="61">🔥 Пульс</li><li class="pulseNav" data-nav="${msg.news.profile.id}_profile">Мои</li>`;
+    let buffer = `<div class="nav"><ul class="navigation"><li class="pulseNav" data-nav="61">🔥 Пульс</li>
+<li class="pulseNav ${(msg.news.profile.id + '_profile') === msg.news.nav_id ? 'current' : ''}" data-nav="${msg.news.profile.id}_profile">Мои посты</li>
+<li class="pulseNav ${'users' === msg.news.nav_id ? 'current' : ''}" data-nav="users">Профили</li>`;
     buffer += msg.news.navs.map(item => {
-        return `<li class="pulseNav" data-nav="${item.id}">${item.name}</li>`
+        return `<li class="pulseNav ${item.id === msg.news.nav_id ? 'current' : ''}" data-nav="${item.id}">${item.name}</li>`
     }).join('') + '</ul></div><div style="clear: both;"></div>';
     msg.news.items = msg.news.items || [];
     let profiles = new Set();
     buffer += msg.news.items.map(news => {
         switch (news.type) {
+            case 'user':{
+                let avatar = news.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
+                return `<div class="newsAnnounce bordered pulse">
+                    <h2 class="pulseProfile" data-nav="${news.id}_profile">${avatar}${news.nickname}</h2>
+                    <div class="post">${news.yearRelativeYield}% за год</div><div style="clear: both;"></div>
+                    </div>`
+            }
             case 'bond':
             case 'etf':
             case 'share': {
@@ -126,7 +135,7 @@ export function renderPulse(msg) {
                 let ticker = news.item.ticker ? `<div class="logo" title = "${news.item.ticker.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + news.item.ticker.logo_name.replace('.', 'x160.')});"></div>` : '';
                 //let likes = '<div class="heart"></div>' + (news.likes_count > 0 ? news.likes_count : '');
                 profiles.add(news.item.profile.id);
-                let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '';
+                let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
 <h2 class="header white" data-id="${news.item.id}">${avatar}<strong class="pulseProfile" data-nav="${news.item.profile.id}_instrument">${news.item.profile.nickname}</strong> ${news.item.type === "BUY" ? 'купил' : 'продал'} 
@@ -134,7 +143,9 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 </h2><span class="profile white" data-id="${news.item.profile.id}_profile"></span>
 <a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(news.item.ticker.type)]) + news.item.ticker.ticker}" target="_blank"><div class="logoContainer">${ticker}</div></a></div>`;
             }
-            case undefined: { // по отдельной бумаге, тип не заполняется
+            case 'ticker':
+            case 'profile':
+            case 'instrument': { // по отдельной бумаге, тип не заполняется
                 let likes = `<div class="heart ${news.isLiked ? 'isLiked' : ''}" data-id="${news.id}"></div><div id="${news.id}_heart_count" class="heartCount">${(news.likesCount > 0 ? news.likesCount : '')}</div>`;
                 let text = news.text;
                 let comments_obj = news.commentsCount > 0 ? news.comments.items : [];
@@ -157,7 +168,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                         let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig, '<a target="_blank" href="' + link + "$1" + '"><strong>' + "$1" + "</strong></a>");
                         comment_text = createTextLinks(comment_text);
                         let likes = `<div class="heart isComment ${item.isLiked ? 'isLiked' : ''}" data-id="${item.id}"></div><div id="${item.id}_heart_count" class="heartCount">${(item.likesCount > 0 ? item.likesCount : '')}</div>`;
-                        let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '';
+                        let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                         return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><span class="profile" data-id="${item.profileId}_profile"></span><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
                     }).join('')}</div>`;
                 }
@@ -168,7 +179,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                     text = createTextLinks(text);
 
                 });
-                let avatar = news.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.image)}">` : '';
+                let avatar = news.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                 profiles.add(news.profileId);
                 return `
 <div data-id="${news.id}" class="newsAnnounce bordered pulse">
@@ -202,7 +213,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                         let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig, '<a target="_blank" href="' + link + "$1" + '"><strong>' + "$1" + "</strong></a>");
                         comment_text = createTextLinks(comment_text);
                         let likes = `<div class="heart isComment ${item.isLiked ? 'isLiked' : ''}" data-id="${item.id}"></div><div id="${item.id}_heart_count" class="heartCount">${(item.likesCount > 0 ? item.likesCount : '')}</div>`;
-                        let avatar = `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">`;
+                        let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                         return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><span class="profile" data-id="${item.profileId}_profile"></span><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
                     }).join('')}</div>`;
                 }
@@ -215,7 +226,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 
                 });
                 profiles.add(news.item.profile.id);
-                let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '';
+                let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.item.id}" class="pulseProfile" data-nav="${news.item.profile.id}_profile">${avatar}${news.item.profile.nickname}

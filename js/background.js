@@ -55,6 +55,7 @@ import {
     TICKER_LIST,
     UNSUBSCRIBE,
     USD_RUB,
+    USER_LIST_URL,
     USER_URL
 } from "/js/constants.mjs";
 
@@ -707,17 +708,25 @@ function getNews(nav_id) {
         MainProperties.getSession().then(session_id => {
             console.log('Get News');
             let url = '';
+            let type = '';
             switch (true) {
+                case /users/.test(nav_id):
+                    url = USER_LIST_URL + session_id;
+                    type = 'user';
+                    break;
                 case /profile/.test(nav_id):
                     url = PROFILE_ACTIVITY_URL.replace('${navId}', nav_id.slice(0, nav_id.search('_profile'))) + session_id;
+                    type = 'profile';
                     break;
                 case /instrument/.test(nav_id):
+                    type = 'instrument';
                     url = PROFILE_INSTRUMENTS_URL.replace('${navId}', nav_id.slice(0, nav_id.search('_instrument'))) + session_id;
                     break;
                 case /^[0-9]+$/.test(nav_id) || !nav_id:
                     url = NEWS_URL.replace('${navId}', nav_id) + session_id;
                     break;
                 case /^[A-Z0-9]+$/.test(nav_id):
+                    type = 'ticker';
                     url = PULSE_FOR_TICKER_URL.replace('${navId}', nav_id) + session_id;
                     break;
             }
@@ -726,6 +735,7 @@ function getNews(nav_id) {
                 .then(json => {
                     const getFilteredComments = (news) => {
                         return news.map(async item => {
+                            item['type'] = item['type'] || type;
                             if (item.comments_count > 0 || item.commentsCount > 0)
                                 await getComments(item.id || item.item.id).then(comments => {
                                     return item['comments'] = comments; // модифицируем исходный массив, добавляем комменты
@@ -1530,10 +1540,9 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'getPulse':
                 getNews(msg.params.nav_id).then(news => {
-                    const filtered = ['Stock'];
                     // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
                     // пульс доступен только для акций, поэтому фильтруем
-                    news['navs'] = [].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis).filter(item => {
+                    news['navs'] = [].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders).filter(item => {
                         return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
                     }).reduce((prev, curr) => {
                         return [...prev, ...[{id: curr.symbol.ticker, name: curr.symbol.ticker}]];
@@ -1777,7 +1786,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     }
 });
 
-let portfolio = class {
+const portfolio = class {
     items;
     set items(items) {
         this.items = items;
