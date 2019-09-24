@@ -438,7 +438,7 @@ function create_portfolio_table(divId, data) {
     let th7 = document.createElement('th');
     th7.appendChild(document.createTextNode('доход на тек. момент'));
     let th8 = document.createElement('th');
-
+    th8.style.width='40px';
     th7.className = 'sorting';
 
     tr.appendChild(th1);
@@ -591,7 +591,7 @@ function create_portfolio_table(divId, data) {
                 }
             }
             let td8 = document.createElement('td');
-            td8.style.whiteSpace = 'nowrap';
+            //td8.style.whiteSpace = 'nowrap';
             td8.innerHTML = `${short} ${warning} ${div}`;
             tr.appendChild(td1);
             tr.appendChild(td8);
