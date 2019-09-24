@@ -11,6 +11,7 @@ export const BUY_LINK = 'https://www.tinkoff.ru/invest/buy/';
 export const SELL_LINK = 'https://www.tinkoff.ru/invest/sell/';
 export const EVENTS_LINK = 'https://www.tinkoff.ru/invest/stocks/${symbol}/events/';
 export const PROGNOSIS_LINK = 'https://www.tinkoff.ru/invest/${securityType}/${symbol}/prognosis/';
+export const DIVIDENDS_URL = 'https://api.tinkoff.ru/trading/stocks/dividends?sessionId=';
 //export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/broker_account/stock/';
 export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/${securityType}/';
 export const PING_URL = 'https://api.tinkoff.ru/v1/ping?sessionid=';

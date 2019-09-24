@@ -12,6 +12,7 @@ import {
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
+    DIVIDENDS_URL,
     EUR_RUB,
     FAVORITE_URL,
     HOST_URL,
@@ -335,6 +336,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                         absoluteOTC: symbol.payload.absoluteOTC || 0,
                         relativeOTC: symbol.payload.relativeOTC || 0,
                         consensus: symbol.payload.symbol.consensus,
+                        dividends: symbol.payload.symbol.dividends,
                         symbolType: symbol.payload.symbol.symbolType,
                         isOTC: symbol.payload.symbol.isOTC,
                         sessionOpen: symbol.payload.symbol.sessionOpen,
@@ -929,7 +931,28 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                             res.payload.symbol.dayHigh = json.payload.dayHigh;
                             res.payload.symbol.dayLow = json.payload.dayLow;
                             res.payload.symbol.dayOpen = json.payload.dayOpen;
-
+                            res.payload.symbol.dividends = [];
+                            if (res.payload.contentMarker.dividends) {
+                                console.log('try to get dividends for', tickerName);
+                                fetch(DIVIDENDS_URL.replace('${ticker}', tickerName) + sessionId, {
+                                    method: "POST",
+                                    body: JSON.stringify({
+                                        ticker: tickerName
+                                    }),
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                    }
+                                }).then(response => response.json())
+                                    .then(dividends => {
+                                        res.payload.symbol['dividends'] = dividends.payload.dividends;
+                                        resolve(res);
+                                    })
+                                    .catch(e => {
+                                        console.error('Сервис дивидендов недоступен', e);
+                                        resolve(res);
+                                    });
+                            }
                             if (res.payload.contentMarker.prognosis) {
                                 console.log('try to get prognosis for', tickerName);
                                 fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
@@ -938,7 +961,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                                         resolve(res);
                                     })
                                     .catch(e => {
-                                        console.log('Сервис прогнозов недоступен', e);
+                                        console.error('Сервис прогнозов недоступен', e);
                                         resolve(res);
                                     });
                             } else {

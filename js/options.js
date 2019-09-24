@@ -437,15 +437,19 @@ function create_portfolio_table(divId, data) {
     th6.className = 'sorting';
     let th7 = document.createElement('th');
     th7.appendChild(document.createTextNode('доход на тек. момент'));
+    let th8 = document.createElement('th');
+
     th7.className = 'sorting';
 
     tr.appendChild(th1);
+    tr.appendChild(th8);
     tr.appendChild(th2);
     tr.appendChild(th3);
     tr.appendChild(th4);
     tr.appendChild(th5);
     tr.appendChild(th6);
     tr.appendChild(th7);
+
     table.appendChild(tr);
 
     data.forEach(function (element, i) {
@@ -465,6 +469,8 @@ function create_portfolio_table(divId, data) {
                 img_status = '/icons/closed.png';
                 remain_time = "Время до открытия " + msToTime(element.symbol.timeToOpen);
             } else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
+            let feature_div = element.contentMarker && element.contentMarker.dividends ? element.symbol.dividends[element.symbol.dividends.length - 1] : undefined;
+            let div = feature_div && feature_div.yield ? `<a href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя даты покупки для получения дивидендов ${new Date(feature_div.lastBuyDate).toLocaleDateString()}, доход на одну акцию ${feature_div.yield.value}%">D</a>` : '';
             let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">📊</span>' : '';
             let etf = element.symbol.symbolType === 'ETF' ? '<span title="ETF">🗃️</span>' : '';
             let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
@@ -487,7 +493,7 @@ function create_portfolio_table(divId, data) {
                                 ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.price_change_rel.toFixed(2)} %
                                 </span>` : '';
             td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${short}${note}${warning}</span>
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${note}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong class="ticker ${element.symbol.status === 'process' ? 'statusProcess' : ''}">${element.symbol.ticker}</strong></a>`;
             if (element.symbol.dayLow) {
                 td1.appendChild(document.createElement("br"));
@@ -584,15 +590,17 @@ function create_portfolio_table(divId, data) {
                     })}</div>`;
                 }
             }
+            let td8 = document.createElement('td');
+            td8.style.whiteSpace = 'nowrap';
+            td8.innerHTML = `${short} ${warning} ${div}`;
             tr.appendChild(td1);
+            tr.appendChild(td8);
             tr.appendChild(td2);
             tr.appendChild(td3);
             tr.appendChild(td4);
             tr.appendChild(td5);
             tr.appendChild(td6);
             tr.appendChild(td7);
-
-
             table.appendChild(tr);
         }
     );
