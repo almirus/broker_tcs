@@ -80,10 +80,13 @@ port.onMessage.addListener(function (msg) {
         case 'session':
             if (msg.sessionId) {
                 document.getElementById('message').innerText = 'Активная сессия';
-                document.getElementById('error_message').innerHTML = `<a target="_blank" href="${SIGN_OUT_URL + msg.sessionId}">Разлогиниться</a>&nbsp;`;
+                document.getElementById('error_message').innerHTML = `&nbsp;`;
+                document.getElementById('logout').style.visibility = 'visible';
             } else {
                 document.getElementById('message').innerText = '';
                 document.getElementById('error_message').innerHTML = `Сессия истекла. <a target="_blank" href="${LOGIN_URL}">Залогиниться</a>`;
+                document.getElementById('logout').style.visibility = 'hidden';
+
             }
             // дизейблим пункты связанные с получением данных онлайн
             let op = document.getElementById("add_list_type").getElementsByTagName("option");
@@ -1176,6 +1179,13 @@ document.getElementById(OPTION_ALPHAVANTAGE_KEY).addEventListener('input', funct
         console.log('alphavantage key option set to ' + e.target.value);
     })
 });
+
+// кнопка выход
+document.getElementById("logout").addEventListener('click', function (e) {
+    port.postMessage({method: "logout"});
+    window.close();
+});
+
 // подгружаем настройки
 chrome.storage.sync.get([OPTION_ALPHAVANTAGE_KEY], function (result) {
     console.log('get alphavantage key option');

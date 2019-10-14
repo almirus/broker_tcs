@@ -47,6 +47,7 @@ import {
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
+    SIGN_OUT_URL,
     STOP_URL,
     SUBSCRIPTIONS_URL,
     SYMBOL_EXTENDED_LINK,
@@ -868,6 +869,27 @@ function getProfile(id = '') {
     })
 }
 
+function logout() {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('logout');
+            fetch(SIGN_OUT_URL + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant logout', json);
+                        resolve(0);
+                    } else
+                        console.log('success logout');
+                    resolve(1);
+                }).catch(ex => {
+                console.log('cant logout', ex);
+                resolve(0);
+            })
+        })
+    })
+}
+
 function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
     return new Promise((resolve, reject) => {
         console.log(`Get price for ${tickerName}`);
@@ -1118,6 +1140,34 @@ function getLiquidList(brokerAccountType = 'Tinkoff') {
                     resolve(json.payload);
                 }).catch(ex => {
                 console.log('cant get liquid', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
+function getFavoriteList() {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(FAVORITE_URL + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get favorite', json);
+                        reject(undefined);
+                    } else
+                        console.log('success get favorite list');
+                    let stock_list = (json.payload.stocks || []).map(item => {
+                        return {
+                            symbol: {
+                                ticker: item.symbol.ticker,
+                                symbolType: item.symbol.symbolType
+                            }
+                        }
+                    });
+                    resolve(stock_list);
+                }).catch(ex => {
+                console.log('cant get favorite', ex);
                 reject(undefined);
             })
         })
@@ -1613,6 +1663,11 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send profile .....");
                 });
                 break;
+            case 'logout':
+                logout().then(res => {
+                    console.log("logout .....");
+                });
+                break;
             default:
                 port.postMessage('unknown request');
         }
@@ -1853,6 +1908,16 @@ const portfolio = class {
         }
         return await getPrognosisList().then(list => {
             this._prognosisList = list;
+            return list;
+        })
+    }
+
+    static async getFavorite() {
+        if (!(this._favoriteList === undefined)) {
+            return this._favoriteList
+        }
+        return await getFavoriteList().then(list => {
+            this._favoriteList = list;
             return list;
         })
     }

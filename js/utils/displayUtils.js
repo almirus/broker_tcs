@@ -114,7 +114,7 @@ export function renderPulse(msg) {
     let profiles = new Set();
     buffer += msg.news.items.map(news => {
         switch (news.type) {
-            case 'user':{
+            case 'user': {
                 let avatar = news.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                 return `<div class="newsAnnounce bordered pulse">
                     <h2 class="pulseProfile" data-nav="${news.id}_profile">${avatar}${news.nickname}</h2>
@@ -129,7 +129,7 @@ export function renderPulse(msg) {
 <div class="newsAnnounce bordered pulse">
 <h2 class="header black">${news.showName}
 </h2><div class="logoContainer">${ticker}</div>
-<div class="post">${news.statistics.totalOperationsCount} ${declOfNum(news.statistics.totalOperationsCount, ['сделка', 'сделки', 'сделок'])}, последняя ${new Date(news.statistics.maxTradeDateTime).toLocaleDateString()} ${new Date(news.statistics.maxTradeDateTime).toLocaleTimeString()}</div></div>`;
+<div class="post"><span class="operationCount" data-id="${news.ticker}" data-ticker="${news.ticker}" data-classCode="${news.classCode}">${news.statistics.totalOperationsCount}</span> ${declOfNum(news.statistics.totalOperationsCount, ['сделка', 'сделки', 'сделок'])}, последняя ${new Date(news.statistics.maxTradeDateTime).toLocaleDateString()} ${new Date(news.statistics.maxTradeDateTime).toLocaleTimeString()}</div></div>`;
             }
             case 'social_operation': {
                 let ticker = news.item.ticker ? `<div class="logo" title = "${news.item.ticker.name}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + news.item.ticker.logo_name.replace('.', 'x160.')});"></div>` : '';
@@ -138,7 +138,7 @@ export function renderPulse(msg) {
                 let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse" style="background-color: ${shadeColor(news.item.ticker.color, -20)}">
-<h2 class="header white" data-id="${news.item.id}">${avatar}<strong class="pulseProfile" data-nav="${news.item.profile.id}_instrument">${news.item.profile.nickname}</strong> ${news.item.type === "BUY" ? 'купил' : 'продал'} 
+<h2 class="header white" data-id="${news.item.id}">${avatar}<strong class="pulseProfile" data-nav="${news.item.profile.id}_profile">${news.item.profile.nickname}</strong> ${news.item.type === "BUY" ? 'купил' : 'продал'} 
 ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLocaleTimeString()} ${news.item.ticker.name} за ${Number((news.item.price).toFixed(news.item.price < 0.1 ? 6 : 2))}
 </h2><span class="profile white" data-id="${news.item.profile.id}_profile"></span>
 <a class="width100" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(news.item.ticker.type)]) + news.item.ticker.ticker}" target="_blank"><div class="logoContainer">${ticker}</div></a></div>`;
@@ -250,10 +250,12 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 
 export function renderProfile(profile) {
     Array.from(document.querySelectorAll('.profile[data-id="' + profile.profile.id + '_profile"]')).forEach(input => {
-        input.innerHTML =
-            `<img src="/icons/yeld_ico.png" title="Доходность за год">${profile.profile.statistics.yearRelativeYield}%
+        input.innerHTML = `
+     <img src="/icons/yeld_ico.png" title="Доходность за год">${profile.profile.statistics.yearRelativeYield}%
      <img src="/icons/amount_ico.png" title="Размер портфеля">${profile.profile.statistics.totalAmountRange.lower ? 'от ' + profile.profile.statistics.totalAmountRange.lower : 'до ' + profile.profile.statistics.totalAmountRange.upper} руб
-     <img src="/icons/operation_count.png" title="Количество операций за месяц">${profile.profile.statistics.monthOperationsCount} шт`;
+     <img src="/icons/operation_count.png" title="Количество операций за месяц">
+     <span class="operationCount" data-id="${profile.profile.id}_instrument">${profile.profile.statistics.monthOperationsCount} шт</span>
+    `;
     });
 }
 

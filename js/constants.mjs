@@ -56,7 +56,7 @@ export const PULSE_POST_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/p
 export const PULSE_COMMENT_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/comment/${commentId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PROFILE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${profileId}?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const USER_LIST_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/catalog?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-
+export const USER_OPERATION_BY_TICKER_URL='https://api-invest-gw.tinkoff.ru/social/v1/profile/${profileId}/operation/instrument/${ticker}/${classCode}?limit=50&deviceId=2cb59723b132726c&appVersion=4.0.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const YANDEX_TRANSLATE = 'https://translate.yandex.net/api/v1.5/tr.json/translate?key=trnsl.1.1.20190913T211312Z.13833f619c95d3aa.29ec76510845a30c5b01ab996a071b915eaf96a1';
 
 export const INTERVAL_TO_CHECK = 1;//min
