@@ -30,6 +30,7 @@ import {
     OPTION_ALPHAVANTAGE,
     OPTION_ALPHAVANTAGE_KEY,
     OPTION_CONVERT_TO_RUB,
+    OPTION_FAVORITE,
     OPTION_REDIRECT,
     OPTION_SESSION,
     ORDERS_URL,
@@ -706,6 +707,33 @@ function getComments(id) {
     })
 }
 
+function getFavorite() {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(FAVORITE_URL + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    console.log('list of Favourite');
+                    let return_data = [];
+                    json.payload.stocks.forEach(item => {
+                        return_data.push({
+                            symbol: {
+                                ticker: item.symbol.ticker,
+                                symbolType: item.symbol.symbolType
+                            }
+                        });
+                    });
+                    MainProperties.getFavoriteOption().then(isFavoriteChecked => {
+                        resolve(isFavoriteChecked ? return_data : []);
+                    })
+                }).catch(function (ex) {
+                console.log('parsing failed', ex);
+                reject([]);
+            })
+        })
+    });
+}
+
 function getNews(nav_id) {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
@@ -1140,34 +1168,6 @@ function getLiquidList(brokerAccountType = 'Tinkoff') {
                     resolve(json.payload);
                 }).catch(ex => {
                 console.log('cant get liquid', ex);
-                reject(undefined);
-            })
-        })
-    })
-}
-
-function getFavoriteList() {
-    return new Promise((resolve, reject) => {
-        MainProperties.getSession().then(session_id => {
-            fetch(FAVORITE_URL + session_id)
-                .then(response => response.json())
-                .then(json => {
-                    if (json.status === 'Error') {
-                        console.log('cant get favorite', json);
-                        reject(undefined);
-                    } else
-                        console.log('success get favorite list');
-                    let stock_list = (json.payload.stocks || []).map(item => {
-                        return {
-                            symbol: {
-                                ticker: item.symbol.ticker,
-                                symbolType: item.symbol.symbolType
-                            }
-                        }
-                    });
-                    resolve(stock_list);
-                }).catch(ex => {
-                console.log('cant get favorite', ex);
                 reject(undefined);
             })
         })
@@ -1621,22 +1621,26 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'getPulse':
                 getNews(msg.params.nav_id).then(news => {
-                    // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
-                    // пульс доступен только для акций, поэтому фильтруем
-                    news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders).filter(item => {
-                        return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
-                    }).reduce((prev, curr) => {
-                        return [...prev, ...[curr.symbol.ticker]];
-                    }, []))];
-                    news['nav_id'] = msg.params.nav_id;
-                    //news['tickers_list'] = tickers_list;
-                    getProfile().then(profile => {
-                        news['profile'] = profile;
-                        port.postMessage(Object.assign({},
-                            {result: "pulse"},
-                            {news: news}));
-                        console.log("send puls list .....");
-                    });
+                    (async () => {
+                        let favorite = await getFavorite();
+                        // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
+                        // пульс доступен только для акций, поэтому фильтруем
+                        news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
+                            return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
+                        }).reduce((prev, curr) => {
+                            return [...prev, ...[curr.symbol.ticker]];
+                        }, []))];
+                        news['nav_id'] = msg.params.nav_id;
+                        //news['tickers_list'] = tickers_list;
+                        getProfile().then(profile => {
+                            news['profile'] = profile;
+                            port.postMessage(Object.assign({},
+                                {result: "pulse"},
+                                {news: news}));
+                            console.log("send puls list .....");
+                        });
+                    })();
+
 
                 });
                 break;
@@ -1853,6 +1857,20 @@ export class MainProperties {
                 })
         })
     }
+
+    static async getFavoriteOption() {
+        if (!(this._favoriteOption === undefined)) {
+            //console.log('get cached sessionId');
+            return this._favoriteOption
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_FAVORITE], result => {
+                this._favoriteOption = result[OPTION_FAVORITE];
+                resolve(result[OPTION_FAVORITE]);
+            })
+        );
+
+    };
 }
 
 // вызывается при изменении storage
@@ -1868,6 +1886,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             if (key === OPTION_ALPHAVANTAGE) MainProperties._AVOption = storageChange.newValue;
             if (key === OPTION_ALPHAVANTAGE_KEY) MainProperties._AVKey = storageChange.newValue;
             if (key === OPTION_SESSION) MainProperties._sessionOption = storageChange.newValue;
+            if (key === OPTION_FAVORITE) MainProperties._favoriteOption = storageChange.newValue;
         }
     }
 });
@@ -1908,16 +1927,6 @@ const portfolio = class {
         }
         return await getPrognosisList().then(list => {
             this._prognosisList = list;
-            return list;
-        })
-    }
-
-    static async getFavorite() {
-        if (!(this._favoriteList === undefined)) {
-            return this._favoriteList
-        }
-        return await getFavoriteList().then(list => {
-            this._favoriteList = list;
             return list;
         })
     }

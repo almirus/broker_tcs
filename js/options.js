@@ -14,13 +14,13 @@ import {
     OPTION_ALPHAVANTAGE_KEY,
     OPTION_CONVERT_TO_RUB,
     OPTION_COSMETICS,
+    OPTION_FAVORITE,
     OPTION_REDIRECT,
     OPTION_SESSION,
     OPTION_SORT_BY_NEAREST,
     port,
     PROGNOSIS_LINK,
     RECALIBRATION_LINK,
-    SIGN_OUT_URL,
     SYMBOL_LINK,
     TICKER_LIST,
     YANDEX_TRANSLATE,
@@ -441,7 +441,7 @@ function create_portfolio_table(divId, data) {
     let th7 = document.createElement('th');
     th7.appendChild(document.createTextNode('доход на тек. момент'));
     let th8 = document.createElement('th');
-    th8.style.width='40px';
+    th8.style.width = '40px';
     th7.className = 'sorting';
 
     tr.appendChild(th1);
@@ -1190,6 +1190,18 @@ document.getElementById("logout").addEventListener('click', function (e) {
 chrome.storage.sync.get([OPTION_ALPHAVANTAGE_KEY], function (result) {
     console.log('get alphavantage key option');
     document.getElementById(OPTION_ALPHAVANTAGE_KEY).value = result[OPTION_ALPHAVANTAGE_KEY] || '';
+});
+
+// сохраняем применение в Пульс избпанное
+document.getElementById(OPTION_FAVORITE).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_FAVORITE]: e.target.checked}, function () {
+        console.log('favorite option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_FAVORITE], function (result) {
+    console.log('get favorite option');
+    document.getElementById(OPTION_FAVORITE).checked = result[OPTION_FAVORITE] === true;
 });
 
 // запрашиваем права на выдачу уведомлений
