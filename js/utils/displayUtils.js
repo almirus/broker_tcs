@@ -112,9 +112,9 @@ export function renderPulse(msg) {
     }).join('') + '</ul></div><div style="clear: both;"></div>';
     msg.news.items = msg.news.items || [];
     let profiles = new Set();
-    if (msg.news.nav_id && msg.news.items.length>0 && msg.news.items[0].instruments) {
+    if (msg.news.nav_id && msg.news.items.length > 0 && msg.news.items[0].instruments) {
         let ticket = msg.news.items[0].instruments.find(item => item.ticker === msg.news.nav_id);
-        buffer += `
+        if (ticket) buffer += `
 <div class="forecast bordered" style="background-color: #b0b3b6" id="ticker_${msg.news.nav_id}">
         <h2 class="header">${ticket.briefName}</h2>
         <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(https://static.tinkoff.ru/brands/traiding/${ticket.image.replace('.', 'x160.')});"></div>
@@ -130,7 +130,8 @@ export function renderPulse(msg) {
             minimumFractionDigits: ticket.lastPrice < 0.1 ? 4 : 2
         })}</div>
 </div>`
-    };
+    }
+    ;
     buffer += msg.news.items.map(news => {
         switch (news.type) {
             case 'user': {
