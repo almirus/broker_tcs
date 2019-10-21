@@ -112,6 +112,25 @@ export function renderPulse(msg) {
     }).join('') + '</ul></div><div style="clear: both;"></div>';
     msg.news.items = msg.news.items || [];
     let profiles = new Set();
+    if (msg.news.nav_id && msg.news.items.length>0 && msg.news.items[0].instruments) {
+        let ticket = msg.news.items[0].instruments.find(item => item.ticker === msg.news.nav_id);
+        buffer += `
+<div class="forecast bordered" style="background-color: #b0b3b6" id="ticker_${msg.news.nav_id}">
+        <h2 class="header">${ticket.briefName}</h2>
+        <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(https://static.tinkoff.ru/brands/traiding/${ticket.image.replace('.', 'x160.')});"></div>
+        <div class="recommendation">
+        <span class="${ticket.relativeDailyYield > 0 ? 'onlineBuy' : 'onlineSell'}">
+        ${(ticket.relativeDailyYield / 100).toLocaleString('ru-RU', {
+            style: 'percent',
+            minimumFractionDigits: ticket.relativeDailyYield < 0.1 ? 4 : 2
+        })}</span>
+        ${ticket.lastPrice.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: ticket.currency,
+            minimumFractionDigits: ticket.lastPrice < 0.1 ? 4 : 2
+        })}</div>
+</div>`
+    };
     buffer += msg.news.items.map(news => {
         switch (news.type) {
             case 'user': {
@@ -149,7 +168,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 let likes = `<div class="heart ${news.isLiked ? 'isLiked' : ''}" data-id="${news.id}"></div><div id="${news.id}_heart_count" class="heartCount">${(news.likesCount > 0 ? news.likesCount : '')}</div>`;
                 let text = news.text;
                 let comments_obj = news.commentsCount > 0 ? news.comments.items : [];
-                let tickers = news.instruments.map(item => {
+                let tickers = news.instruments.slice(0, 15).map(item => {
                     return `<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">
                             <div class="logo" title = "${item.ticker}" style="background-size: cover; background-position: 50% 50%; background-image: url(${'https://static.tinkoff.ru/brands/traiding/' + (item.image || '').replace('.', 'x160.')});"></div>
                             </a>`;
@@ -245,6 +264,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
             params: {profileId: item}
         });
     });
+    if (msg.news.items.length === 0) buffer += '<h2>Нет сообщений</h2>';
     document.getElementById('news_table').innerHTML = buffer;
 }
 
