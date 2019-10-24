@@ -484,7 +484,7 @@ function create_portfolio_table(divId, data) {
             let country = '';
             //if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
             let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
-            let warning = element.contentMarker && element.contentMarker.recalibration ? '<span title="Есть негативные новости по иструменту"><a href="' + RECALIBRATION_LINK + element.symbol.ticker + '" target="_blank">💀</a></span>' : '';
+            let warning = element.contentMarker && element.contentMarker.recalibration ? '<span title="Есть негативные новости по инструменту"><a href="' + RECALIBRATION_LINK + element.symbol.ticker + '" target="_blank">💀</a></span>' : '';
             let prognosis_style = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
             let prognosis_link = element.contentMarker && element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', element.symbol.ticker).replace('${securityType}', element.symbol.securityType)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.recommendation}">
                                 ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {

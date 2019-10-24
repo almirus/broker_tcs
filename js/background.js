@@ -1014,28 +1014,31 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                                         console.error('Сервис прогнозов недоступен', e);
                                         resolve(res);
                                     });
-                            } else {
-                                MainProperties.getAVOption().then(option => {
-                                    // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                                    if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0)
-                                        fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
-                                            .then(otc => {
-                                                if (otc.Note) {
-                                                    console.log('Достигнуто ограничение alphavantage');
-                                                } else {
-                                                    res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
-                                                    res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
-                                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
-                                                }
-                                                resolve(res);
-                                            })
-                                            .catch(e => {
-                                                console.log('Сервис alphavantage недоступен', e);
-                                                resolve(res);
-                                            });
-                                    else resolve(res);
-                                })
                             }
+                            MainProperties.getAVOption().then(option => {
+                                // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
+                                if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0)
+                                    fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
+                                        .then(otc => {
+                                            if (otc.Note) {
+                                                console.log('Достигнуто ограничение alphavantage');
+                                            } else {
+                                                res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
+                                                res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
+                                                res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
+                                                res.payload['symbol']['dayLow'] = parseFloat(otc["Global Quote"]["03. high"]);
+                                                res.payload['symbol']['dayHigh'] = parseFloat(otc["Global Quote"]["04. low"]);
+                                                res.payload['symbol']['dayOpen'] = parseFloat(otc["Global Quote"]["02. open"]);
+                                            }
+                                            resolve(res);
+                                        })
+                                        .catch(e => {
+                                            console.log('Сервис alphavantage недоступен', e);
+                                            resolve(res);
+                                        });
+                                else resolve(res);
+                            })
+
                         });
 
                 } else {
