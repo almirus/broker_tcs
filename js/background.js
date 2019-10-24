@@ -964,9 +964,9 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                 'Content-Type': 'application/json',
             }
         }).then(response => response.json())
-            .then(res => {
+            .then(async res => {
                 if (res.status.toLocaleUpperCase() === 'OK' && !securityType.includes('notes')) {
-                    fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
+                    const response = await fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
                         method: "POST",
                         body: JSON.stringify({
                             period: 'year',
@@ -976,75 +976,48 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         }
-                    }).then(response => response.json())
-                        .then(json => {
-                            res.payload.symbol.dayHigh = json.payload.dayHigh;
-                            res.payload.symbol.dayLow = json.payload.dayLow;
-                            res.payload.symbol.dayOpen = json.payload.dayOpen;
-                            res.payload.symbol.dividends = [];
-                            if (res.payload.contentMarker.dividends) {
-                                console.log('try to get dividends for', tickerName);
-                                fetch(DIVIDENDS_URL.replace('${ticker}', tickerName) + sessionId, {
-                                    method: "POST",
-                                    body: JSON.stringify({
-                                        ticker: tickerName
-                                    }),
-                                    headers: {
-                                        'Accept': 'application/json',
-                                        'Content-Type': 'application/json',
-                                    }
-                                }).then(response => response.json())
-                                    .then(dividends => {
-                                        res.payload.symbol['dividends'] = dividends.payload.dividends;
-                                        resolve(res);
-                                    })
-                                    .catch(e => {
-                                        console.error('Сервис дивидендов недоступен', e);
-                                        resolve(res);
-                                    });
-                            }
-                            if (res.payload.contentMarker.prognosis) {
-                                console.log('try to get prognosis for', tickerName);
-                                fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
-                                    .then(prognosis => {
-                                        res.payload.symbol.consensus = prognosis.payload.consensus;
-                                        resolve(res);
-                                    })
-                                    .catch(e => {
-                                        console.error('Сервис прогнозов недоступен', e);
-                                        resolve(res);
-                                    });
-                            } else {
-                                MainProperties.getAVOption().then(option => {
-                                    // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                                    if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0)
-                                        fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
-                                            .then(otc => {
-                                                if (otc.Note) {
-                                                    console.log('Достигнуто ограничение alphavantage');
-                                                } else {
-                                                    res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
-                                                    res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
-                                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
-                                                    res.payload['symbol']['dayLow'] = parseFloat(otc["Global Quote"]["03. high"]);
-                                                    res.payload['symbol']['dayHigh'] = parseFloat(otc["Global Quote"]["04. low"]);
-                                                    res.payload['symbol']['dayOpen'] = parseFloat(otc["Global Quote"]["02. open"]);
-                                                }
-                                                resolve(res);
-                                            })
-                                            .catch(e => {
-                                                console.log('Сервис alphavantage недоступен', e);
-                                                resolve(res);
-                                            });
-                                    else resolve(res);
-                                })
-                            }
-                        });
-
-                } else {
-                    console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
-                    resolve(res)
+                    });
+                    let json = await response.json();
+                    res.payload.symbol.dayHigh = json.payload.dayHigh;
+                    res.payload.symbol.dayLow = json.payload.dayLow;
+                    res.payload.symbol.dayOpen = json.payload.dayOpen;
+                    res.payload.symbol.dividends = [];
                 }
+                if (res.payload.contentMarker && res.payload.contentMarker.dividends) {
+                    const response = await fetch(DIVIDENDS_URL.replace('${ticker}', tickerName) + sessionId, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            ticker: tickerName
+                        }),
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    let json = await response.json();
+                    res.payload.symbol['dividends'] = json.payload.dividends;
+                }
+                if (res.payload.contentMarker && res.payload.contentMarker.prognosis) {
+                    const response = await fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId)
+                    let json = await response.json();
+                    res.payload.symbol.consensus = json.payload.consensus;
+                }
+                const option = await MainProperties.getAVOption();
+                if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {
+                    const response = await fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey)
+                    let json = await response.json();
+                    if (json.Note) {
+                        console.log('Достигнуто ограничение alphavantage');
+                    } else {
+                        res.payload.lastOTC = parseFloat(json["Global Quote"]["05. price"]);
+                        res.payload.absoluteOTC = parseFloat(json["Global Quote"]["09. change"]);
+                        res.payload.relativeOTC = parseFloat(json["Global Quote"]["10. change percent"]) / 100;
+                        res.payload['symbol']['dayLow'] = parseFloat(json["Global Quote"]["03. high"]);
+                        res.payload['symbol']['dayHigh'] = parseFloat(json["Global Quote"]["04. low"]);
+                        res.payload['symbol']['dayOpen'] = parseFloat(json["Global Quote"]["02. open"]);
+                    }
+                }
+                resolve(res)
             }).catch(e => {
             console.log('cant get symbolInfo, because', e);
             reject(e);

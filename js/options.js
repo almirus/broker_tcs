@@ -522,7 +522,7 @@ function create_portfolio_table(divId, data) {
             td3.width = '120';
             td3.align = 'left';
             let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
-            if (element.symbol.averagePositionPrice.value === 0)
+            if (element.symbol.averagePositionPrice.value === undefined || element.symbol.averagePositionPrice.value === 0)
                 td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка у брокера</div>`;
             else
                 td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Средняя цена. Посмотреть транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
