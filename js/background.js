@@ -1012,8 +1012,8 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                         res.payload.lastOTC = parseFloat(json["Global Quote"]["05. price"]);
                         res.payload.absoluteOTC = parseFloat(json["Global Quote"]["09. change"]);
                         res.payload.relativeOTC = parseFloat(json["Global Quote"]["10. change percent"]) / 100;
-                        res.payload['symbol']['dayLow'] = parseFloat(json["Global Quote"]["03. high"]);
-                        res.payload['symbol']['dayHigh'] = parseFloat(json["Global Quote"]["04. low"]);
+                        res.payload['symbol']['dayHigh'] = parseFloat(json["Global Quote"]["03. high"]);
+                        res.payload['symbol']['dayLow'] = parseFloat(json["Global Quote"]["04. low"]);
                         res.payload['symbol']['dayOpen'] = parseFloat(json["Global Quote"]["02. open"]);
                     }
                 }
