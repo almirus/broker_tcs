@@ -473,7 +473,9 @@ function create_portfolio_table(divId, data) {
                 remain_time = "Время до открытия " + msToTime(element.symbol.timeToOpen);
             } else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
             let feature_div = element.contentMarker && element.contentMarker.dividends ? element.symbol.dividends[element.symbol.dividends.length - 1] : undefined;
-            let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя даты покупки для получения дивидендов ${new Date(feature_div.lastBuyDate).toLocaleDateString()}, доход на одну акцию ${feature_div.yield.value}%">D</a>` : '';
+            let daysToDiv;
+            if (feature_div && Date.now() < new Date(feature_div.lastBuyDate)) daysToDiv = parseInt((new Date(feature_div.lastBuyDate)) / (1000 * 60 * 60 * 24), 10);
+            let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя даты покупки для получения дивидендов ${new Date(feature_div.lastBuyDate).toLocaleDateString()}, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}</a>` : '';
             let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">📊</span>' : '';
             let etf = element.symbol.symbolType === 'ETF' ? '<span title="ETF">🗃️</span>' : '';
             let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
@@ -625,13 +627,13 @@ function create_table(data) {
     let th1 = document.createElement('th');
     th1.appendChild(document.createTextNode('название'));
     let th2 = document.createElement('th');
-    th2.appendChild(document.createTextNode('последняя'));
+    th2.appendChild(document.createTextNode('последняя цена'));
     let th3 = document.createElement('th');
-    th3.appendChild(document.createTextNode('покупка'));
+    th3.appendChild(document.createTextNode('увдм. для покупки'));
     let th4 = document.createElement('th');
-    th4.appendChild(document.createTextNode('продажа'));
+    th4.appendChild(document.createTextNode('увдм. для продажи'));
     let th5 = document.createElement('th');
-    th5.appendChild(document.createTextNode('заявка активна до'));
+    th5.appendChild(document.createTextNode('уведомление активно до'));
     let th6 = document.createElement('th');
 
     let th7 = document.createElement('th');
@@ -793,7 +795,7 @@ function create_alert_table(data_list) {
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
                     td1.innerHTML = `${element.showName}<br>` +
-                        (element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
+                        //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                         (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
                         `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
