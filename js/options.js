@@ -649,9 +649,9 @@ function create_table(data) {
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
             td1.className = 'maxWidth';
-            td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
+            td1.innerHTML = `${element.symbol.isOTC ? '<span title="Внебиржевой инструмент">👑</span>' : ''}${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
-            td2.appendChild(document.createTextNode(element.prices.last.value + element.prices.last.currency));
+            td2.appendChild(document.createTextNode(element.prices.last ? (element.prices.last.value + element.prices.last.currency) : ''));
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';

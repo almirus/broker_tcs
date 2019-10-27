@@ -540,6 +540,7 @@ function getListStock(name) {
                                         ticker: item.symbol.ticker,
                                         showName: item.symbol.showName,
                                         lotSize: item.symbol.lotSize,
+                                        isOTC: item.symbol.isOTC
                                     },
                                     exchangeStatus: item.exchangeStatus
                                 });
