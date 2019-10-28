@@ -769,10 +769,10 @@ function create_orders_table(data) {
 
 // рендер таблицы с акциями ранее сохраненные
 function create_alert_table(data_list) {
-    chrome.storage.sync.get([TICKER_LIST], function (data) {
+
         let table;
 
-        if ((data[TICKER_LIST] && data[TICKER_LIST].length > 0) || data_list) {
+        if (data_list) {
             table = document.createElement('table');
             table.className = 'alertPriceTable';
             let tr = document.createElement('tr');
@@ -798,7 +798,7 @@ function create_alert_table(data_list) {
             tr.appendChild(th6);
             tr.appendChild(th7);
             table.appendChild(tr);
-            let list_for_iteration = data_list || data[TICKER_LIST];
+            let list_for_iteration = data_list;
             chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
                 if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
                 list_for_iteration.forEach(function (element) {
@@ -907,7 +907,8 @@ function create_alert_table(data_list) {
                 });
                 document.getElementById('alert_table').innerText = '';
                 document.getElementById('alert_table').appendChild(table);
-                setDeleteButtonHandler()
+                setDeleteButtonHandler();
+                setTickerPulseButton();
             })
         } else {
             table = document.createElement('h5');
@@ -916,7 +917,6 @@ function create_alert_table(data_list) {
             document.getElementById('alert_table').appendChild(table);
         }
 
-    })
 }
 
 // подгрузка списка акций по типу
