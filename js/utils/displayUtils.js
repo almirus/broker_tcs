@@ -110,15 +110,28 @@ export function renderPulse(msg) {
     buffer += msg.news.navs.map(item => {
         return `<li class="pulseNav ${item === msg.news.nav_id ? 'current' : ''}" data-nav="${item}">${item}</li>`
     }).join('') + '</ul></div><div style="clear: both;"></div>';
-    buffer += `
-<!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container2">
-  <div class="tradingview-widget-container2__widget"></div>
-</div>
-<!-- TradingView Widget END -->`;
     msg.news.items = msg.news.items || [];
     let profiles = new Set();
-
+    if (msg.news.nav_id && msg.news.items.length > 0 && msg.news.items[0].instruments) {
+        let ticket = msg.news.items[0].instruments.find(item => item.ticker === msg.news.nav_id);
+        if (ticket) buffer += `
+<div class="forecast bordered" style="background-color: #b0b3b6" id="ticker_${msg.news.nav_id}">
+        <h2 class="header">${ticket.briefName}</h2>
+        <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(https://static.tinkoff.ru/brands/traiding/${ticket.image.replace('.', 'x160.')});"></div>
+        <div class="recommendation">
+        <span class="${ticket.relativeDailyYield > 0 ? 'onlineBuy' : 'onlineSell'}">
+        ${(ticket.relativeDailyYield / 100).toLocaleString('ru-RU', {
+            style: 'percent',
+            minimumFractionDigits: ticket.relativeDailyYield < 0.1 ? 4 : 2
+        })}</span>
+        ${ticket.lastPrice.toLocaleString('ru-RU', {
+            style: 'currency',
+            currency: ticket.currency,
+            minimumFractionDigits: ticket.lastPrice < 0.1 ? 4 : 2
+        })}</div>
+</div>`
+    }
+    ;
     buffer += msg.news.items.map(news => {
         switch (news.type) {
             case 'user': {
@@ -254,25 +267,6 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
     });
     if (msg.news.items.length === 0) buffer += '<h2>Нет сообщений</h2>';
     document.getElementById('news_table').innerHTML = buffer;
-    if (msg.news.nav_id && msg.news.items.length > 0 && msg.news.items[0].instruments) {
-        let ticket = msg.news.items[0].instruments.find(item => item.ticker === msg.news.nav_id);
-        if (ticket) {
-            const tvScript = document.createElement("script");
-            const tradingViewContainer = document.querySelector(".tradingview-widget-container2");
-            tvScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-tickers.js";
-            tvScript.innerHTML = `{ 
-                "locale": "ru", 
-                "width":"100%",
-                "colorTheme": "light",
-                "isTransparent": false, 
-                "symbols": [{
-                    "proName":"${msg.news.nav_id === 'TCS' ? 'LSIN:TCS' : msg.news.nav_id}"
-                    }]
-             }`;
-            tvScript.async = true;
-            tradingViewContainer.appendChild(tvScript);
-        }
-    }
 }
 
 export function renderProfile(profile) {
