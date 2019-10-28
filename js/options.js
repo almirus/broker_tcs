@@ -73,6 +73,7 @@ port.onMessage.addListener(function (msg) {
             break;
         case 'listAlerts':
             create_alert_table(msg.stocks);
+            setTickerPulseButton();
             break;
         case 'tickerInfo':
             create_table(msg.stocks);
@@ -230,6 +231,21 @@ function likeToggleButton() {
                 button.classList.add('isLiked');
                 document.getElementById(button.dataset.id + '_heart_count').innerText = parseInt(document.getElementById(button.dataset.id + '_heart_count').innerText || 0) + 1;
             }
+        })
+    })
+}
+function setTickerPulseButton() {
+    Array.from(document.querySelectorAll(".pulseTicker")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let button = e.target;
+            document.getElementById('alert_table').style.display = 'none';
+            document.getElementById('sort_by_nearest').style.display = 'none';
+            document.getElementById('label_sort_by_nearest').style.display = 'none';
+            document.getElementById('price_table').style.display = 'none';
+            document.getElementById('news_table').style.display = 'block';
+            document.getElementById('graphic_table').style.display = 'none';
+            document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";
+            port.postMessage({method: "getPulse", params: {nav_id: button.dataset.nav}});
         })
     })
 }
@@ -794,7 +810,7 @@ function create_alert_table(data_list) {
 
                     let td1 = document.createElement('td');
                     td1.className = 'maxWidth';
-                    td1.innerHTML = `${element.showName}<br>` +
+                    td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
                         //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                         (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
                         (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +

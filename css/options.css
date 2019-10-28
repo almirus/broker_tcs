@@ -485,6 +485,24 @@ h2.white{
     vertical-align:middle;
     padding-right: 5px;
 }
+.pulseTicker{
+    background-color: transparent;
+    padding: 0;
+    cursor: pointer;
+    margin:0;
+    border-radius: 12px;
+    display: inline;
+}
+.pulseIcon{
+    padding: 0;
+    margin:0;
+    display: inline;
+    float: right;
+    visibility: hidden;
+}
+span.pulseTicker:hover+span.pulseIcon{
+    visibility: visible;
+}
 .heart {
     cursor: pointer;
     height: 15px;

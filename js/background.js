@@ -1005,7 +1005,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                 }
                 const option = await MainProperties.getAVOption();
                 if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {
-                    const response = await fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey)
+                    const response = await fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey);
                     let json = await response.json();
                     if (json.Note) {
                         console.log('Достигнуто ограничение alphavantage');
