@@ -70,10 +70,10 @@ port.onMessage.addListener(function (msg) {
                 iisStyle = 'block';
             if (msg.stocks_iis.length > 0) create_portfolio_table('portfolioIIS', msg.stocks_iis);
             document.getElementById('portfolioIIS').style = 'display:' + iisStyle;
+            setTickerPulseButton();
             break;
         case 'listAlerts':
             create_alert_table(msg.stocks);
-            setTickerPulseButton();
             break;
         case 'tickerInfo':
             create_table(msg.stocks);
@@ -238,6 +238,7 @@ function setTickerPulseButton() {
     Array.from(document.querySelectorAll(".pulseTicker")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
+            document.getElementById('pulse').checked = true;
             document.getElementById('alert_table').style.display = 'none';
             document.getElementById('sort_by_nearest').style.display = 'none';
             document.getElementById('label_sort_by_nearest').style.display = 'none';
@@ -513,7 +514,8 @@ function create_portfolio_table(divId, data) {
                                 </a><span class="percent" title="Прогнозируемое изменение с учетом текущей цены">
                                 ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.price_change_rel.toFixed(2)} %
                                 </span>` : '';
-            td1.innerHTML = `<span title="${element.symbol.showName}">${element.symbol.showName}</span><br><img class="symbolStatus" alt="Статус биржи" 
+            td1.innerHTML = `<span class="pulseTicker" data-nav="${element.symbol.ticker}" title="Посмотреть пульс по инструменту ${element.symbol.showName}">${element.symbol.showName}</span><span class="pulseIcon">🔥</span>
+            <br><img class="symbolStatus" alt="Статус биржи" 
         title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${note}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong class="ticker ${element.symbol.status === 'process' ? 'statusProcess' : ''}">${element.symbol.ticker}</strong></a>`;
             if (element.symbol.dayLow) {
