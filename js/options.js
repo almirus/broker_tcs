@@ -101,7 +101,9 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('all').className = msg.expectedYield > 0 ? "onlineBuy" : "onlineSell";
             document.getElementById('earnedAll').innerText = toCurrency(msg.expectedYield);
             document.getElementById('earnedAllPercent').innerText = toPercent(msg.expectedYieldRelative);
-
+            chrome.browserAction.setTitle({title: 'TCS Broker. Сегодня: ' + toCurrency(msg.expectedYieldPerDay) + ' (' + toPercent(msg.expectedYieldPerDayRelative) + ')'});
+            document.title = 'сегодня: ' + toCurrency(msg.expectedYieldPerDay) + ' (' + toPercent(msg.expectedYieldPerDayRelative) + ')'+
+            ' всего: '+toCurrency(msg.expectedYield)+' ('+toPercent(msg.expectedYieldRelative)+')';
             document.getElementById('day').className = msg.expectedYieldPerDay > 0 ? "onlineBuy" : "onlineSell";
             document.getElementById('earnedToday').innerText = toCurrency(msg.expectedYieldPerDay);
             document.getElementById('earnedTodayPercent').innerText = toPercent(msg.expectedYieldPerDayRelative);
@@ -234,6 +236,7 @@ function likeToggleButton() {
         })
     })
 }
+
 function setTickerPulseButton() {
     Array.from(document.querySelectorAll(".pulseTicker")).forEach(function (input) {
         input.addEventListener('click', function (e) {
