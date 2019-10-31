@@ -1079,7 +1079,8 @@ function getOrders(session_id) {
                         active: true,
                         timeToExpire: element.timeToExpire,
                         orderId: element.orderId,
-                        status: element.status
+                        status: element.status,
+                        quantityExecuted: element.quantityExecuted,
                     });
                 });
                 resolve(return_data)
@@ -1227,6 +1228,7 @@ function updateAlertPrices() {
                             isFavorite: res.payload.isFavorite,
                             subscriptPrice: item.subscriptions,
                             quantity: item.quantity,
+                            quantityExecuted: item.quantityExecuted,
                         };
                         i++;
                     })

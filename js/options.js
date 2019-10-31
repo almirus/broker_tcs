@@ -102,8 +102,8 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('earnedAll').innerText = toCurrency(msg.expectedYield);
             document.getElementById('earnedAllPercent').innerText = toPercent(msg.expectedYieldRelative);
             chrome.browserAction.setTitle({title: 'TCS Broker. Сегодня: ' + toCurrency(msg.expectedYieldPerDay) + ' (' + toPercent(msg.expectedYieldPerDayRelative) + ')'});
-            document.title = 'сегодня: ' + toCurrency(msg.expectedYieldPerDay) + ' (' + toPercent(msg.expectedYieldPerDayRelative) + ')'+
-            ' всего: '+toCurrency(msg.expectedYield)+' ('+toPercent(msg.expectedYieldRelative)+')';
+            document.title = 'сегодня: ' + toCurrency(msg.expectedYieldPerDay) + ' (' + toPercent(msg.expectedYieldPerDayRelative) + ')' +
+                ' всего: ' + toCurrency(msg.expectedYield) + ' (' + toPercent(msg.expectedYieldRelative) + ')';
             document.getElementById('day').className = msg.expectedYieldPerDay > 0 ? "onlineBuy" : "onlineSell";
             document.getElementById('earnedToday').innerText = toCurrency(msg.expectedYieldPerDay);
             document.getElementById('earnedTodayPercent').innerText = toPercent(msg.expectedYieldPerDayRelative);
@@ -770,65 +770,65 @@ function create_orders_table(data) {
 // рендер таблицы с акциями ранее сохраненные
 function create_alert_table(data_list) {
 
-        let table;
+    let table;
 
-        if (data_list) {
-            table = document.createElement('table');
-            table.className = 'alertPriceTable';
-            let tr = document.createElement('tr');
-            let th1 = document.createElement('th');
-            //th1.appendChild(document.createTextNode('название'));
-            let th2 = document.createElement('th');
-            th2.width = '100px';
-            th2.innerHTML = 'цены брокера';
-            let th3 = document.createElement('th');
-            th3.appendChild(document.createTextNode('измн. за день'));
-            let th4 = document.createElement('th');
-            th4.appendChild(document.createTextNode('уведомления/заявки/takeProfit/stopLoss'));
+    if (data_list) {
+        table = document.createElement('table');
+        table.className = 'alertPriceTable';
+        let tr = document.createElement('tr');
+        let th1 = document.createElement('th');
+        //th1.appendChild(document.createTextNode('название'));
+        let th2 = document.createElement('th');
+        th2.width = '100px';
+        th2.innerHTML = 'цены брокера';
+        let th3 = document.createElement('th');
+        th3.appendChild(document.createTextNode('измн. за день'));
+        let th4 = document.createElement('th');
+        th4.appendChild(document.createTextNode('уведомления/заявки/takeProfit/stopLoss'));
 
-            let th6 = document.createElement('th');
-            th6.appendChild(document.createTextNode('заявка активна до'));
-            let th7 = document.createElement('th');
-            th7.appendChild(document.createTextNode('до цели'));
-            tr.appendChild(th1);
-            tr.appendChild(th2);
-            tr.appendChild(th3);
-            tr.appendChild(th4);
+        let th6 = document.createElement('th');
+        th6.appendChild(document.createTextNode('заявка активна до'));
+        let th7 = document.createElement('th');
+        th7.appendChild(document.createTextNode('до цели'));
+        tr.appendChild(th1);
+        tr.appendChild(th2);
+        tr.appendChild(th3);
+        tr.appendChild(th4);
 
-            tr.appendChild(th6);
-            tr.appendChild(th7);
-            table.appendChild(tr);
-            let list_for_iteration = data_list;
-            chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
-                if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
-                list_for_iteration.forEach(function (element) {
-                    let opacity_rate = giveLessDiffToTarget(element);
-                    // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
-                    if (!data_list) {
-                        element.online_average_price = 'Обновление';
-                        element.online_buy_price = '';
-                        element.currency = '';
-                        element.online_sell_price = '';
-                        element.earnings = undefined;
-                    } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
-                    let tr = document.createElement('tr');
+        tr.appendChild(th6);
+        tr.appendChild(th7);
+        table.appendChild(tr);
+        let list_for_iteration = data_list;
+        chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
+            if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
+            list_for_iteration.forEach(function (element) {
+                let opacity_rate = giveLessDiffToTarget(element);
+                // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
+                if (!data_list) {
+                    element.online_average_price = 'Обновление';
+                    element.online_buy_price = '';
+                    element.currency = '';
+                    element.online_sell_price = '';
+                    element.earnings = undefined;
+                } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
+                let tr = document.createElement('tr');
 
-                    let td1 = document.createElement('td');
-                    td1.className = 'maxWidth';
-                    td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
-                        //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
-                        (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
-                        (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
-                        `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
+                let td1 = document.createElement('td');
+                td1.className = 'maxWidth';
+                td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
+                    //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
+                    (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
+                    (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
+                    `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
 
-                    let td2 = document.createElement('td');
-                    td2.innerHTML =
-                        `<div style="float:left;margin-top: 5px" data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price.toLocaleString('ru-RU', {
-                            style: 'currency',
-                            currency: element.currency,
-                            minimumFractionDigits: element.online_average_price < 0.1 ? 4 : 2
-                        })}</div>
+                let td2 = document.createElement('td');
+                td2.innerHTML =
+                    `<div style="float:left;margin-top: 5px" data-ticker="${element.ticker}" class="onlineAverage" title="Последняя цена">${element.online_average_price.toLocaleString('ru-RU', {
+                        style: 'currency',
+                        currency: element.currency,
+                        minimumFractionDigits: element.online_average_price < 0.1 ? 4 : 2
+                    })}</div>
                     <div style="float:right;">
                     <div data-ticker="${element.ticker}" class="onlineBuy"  title="Цена покупки">
                     <a class="onlineBuy" href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}/buy" target="_blank" title="Купить">${element.online_buy_price}</a>
@@ -837,85 +837,85 @@ function create_alert_table(data_list) {
                     <a class="onlineSell" href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}/sell" target="_blank" title="Продать">${element.online_sell_price}</a>
                     </div>
                     </div>`;
-                    let td3 = document.createElement('td');
-                    td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
-                        style: 'currency',
-                        currency: element.earnings.absolute.currency,
-                        minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 0.1 ? 4 : 2
-                    })}</div>
+                let td3 = document.createElement('td');
+                td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
+                    style: 'currency',
+                    currency: element.earnings.absolute.currency,
+                    minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 0.1 ? 4 : 2
+                })}</div>
                     <div data-daypercent-ticker="${element.ticker}"><strong>${element.earnings.relative.toLocaleString('ru-RU', {
-                        style: 'percent',
-                        maximumSignificantDigits: 2
-                    })}</strong></div>` : '';
-                    td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
-                    td3.align = 'right';
-                    let td4 = document.createElement('td');
-                    td4.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением продать">${element.sell_price}</strong>`;
-                    td4.className = 'onlineSell';
-                    td4.align = 'right';
-                    if (element.orderId || element.subscriptPrice) { //StopLoss TakeProfit Subscriptions
-                        td4.className = '';
-                        td4.align = 'center';
-                        let status = {
-                            PartiallyFill: 'Частично исполненная заявка',
-                            New: 'Заявка'
-                        };
-                        if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
-                        <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
-                        else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('');
-                    }
+                    style: 'percent',
+                    maximumSignificantDigits: 2
+                })}</strong></div>` : '';
+                td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
+                td3.align = 'right';
+                let td4 = document.createElement('td');
+                td4.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением продать">${element.sell_price}</strong>`;
+                td4.className = 'onlineSell';
+                td4.align = 'right';
+                if (element.orderId || element.subscriptPrice) { //StopLoss TakeProfit Subscriptions
+                    td4.className = '';
+                    td4.align = 'center';
+                    let status = {
+                        PartiallyFill: 'Частично исполненная заявка',
+                        New: 'Заявка'
+                    };
+                    if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
+                        <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
+                    else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('');
+                }
 
-                    let td6 = document.createElement('td');
-                    td6.className = '';
-                    let alert_date = new Date(Date.parse(element.best_before));
-                    if (element.orderId) {
-                        td6.innerHTML = element.timeToExpire ? '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>'
-                            : (element.status === 'progress' ? (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit') :
-                                    (element.status === 'New' ? 'Заявка' : '')
-                            );
-                    } else td6.innerHTML = element.best_before ? (alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString())
-                        : 'бессрочно';
-                    td6.align = 'center';
-                    if (element.orderId) {
-                        if (element.operationType === 'Sell') tr.className = element.status === 'PartiallyFill' ? 'onlineSellPartial' : 'isOnlineOrderSell';
-                        else tr.className = element.status === 'PartiallyFill' ? 'onlineBuyPartial' : 'isOnlineOrderBuy';
-                    }
-                    let td7 = document.createElement('td');
-                    td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
-                        style: 'percent',
-                        maximumSignificantDigits: 2
-                    })}</strong>`;
-                    td7.className = '';
-                    td7.align = 'center';
-                    /*                    let td8 = document.createElement('td');
-                                        // hash for delete = ticker+sellprice+buyprice
-                                        if (element.orderId && element.status || !element.orderId)
-                                            td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" data-status="${element.status}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
-                                        else td8.innerHTML = '';*/
-                    tr.appendChild(td1);
-                    tr.appendChild(td2);
-                    tr.appendChild(td3);
-                    tr.appendChild(td4);
+                let td6 = document.createElement('td');
+                td6.className = '';
+                let alert_date = new Date(Date.parse(element.best_before));
+                if (element.orderId) {
+                    td6.innerHTML = element.timeToExpire ? '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>'
+                        : (element.status === 'progress' ? (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit') :
+                                (element.status === 'New' ? 'Заявка' : '')
+                        );
+                } else td6.innerHTML = element.best_before ? (alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString())
+                    : 'бессрочно';
+                td6.align = 'center';
+                if (element.orderId) {
+                    if (element.operationType === 'Sell') tr.className = element.status === 'PartiallyFill' ? 'onlineSellPartial' : 'isOnlineOrderSell';
+                    else tr.className = element.status === 'PartiallyFill' ? 'onlineBuyPartial' : 'isOnlineOrderBuy';
+                }
+                let td7 = document.createElement('td');
+                td7.innerHTML = `<strong>${opacity_rate.toLocaleString('ru-RU', {
+                    style: 'percent',
+                    maximumSignificantDigits: 2
+                })}</strong>`;
+                td7.className = '';
+                td7.align = 'center';
+                /*                    let td8 = document.createElement('td');
+                                    // hash for delete = ticker+sellprice+buyprice
+                                    if (element.orderId && element.status || !element.orderId)
+                                        td8.innerHTML = `<input class="deleteTicker" data-index="${element.orderId || (element.ticker + (element.sell_price || '0') + (element.buy_price || '0'))}" data-status="${element.status}" type="button" value="X" title="${element.orderId ? 'Снять заявку' : 'Удалить'}">`;
+                                    else td8.innerHTML = '';*/
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
 
-                    tr.appendChild(td6);
-                    tr.appendChild(td7);
-                    //tr.appendChild(td8);
-                    //tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
+                tr.appendChild(td6);
+                tr.appendChild(td7);
+                //tr.appendChild(td8);
+                //tr.style.opacity = 1 - ((opacity_rate > 0.5) ? 0.5 : opacity_rate);
 
-                    table.appendChild(tr);
-                    //setRefreshHandler();
-                });
-                document.getElementById('alert_table').innerText = '';
-                document.getElementById('alert_table').appendChild(table);
-                setDeleteButtonHandler();
-                setTickerPulseButton();
-            })
-        } else {
-            table = document.createElement('h5');
-            table.innerText = 'Список для отслеживания пуст, добавьте, нажав "Добавить для отслеживания"';
+                table.appendChild(tr);
+                //setRefreshHandler();
+            });
             document.getElementById('alert_table').innerText = '';
             document.getElementById('alert_table').appendChild(table);
-        }
+            setDeleteButtonHandler();
+            setTickerPulseButton();
+        })
+    } else {
+        table = document.createElement('h5');
+        table.innerText = 'Список для отслеживания пуст, добавьте, нажав "Добавить для отслеживания"';
+        document.getElementById('alert_table').innerText = '';
+        document.getElementById('alert_table').appendChild(table);
+    }
 
 }
 
