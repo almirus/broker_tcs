@@ -494,7 +494,7 @@ function create_portfolio_table(divId, data) {
             } else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
             let feature_div = element.contentMarker && element.contentMarker.dividends ? element.symbol.dividends[element.symbol.dividends.length - 1] : undefined;
             let daysToDiv;
-            if (feature_div && Date.now() < new Date(feature_div.lastBuyDate)) daysToDiv = parseInt((new Date(feature_div.lastBuyDate)) / (1000 * 60 * 60 * 24), 10);
+            if (feature_div && Date.now() < new Date(feature_div.lastBuyDate)) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24), 10);
             let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя даты покупки для получения дивидендов ${new Date(feature_div.lastBuyDate).toLocaleDateString()}, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}</a>` : '';
             let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">📊</span>' : '';
             let etf = element.symbol.symbolType === 'ETF' ? '<span title="ETF">🗃️</span>' : '';
