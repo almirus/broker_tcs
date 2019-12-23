@@ -696,7 +696,7 @@ function getComments(id) {
                 .then(json => {
                     if (json.status === 'Error') {
                         console.log('cant get Comments', json);
-                        resolve([]);
+                        //resolve([]);
                     } else
                         console.log('success get Comments');
                     resolve(json.payload);

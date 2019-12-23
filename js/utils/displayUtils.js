@@ -179,7 +179,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                     <div id="${news.id}_answer" class="answer" style="display: none">
                     <textarea id="${news.id}_text"></textarea><button class="answerButton" data-id="${news.id}">ответить</button>
                     </div>`;
-                if (comments_obj.length > 0) {
+                if (comments_obj && comments_obj.length > 0) {
                     comments += `
                     <div data-id="${news.id}" class="commentLink">комментариев (${comments_obj.length})</div>
                     <div id="${news.id}" class="comments" style="display: none">${comments_obj.map(item => {
