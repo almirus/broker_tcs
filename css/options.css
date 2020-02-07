@@ -478,6 +478,9 @@ h2.white{
     overflow: hidden;
     text-overflow: ellipsis;
 }
+a.ticket{
+    overflow: visible;
+}
 .pulse .postTime{
     text-align: left;
     padding-left: 40px;

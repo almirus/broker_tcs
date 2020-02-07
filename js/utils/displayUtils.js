@@ -195,7 +195,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 // заменяем шорткоды в теле текста на ссылки акций
                 news.instruments.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
-                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
+                    text = text.split(regex).join(`<a title="Открыть страницу акции" class="ticket" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong> (${item.price} ${item.relativeYield}%)</a>`);
                     text = createTextLinks(text);
 
                 });
@@ -375,8 +375,8 @@ export function drawDayProgress(element) {
     let canvas = document.createElement('canvas');
     canvas.width = 100;
     canvas.height = 6;
-    canvas.title = `Текущая цена ${element.prices.last.value}  Дневной диапазон цен ${element.symbol.dayLow} - ${element.symbol.dayHigh} \n
-                    52-дневный диапазон ${element.symbol["52WLow"]} - ${element.symbol["52WHigh"]}`;
+    canvas.title = `Текущая цена ${element.prices.last.value}, дневной диапазон цен ${element.symbol.dayLow} - ${element.symbol.dayHigh} \n
+                    52-недельный диапазон ${element.symbol["52WLow"]} - ${element.symbol["52WHigh"]}`;
     let ctx = canvas.getContext('2d');
     ctx.fillStyle = progress_style;
     ctx.fillRect(0, 2, 100, 2);
