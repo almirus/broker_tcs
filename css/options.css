@@ -472,6 +472,12 @@ h2.white{
 .pulse .post{
     padding-left: 10px;
 }
+.post a{
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .pulse .postTime{
     text-align: left;
     padding-left: 40px;

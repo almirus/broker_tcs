@@ -333,6 +333,8 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     symbol: {
                         dayLow: symbol.payload.symbol.dayLow,
                         dayHigh: symbol.payload.symbol.dayHigh,
+                        "52WLow": symbol.payload.symbol["52WLow"],
+                        "52WHigh": symbol.payload.symbol["52WHigh"],
                         dayOpen: symbol.payload.symbol.dayOpen,
                         lastOTC: symbol.payload.lastOTC || '',
                         absoluteOTC: symbol.payload.absoluteOTC || 0,
@@ -982,6 +984,8 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                     res.payload.symbol.dayHigh = json.payload.dayHigh;
                     res.payload.symbol.dayLow = json.payload.dayLow;
                     res.payload.symbol.dayOpen = json.payload.dayOpen;
+                    res.payload.symbol["52WLow"]= json.payload["52WLow"];
+                    res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
                     res.payload.symbol.dividends = [];
                 }
                 if (res.payload.contentMarker && res.payload.contentMarker.dividends) {

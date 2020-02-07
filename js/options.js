@@ -28,6 +28,7 @@ import {
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
 import {
+    drawDayProgress,
     fillCashData,
     getAllAccountsHtmlInfo,
     getExportAccountHtml,
@@ -411,27 +412,6 @@ function setChangeOrderHandler() {
             once: true,
         });
     })
-}
-
-function drawDayProgress(element) {
-    let progress_style = element.symbol.dayOpen >= element.prices.last.value ? 'red' : 'green';
-    let min = element.symbol.dayOpen;
-    let max = element.prices.last.value;
-    if (min > max) min = [max, max = min][0];
-
-    let dayOpenPercent = 100 - (element.symbol.dayHigh - min) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
-    let dayLastPercent = 100 - (element.symbol.dayHigh - max) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
-
-    let canvas = document.createElement('canvas');
-    canvas.width = 100;
-    canvas.height = 6;
-    canvas.title = "Текущая цена " + element.prices.last.value + "  Дневной диапазон цен " + element.symbol.dayLow + " - " + element.symbol.dayHigh;
-    let ctx = canvas.getContext('2d');
-    ctx.fillStyle = progress_style;
-    ctx.fillRect(0, 2, 100, 2);
-    ctx.fillStyle = progress_style;
-    ctx.fillRect(dayOpenPercent, 0, dayLastPercent, 6);
-    return canvas;
 }
 
 function create_portfolio_table(divId, data) {

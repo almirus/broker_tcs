@@ -335,10 +335,13 @@ function getAccountHtmlInfo(accountName, accountInfo) {
     let htmlExpectedYieldPerDay = `<span style="font-weight: bold" class="${accountInfo.expectedYieldPerDay > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYieldPerDay)}</span>`;
     let htmlExpectedYield = `<span style="font-weight: bold" class="${accountInfo.expectedYield > 0 ? 'onlineBuy' : 'onlineSell'}">${toCurrency(accountInfo.expectedYield)}</span>`;
     let heart = accountInfo.marginAttributes ? `<span title="${HEALTH[accountInfo.marginAttributes.marginAccountStatus].title}">${HEALTH[accountInfo.marginAttributes.marginAccountStatus].heart}</span>` : '';
-    let marginFee = accountInfo.marginAttributes ? 'Комиссия по марж. торговле ' + accountInfo.marginAttributes.marginFeeAmount.value.toLocaleString('ru-RU', {
+    let marginFee = accountInfo.marginAttributes ? 'Комиссия по марж. торговле <a href="https://help.tinkoff.ru/margin-trade/long/cost/" target="_blank">' + accountInfo.marginAttributes.marginFeeAmount.value.toLocaleString('ru-RU', {
         style: 'currency',
         currency: accountInfo.marginAttributes.marginFeeAmount.currency
-    }) : '';
+    }) + '</a>, сумма -'+accountInfo.marginAttributes.marginPositionsAmount.value.toLocaleString('ru-RU', {
+        style: 'currency',
+        currency: accountInfo.marginAttributes.marginPositionsAmount.currency
+    }) :'';
     return `Счет ${heart} ${rusAccountName} ${htmlTotalAmount}, 
             доход по счету ${htmlExpectedYield}, 
             доход сегодня ${htmlExpectedYieldPerDay} ${marginFee}<br>`;
@@ -372,7 +375,8 @@ export function drawDayProgress(element) {
     let canvas = document.createElement('canvas');
     canvas.width = 100;
     canvas.height = 6;
-    canvas.title = "Текущая цена " + element.prices.last.value + "  Дневной диапазон цен " + element.symbol.dayLow + " - " + element.symbol.dayHigh;
+    canvas.title = `Текущая цена ${element.prices.last.value}  Дневной диапазон цен ${element.symbol.dayLow} - ${element.symbol.dayHigh} \n
+                    52-дневный диапазон ${element.symbol["52WLow"]} - ${element.symbol["52WHigh"]}`;
     let ctx = canvas.getContext('2d');
     ctx.fillStyle = progress_style;
     ctx.fillRect(0, 2, 100, 2);
