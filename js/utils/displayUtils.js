@@ -117,7 +117,7 @@ export function renderPulse(msg) {
         if (ticket) buffer += `
 <div class="forecast bordered" style="background-color: #b0b3b6" id="ticker_${msg.news.nav_id}">
         <h2 class="header">${ticket.briefName}</h2>
-        <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(https://static.tinkoff.ru/brands/traiding/${ticket.image.replace('.', 'x160.')});"></div>
+        <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(https://static.tinkoff.ru/brands/traiding/${ticket.image?.replace('.', 'x160.')});"></div>
         <div class="recommendation">
         <span class="${ticket.relativeDailyYield > 0 ? 'onlineBuy' : 'onlineSell'}">
         ${(ticket.relativeDailyYield / 100).toLocaleString('ru-RU', {
@@ -128,10 +128,11 @@ export function renderPulse(msg) {
             style: 'currency',
             currency: ticket.currency,
             minimumFractionDigits: ticket.lastPrice < 0.1 ? 4 : 2
-        })}</div>
+        })}
+        <span data-id="${news.id}" class="translate answerLink">написать</span>
+        </div>
 </div>`
     }
-    ;
     buffer += msg.news.items.map(news => {
         switch (news.type) {
             case 'user': {
@@ -195,7 +196,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 // заменяем шорткоды в теле текста на ссылки акций
                 news.instruments.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
-                    text = text.split(regex).join(`<a title="Открыть страницу акции" class="ticket" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong> (${item.price} ${item.relativeYield}%)</a>`);
+                    text = text.split(regex).join(`<a title="Открыть страницу акции" class="ticket" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong> (${item.price} ${item.relativeYield > 0 ? '🔺' : '🔻'}${item.relativeYield} %)</a>`);
                     text = createTextLinks(text);
 
                 });
@@ -241,7 +242,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 // заменяем шорткоды в теле текста на ссылки акций
                 news.item.tickers.forEach(item => {
                     let regex = "\{\$" + item.ticker + "\}";
-                    text = text.split(regex).join(`<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong></a>`);
+                    text = text.split(regex).join(`<a class="ticket" title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">$<strong>${item.ticker}</strong> (${item.price})</a>`);
                     text = createTextLinks(text);
 
                 });
@@ -338,10 +339,10 @@ function getAccountHtmlInfo(accountName, accountInfo) {
     let marginFee = accountInfo.marginAttributes ? 'Комиссия по марж. торговле <a href="https://help.tinkoff.ru/margin-trade/long/cost/" target="_blank">' + accountInfo.marginAttributes.marginFeeAmount.value.toLocaleString('ru-RU', {
         style: 'currency',
         currency: accountInfo.marginAttributes.marginFeeAmount.currency
-    }) + '</a>, сумма -'+accountInfo.marginAttributes.marginPositionsAmount.value.toLocaleString('ru-RU', {
+    }) + '</a>, сумма -' + accountInfo.marginAttributes.marginPositionsAmount.value.toLocaleString('ru-RU', {
         style: 'currency',
         currency: accountInfo.marginAttributes.marginPositionsAmount.currency
-    }) :'';
+    }) : '';
     return `Счет ${heart} ${rusAccountName} ${htmlTotalAmount}, 
             доход по счету ${htmlExpectedYield}, 
             доход сегодня ${htmlExpectedYieldPerDay} ${marginFee}<br>`;
