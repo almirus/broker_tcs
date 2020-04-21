@@ -140,7 +140,7 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
             let iis = (msg.accounts.filter(item => item.accountType === 'TinkoffIis' && item.hasOperations)).length > 0
                 ? '<input type="radio" value="0" checked="checked" name="broker_type" id="broker_portfolio_input">' +
-                '<label for="broker_portfolio_input">Портфель Тинькофф и БКС</label>' : '';
+                '<label for="broker_portfolio_input">Портфель Тинькофф</label>' : '';
             let tcs = (msg.accounts.filter(item => item.accountType === 'Tinkoff' && item.hasOperations)).length > 0
                 ? '<input type="radio" value="1" name="broker_type" id="iis_portfolio_input">' +
                 '<label for="iis_portfolio_input">Портфель ИИС</label>' : '';
@@ -507,7 +507,7 @@ function create_portfolio_table(divId, data) {
             }
             let td2 = document.createElement('td');
             if (element.prices) {
-                td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices && Object.keys(element.prices).length ? element.prices.last.value : 'нет'}</div>` +
+                td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices && Object.keys(element.prices).length ? element.prices.last?.value : 'нет'}</div>` +
                     (element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : '') +
                     (element.prices && element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
             <a class="onlineBuy" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/buy" target="_blank" title="Купить">${element.prices.buy ? element.prices.buy.value.toLocaleString('ru-RU', {
@@ -555,10 +555,10 @@ function create_portfolio_table(divId, data) {
                     style: 'percent',
                     maximumSignificantDigits: 2
                 })}</strong></div>
-        <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
+        <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday?.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: element.symbol.currentAmount.currency
-                }) : element.symbol.isOTC && element.symbol.earningToday ? element.symbol.earningToday.toLocaleString('ru-RU', {
+                }) : element.symbol.isOTC && element.symbol.earningToday ? element.symbol.earningToday?.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: element.symbol.currentAmount.currency
                 }) + '*' : ''}</div>`;
@@ -573,7 +573,7 @@ function create_portfolio_table(divId, data) {
 
             let td6 = document.createElement('td');
 
-            td6.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.currentAmount.value.toLocaleString('ru-RU', {
+            td6.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.currentAmount?.value.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.currentAmount.currency
             })}</div>`;
@@ -587,7 +587,7 @@ function create_portfolio_table(divId, data) {
                     if (element.symbol.lotSize < 0) tr.className = 'short';
                     td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
 
-                    td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
+                    td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value?.toLocaleString('ru-RU', {
                         style: 'currency',
                         currency: element.symbol.expectedYield.currency
                     })}<br>${(element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
@@ -654,7 +654,7 @@ function create_table(data) {
             td1.className = 'maxWidth';
             td1.innerHTML = `${element.symbol.isOTC ? '<span title="Внебиржевой инструмент">👑</span>' : ''}${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
-            td2.appendChild(document.createTextNode(element.prices.last ? (element.prices.last.value + element.prices.last.currency) : ''));
+            td2.appendChild(document.createTextNode(element.prices.last ? (element.prices.last?.value + element.prices.last.currency) : ''));
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
@@ -717,7 +717,7 @@ function create_orders_table(data) {
             td1.className = 'maxWidth';
             td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
-            td2.appendChild(document.createTextNode(element.prices.last.value + element.prices.last.currency));
+            td2.appendChild(document.createTextNode(element.prices.last?.value + element.prices.last.currency));
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';

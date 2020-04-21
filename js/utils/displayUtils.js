@@ -365,9 +365,9 @@ export function getExportAccountHtml(accounts) {
 }
 
 export function drawDayProgress(element) {
-    let progress_style = element.symbol.dayOpen >= element.prices.last.value ? 'red' : 'green';
+    let progress_style = element.symbol.dayOpen >= element.prices.last?.value ? 'red' : 'green';
     let min = element.symbol.dayOpen;
-    let max = element.prices.last.value;
+    let max = element.prices.last?.value;
     if (min > max) min = [max, max = min][0];
 
     let dayOpenPercent = 100 - (element.symbol.dayHigh - min) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
@@ -376,7 +376,7 @@ export function drawDayProgress(element) {
     let canvas = document.createElement('canvas');
     canvas.width = 100;
     canvas.height = 6;
-    canvas.title = `Текущая цена ${element.prices.last.value}, дневной диапазон цен ${element.symbol.dayLow} - ${element.symbol.dayHigh} \n
+    canvas.title = `Текущая цена ${element.prices.last?.value}, дневной диапазон цен ${element.symbol.dayLow} - ${element.symbol.dayHigh} \n
                     52-недельный диапазон ${element.symbol["52WLow"]} - ${element.symbol["52WHigh"]}`;
     let ctx = canvas.getContext('2d');
     ctx.fillStyle = progress_style;

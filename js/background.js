@@ -318,7 +318,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     earning_today = symbol.payload.absoluteOTC * element.currentBalance;
                     //expected_yield.value = symbol.payload.relativeOTC;
                 }
-                if (needToConvert && current_amount.currency === 'USD') {
+                if (needToConvert && current_amount?.currency === 'USD') {
                     earning_today = earning_today * currencyCourse.payload.last.value;
                     current_amount.value = current_amount.value * currencyCourse.payload.last.value;
                     current_amount.currency = 'RUB';
@@ -363,7 +363,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                         earningToday: earning_today,
                         averagePositionPrice: element.averagePositionPrice || {
                             value: 0,
-                            currency: element.currentPrice.currency
+                            currency: element.currentPrice?.currency
                         },
                         timeToOpen: symbol.payload.symbol.timeToOpen,
                     },
