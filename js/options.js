@@ -476,6 +476,9 @@ function create_portfolio_table(divId, data) {
             let daysToDiv;
             if (feature_div && Date.now() < new Date(feature_div.lastBuyDate)) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24), 10);
             let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя даты покупки для получения дивидендов ${new Date(feature_div.lastBuyDate).toLocaleDateString()}, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}</a>` : '';
+            let ls = '';
+            if (element.symbol.longIsEnabled || element.symbol.shortIsEnabled) ls = `<span title="Long\Short">${(element.symbol.longIsEnabled ? 'L' : '') + '/' + (element.symbol.shortIsEnabled ? 'S' : '')}</span>`;
+
             let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">📊</span>' : '';
             let etf = element.symbol.symbolType === 'ETF' ? '<span title="ETF">🗃️</span>' : '';
             let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
@@ -598,7 +601,7 @@ function create_portfolio_table(divId, data) {
             }
             let td8 = document.createElement('td');
             //td8.style.whiteSpace = 'nowrap';
-            td8.innerHTML = `${short} ${warning} ${div}`;
+            td8.innerHTML = `${short} ${warning} ${div}${ls}`;
             tr.appendChild(td1);
             tr.appendChild(td8);
             tr.appendChild(td2);
@@ -798,7 +801,7 @@ function create_alert_table(data_list) {
                 td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
                     //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                     (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
-                    (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение. Удалить?">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
+                    (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '<span class="icon disabled" title="Добавить в избранное?">⭐</span>') +
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
 

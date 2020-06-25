@@ -351,6 +351,8 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                         marketStartTime: symbol.payload.symbol.marketStartTime,
                         securityType: securityType,
                         ticker: element.ticker,
+                        longIsEnabled: symbol.payload.symbol.longIsEnabled,
+                        shortIsEnabled: symbol.payload.symbol.shortIsEnabled,
                         isin: element.isin,
                         status: element.status,
                         showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
@@ -818,7 +820,7 @@ function likeComment(commentId, like) {
         MainProperties.getSession().then(session_id => {
             console.log('Like comment');
             if (like)
-            // POST
+                // POST
                 fetch(PULSE_COMMENT_LIKE_URL.replace('${commentId}', commentId) + session_id, {
                     method: "POST",
                     headers: {
@@ -851,7 +853,7 @@ function likePost(postId, like) {
         MainProperties.getSession().then(session_id => {
             console.log('Like post');
             if (like)
-            // POST
+                // POST
                 fetch(PULSE_POST_LIKE_URL.replace('${postId}', postId) + session_id, {
                     method: "POST",
                     headers: {
@@ -984,7 +986,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                     res.payload.symbol.dayHigh = json.payload.dayHigh;
                     res.payload.symbol.dayLow = json.payload.dayLow;
                     res.payload.symbol.dayOpen = json.payload.dayOpen;
-                    res.payload.symbol["52WLow"]= json.payload["52WLow"];
+                    res.payload.symbol["52WLow"] = json.payload["52WLow"];
                     res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
                     res.payload.symbol.dividends = [];
                 }

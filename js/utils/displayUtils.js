@@ -1,7 +1,15 @@
 'use strict';
 
 // Функция заполняющая текст "Остаток на счете ТКС 4 268,10 ₽    18,92 $    " с пропуском валют, если там 0
-import {AVATAR_URL, HEALTH, PLURAL_SECURITY_TYPE, port, PROGNOSIS_LINK, SYMBOL_LINK} from "/js/constants.mjs";
+import {
+    AVATAR_URL,
+    HEALTH,
+    IMAGE_URL,
+    PLURAL_SECURITY_TYPE,
+    port,
+    PROGNOSIS_LINK,
+    SYMBOL_LINK
+} from "/js/constants.mjs";
 
 const capitalize = function (str1) {
     return str1.charAt(0).toUpperCase() + str1.slice(1);
@@ -188,6 +196,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                         let link = SYMBOL_LINK.replace('${securityType}', 'stocks');
                         let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig, '<a target="_blank" href="' + link + "$1" + '"><strong>' + "$1" + "</strong></a>");
                         comment_text = createTextLinks(comment_text);
+
                         let likes = `<div class="heart isComment ${item.isLiked ? 'isLiked' : ''}" data-id="${item.id}"></div><div id="${item.id}_heart_count" class="heartCount">${(item.likesCount > 0 ? item.likesCount : '')}</div>`;
                         let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                         return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><span class="profile" data-id="${item.profileId}_profile"></span><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
@@ -202,6 +211,12 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 });
                 let avatar = news.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                 profiles.add(news.profileId);
+                let images = '';
+                if (news.postImages?.length > 0) {
+                    news.postImages.map(img => {
+                        images += `<img src="${IMAGE_URL.replace('${imgId}', img.id)}">`;
+                    });
+                }
                 return `
 <div data-id="${news.id}" class="newsAnnounce bordered pulse">
 <h2 data-id="${news.id}" class="pulseProfile" data-nav="${news.profileId}_profile">${avatar}${news.nickname}
@@ -209,7 +224,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 </h2>
 <div class="logoContainer">${tickers}</div>
 <div class="postTime">${new Date(news.inserted).toLocaleDateString()} ${new Date(news.inserted).toLocaleTimeString()}</div>
-<div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
+<div class="post">${text}<br>${images}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
             case 'social_post': {
                 let likes = `<div class="heart ${news.is_liked ? 'isLiked' : ''}" data-id="${news.item.id}"></div><div id="${news.item.id}_heart_count" class="heartCount">${(news.likes_count > 0 ? news.likes_count : '')}</div>`;
@@ -233,6 +248,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                         let link = SYMBOL_LINK.replace('${securityType}', 'stocks');
                         let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig, '<a target="_blank" href="' + link + "$1" + '"><strong>' + "$1" + "</strong></a>");
                         comment_text = createTextLinks(comment_text);
+                        if (item.postImages.length > 0) comment_text += `tcnm rfhnbenbyrf`;
                         let likes = `<div class="heart isComment ${item.isLiked ? 'isLiked' : ''}" data-id="${item.id}"></div><div id="${item.id}_heart_count" class="heartCount">${(item.likesCount > 0 ? item.likesCount : '')}</div>`;
                         let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                         return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><span class="profile" data-id="${item.profileId}_profile"></span><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
@@ -372,11 +388,19 @@ export function drawDayProgress(element) {
 
     let dayOpenPercent = 100 - (element.symbol.dayHigh - min) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
     let dayLastPercent = 100 - (element.symbol.dayHigh - max) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
-
+    let minPercent, maxPercent;
+    minPercent = (((element.symbol.dayLow * 100) / element.prices.last?.value) - 100) / 100;
+    maxPercent = (-100 + ((element.symbol.dayHigh * 100) / element.prices.last?.value)) / 100;
     let canvas = document.createElement('canvas');
     canvas.width = 100;
     canvas.height = 6;
-    canvas.title = `Текущая цена ${element.prices.last?.value}, дневной диапазон цен ${element.symbol.dayLow} - ${element.symbol.dayHigh} \n
+    canvas.title = `Текущая цена ${element.prices.last?.value}, дневной диапазон цен ${element.symbol.dayLow}(${minPercent.toLocaleString('ru-RU', {
+        style: 'percent',
+        maximumSignificantDigits: 2
+    })}) - ${element.symbol.dayHigh}(${maxPercent.toLocaleString('ru-RU', {
+        style: 'percent',
+        maximumSignificantDigits: 2
+    })}) \n
                     52-недельный диапазон ${element.symbol["52WLow"]} - ${element.symbol["52WHigh"]}`;
     let ctx = canvas.getContext('2d');
     ctx.fillStyle = progress_style;

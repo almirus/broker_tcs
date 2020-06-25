@@ -20,6 +20,7 @@ export const CURRENCY_PRICE_URL = 'https://api.tinkoff.ru/trading/currency/price
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/${securityType}/get?sessionId=';
 export const CURRENCY_SYMBOL_URL = 'https://api.tinkoff.ru/trading/currency/get?sessionId=';
 export const PROGNOSIS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/instruments/${ticker}/forecasts?id_kind=ticker&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const CONSENSUS_URL ='api-invest.tinkoff.ru/apa/analytics/forecast/consensus?isin=US08182C1062&y=omg&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId='
 export const SET_ALERT_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_alert?ticker=${ticker}&price=${price}&sessionId=';
 export const ORDERS_URL = 'https://api.tinkoff.ru/trading/user/orders?sessionId=';
 export const STOP_URL = 'https://api.tinkoff.ru/trading/user/stop_orders?appName=invest_terminal&appVersion=1.0.0&sessionId=';
@@ -46,12 +47,13 @@ export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts
 
 //{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
-export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${navId}&limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${navId}&limit=30&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const COMMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${commentId}/comment?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PULSE_FOR_TICKER_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/instrument/${navId}?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PROFILE_ACTIVITY_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/post?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PROFILE_INSTRUMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/instrument?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const AVATAR_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/profile/avatar/${img}?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const IMAGE_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/post/image/${imgId}?size=small&appName=investing&appVersion=4.8.1&origin=mobile,ib5,loyalty,platform&platform=android&y=omg&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PULSE_POST_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${postId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PULSE_COMMENT_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/comment/${commentId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const PROFILE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${profileId}?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
