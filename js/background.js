@@ -290,7 +290,6 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
             if (!symbol.payload.symbol) {
                 return_data.push({
-                    itemType: 'portfolio',
                     prices: undefined,
                     earnings: undefined,
                     contentMarker: undefined,
@@ -329,7 +328,6 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                 }
 
                 return_data.push({
-                    itemType: 'portfolio',
                     prices: symbol.payload.prices,
                     earnings: symbol.payload.earnings,
                     contentMarker: symbol.payload.contentMarker,
@@ -593,10 +591,10 @@ function getListStock(name) {
                                         convertPortfolio(allPortfolio.iis.payload.data, needConvert, currency, session_id)
                                     ]
                                 ).then(([tcs_data, iis_data]) => {
-                                    // список всех инструментов в объек где ключ тикер
-                                    GLOBAL_CACHE.items = [].concat(tcs_data).concat(iis_data).reduce(
-                                        (obj, item) => Object.assign(obj, {[item.symbol.ticker]: item}), {});
-
+                                    portfolio.items = {
+                                        stocks_tcs: tcs_data,
+                                        stocks_iis: iis_data
+                                    };
                                     resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data}));
                                 });
                             }).catch(function (ex) {
@@ -726,7 +724,6 @@ function getFavorite() {
                     let return_data = [];
                     json.payload.stocks.forEach(item => {
                         return_data.push({
-                            itemType: 'favorite',
                             symbol: {
                                 ticker: item.symbol.ticker,
                                 symbolType: item.symbol.symbolType
@@ -1211,9 +1208,8 @@ function updateAlertPrices() {
                     return (subscriptions)
                 }),
             ]).then(async ([orders, stops, subscriptions]) => {
-                GLOBAL_CACHE.orders = orders.map(item => {
+                portfolio.orders = orders.map(item => {
                     return {
-                        itemType: 'orders',
                         symbol: {
                             ticker: item.ticker,
                             symbolType: (item.symbolType || item.securityType || 'Stock')
@@ -1592,7 +1588,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                         });
                 break;
             case 'getLiquid':
-                GLOBAL_CACHE.getLiquid().then(list => {
+                portfolio.getLiquid().then(list => {
                     port.postMessage(Object.assign({},
                         {result: "listLiquid"},
                         {list: list}));
@@ -1600,7 +1596,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
                 break;
             case 'getPrognosis':
-                GLOBAL_CACHE.getPrognosis().then(list => {
+                portfolio.getPrognosis().then(list => {
                     port.postMessage(Object.assign({},
                         {result: "listPrognosis"},
                         {list: list}));
@@ -1622,11 +1618,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                         let favorite = await getFavorite();
                         // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
                         // пульс доступен только для акций, поэтому фильтруем
-                        news['navs'] = [...new Set([].concat(Object.keys(GLOBAL_CACHE.items).map(ticker => GLOBAL_CACHE.items[ticker]
-                        ), GLOBAL_CACHE.orders, favorite).filter(item => {
-                            return item.symbol.symbolType === 'Stock'
-                                && (item.itemType === 'portfolio' || item.itemType === 'favorite' || item.itemType === 'orders')
-                                && !item.symbol.isOTC
+                        news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
+                            return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
                         }).reduce((prev, curr) => {
                             return [...prev, ...[curr.symbol.ticker]];
                         }, []))];
@@ -1637,7 +1630,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                             port.postMessage(Object.assign({},
                                 {result: "pulse"},
                                 {news: news}));
-                            console.log("send pulse list .....");
+                            console.log("send puls list .....");
                         });
                     })();
 
@@ -1891,7 +1884,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
     }
 });
 
-const GLOBAL_CACHE = class {
+const portfolio = class {
     items;
     orders;
 
@@ -1931,4 +1924,3 @@ const GLOBAL_CACHE = class {
         })
     }
 };
-
