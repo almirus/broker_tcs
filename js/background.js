@@ -9,6 +9,7 @@ import {
     CANCEL_STOP,
     CHECK_VERSION_URL,
     COMMENTS_URL,
+    CONSENSUS_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
@@ -340,6 +341,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                         absoluteOTC: symbol.payload.absoluteOTC || 0,
                         relativeOTC: symbol.payload.relativeOTC || 0,
                         consensus: symbol.payload.symbol.consensus,
+                        premium_consensus: symbol.payload.symbol.premium_consensus,
                         dividends: symbol.payload.symbol.dividends,
                         symbolType: symbol.payload.symbol.symbolType,
                         isOTC: symbol.payload.symbol.isOTC,
@@ -1008,6 +1010,12 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                     const response = await fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId)
                     let json = await response.json();
                     res.payload.symbol.consensus = json.payload.consensus;
+                }
+                if (res.payload.symbol?.isin) {
+                    const response = await fetch(CONSENSUS_URL.replace('${isin}', res.payload.symbol.isin) + sessionId)
+                    let json = await response.json();
+                    res.payload.symbol.premium_consensus = json.payload;
+                    console.log(json.payload)
                 }
                 const option = await MainProperties.getAVOption();
                 if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {

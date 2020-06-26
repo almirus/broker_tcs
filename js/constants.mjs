@@ -20,7 +20,7 @@ export const CURRENCY_PRICE_URL = 'https://api.tinkoff.ru/trading/currency/price
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/${securityType}/get?sessionId=';
 export const CURRENCY_SYMBOL_URL = 'https://api.tinkoff.ru/trading/currency/get?sessionId=';
 export const PROGNOSIS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/instruments/${ticker}/forecasts?id_kind=ticker&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const CONSENSUS_URL ='api-invest.tinkoff.ru/apa/analytics/forecast/consensus?isin=US08182C1062&y=omg&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId='
+export const CONSENSUS_URL ='https://api-invest.tinkoff.ru/apa/analytics/forecast/consensus?isin=${isin}&y=omg&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId='
 export const SET_ALERT_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_alert?ticker=${ticker}&price=${price}&sessionId=';
 export const ORDERS_URL = 'https://api.tinkoff.ru/trading/user/orders?sessionId=';
 export const STOP_URL = 'https://api.tinkoff.ru/trading/user/stop_orders?appName=invest_terminal&appVersion=1.0.0&sessionId=';
@@ -102,6 +102,11 @@ export const PLURAL_SECURITY_TYPE = {
     Bonds: 'bonds',
     ETF: 'etfs',
     Note: 'notes'
+};
+export const RUS_OPERATION = {
+    Buy: 'Покупать',
+    Hold: 'Держать',
+    Sell: 'Продавать',
 };
 export let port = chrome.runtime.connect({
     name: "tcs_trader"

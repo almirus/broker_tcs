@@ -8,6 +8,7 @@ import {
     PLURAL_SECURITY_TYPE,
     port,
     PROGNOSIS_LINK,
+    RUS_OPERATION,
     SYMBOL_LINK
 } from "/js/constants.mjs";
 
@@ -248,7 +249,6 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                         let link = SYMBOL_LINK.replace('${securityType}', 'stocks');
                         let comment_text = item.text.replace(/\{?\$([A-Z]*)\}?/ig, '<a target="_blank" href="' + link + "$1" + '"><strong>' + "$1" + "</strong></a>");
                         comment_text = createTextLinks(comment_text);
-                        if (item.postImages.length > 0) comment_text += `tcnm rfhnbenbyrf`;
                         let likes = `<div class="heart isComment ${item.isLiked ? 'isLiked' : ''}" data-id="${item.id}"></div><div id="${item.id}_heart_count" class="heartCount">${(item.likesCount > 0 ? item.likesCount : '')}</div>`;
                         let avatar = item.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', item.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                         return `<div class="comment">${avatar}<strong class="pulseProfile" data-nav="${item.profileId}_profile">${item.nickname}</strong><span class="profile" data-id="${item.profileId}_profile"></span><br>${comment_text}<br><span>${new Date(item.inserted).toLocaleDateString()} ${new Date(item.inserted).toLocaleTimeString()}${likes}</span></div>`
@@ -263,6 +263,12 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 
                 });
                 profiles.add(news.item.profile.id);
+                let images = '';
+                if (news.postImages?.length > 0) {
+                    news.postImages.map(img => {
+                        images += `<img src="${IMAGE_URL.replace('${imgId}', img.id)}">`;
+                    });
+                }
                 let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';
                 return `
 <div data-id="${news.item.id}" class="newsAnnounce bordered pulse">
@@ -271,7 +277,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 </h2>
 <div class="logoContainer">${tickers}</div>
 <div class="postTime">${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLocaleTimeString()}</div>
-<div class="post">${text}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
+<div class="post">${text}<br>${images}<br>${likes}${comments}</div><div style="clear: both;"></div></div>`;
             }
         }
     }).join('');
@@ -378,6 +384,21 @@ export function getExportAccountHtml(accounts) {
 <br>`;
     });
     return res;
+}
+
+export function drawPremiumConsensus(data) {
+    let canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 12;
+    canvas.title = `Консенсус прогноз от 👑Refinitiv\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков`;
+    let ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'green';
+    ctx.fillRect(0, 2, data.absolute.buy * 100 / data.analystsCount, 7);
+    ctx.fillStyle = 'orange';
+    ctx.fillRect(data.absolute.buy * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 7);
+    ctx.fillStyle = 'red';
+    ctx.fillRect(data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount + data.absolute.sell * 100 / data.analystsCount, 7);
+    return canvas;
 }
 
 export function drawDayProgress(element) {

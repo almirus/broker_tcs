@@ -29,6 +29,7 @@ import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
 import {
     drawDayProgress,
+    drawPremiumConsensus,
     fillCashData,
     getAllAccountsHtmlInfo,
     getExportAccountHtml,
@@ -536,7 +537,9 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
                 })}</a>${prognosis_link}</div>`;
-
+            if (element.symbol.premium_consensus && element.symbol.premium_consensus?.analystsCount>0) {
+                td3.appendChild(drawPremiumConsensus(element.symbol.premium_consensus));
+            }
             let td4 = document.createElement('td');
             if (element.prices) {
                 td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
