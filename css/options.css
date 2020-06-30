@@ -1,13 +1,8 @@
-@font-face {
-    font-family: NotomojiColor;
-    font-weight: 400;
-    src: url(fonts/NotoColorEmoji.ttf) format("truetype");
-}
-
-@font-face {
-    font-family: Notomoji;
-    font-weight: 400;
-    src: url(fonts/NotoEmoji-Regular.ttf) format("truetype");
+#treemap_container {
+    width: 100%;
+    height: 800px;
+    margin: 0;
+    padding: 0;
 }
 
 #container input {

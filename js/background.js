@@ -260,15 +260,29 @@ function getPortfolio(sessionId) {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
-            }).then(response => response.json())
-        ])
-            .then(([tcs, iis]) => {
-                resolve({tcs: tcs, iis: iis || []})
-            })
-            .catch(error => {
-                console.log(`cant get portfolio, because ${error}`);
-                reject({tcs: [], iis: []});
-            })
+            }).then(response => response.json()),
+            fetch(FAVORITE_URL + sessionId)
+                .then(response => response.json())
+                .then(json => {
+                    console.log('list of favorite');
+                    let return_data = [];
+                    json.payload.stocks.forEach(item => {
+                        return_data.push({
+                            isin: item.symbol.isin,
+                            ticker: item.symbol.ticker,
+                            showName: item.symbol.showName,
+                            lotSize: item.symbol.lotSize,
+                        });
+                    });
+                    return return_data;
+                })
+
+        ]).then(([tcs, iis, favorite]) => {
+            resolve({tcs: tcs, iis: iis || [], favorite: favorite})
+        }).catch(error => {
+            console.log(`cant get portfolio, because ${error}`);
+            reject({tcs: [], iis: []});
+        })
     })
 }
 
@@ -566,6 +580,7 @@ function getListStock(name) {
                             return_data.push({
                                 prices: item.prices,
                                 symbol: {
+                                    isin: item.symbol.isin,
                                     ticker: item.symbol.ticker,
                                     showName: item.symbol.showName,
                                     lotSize: item.symbol.lotSize,
@@ -573,6 +588,7 @@ function getListStock(name) {
                                 exchangeStatus: item.exchangeStatus
                             });
                         });
+                        portfolio.favorite = return_data;
                         resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                     }).catch(function (ex) {
                     console.log('parsing failed', ex);
@@ -588,9 +604,11 @@ function getListStock(name) {
                                 console.log('list of portfolio');
                                 Promise.all([
                                         convertPortfolio(allPortfolio.tcs.payload.data, needConvert, currency, session_id),
-                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currency, session_id)
+                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currency, session_id),
+
                                     ]
                                 ).then(([tcs_data, iis_data]) => {
+                                    portfolio.favorite = allPortfolio.favorite;
                                     portfolio.items = {
                                         stocks_tcs: tcs_data,
                                         stocks_iis: iis_data
@@ -725,6 +743,7 @@ function getFavorite() {
                     json.payload.stocks.forEach(item => {
                         return_data.push({
                             symbol: {
+                                isin: item.symbol.isin,
                                 ticker: item.symbol.ticker,
                                 symbolType: item.symbol.symbolType
                             }
@@ -992,31 +1011,6 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                     res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
                     res.payload.symbol.dividends = [];
                 }
-                if (res.payload.contentMarker && res.payload.contentMarker.dividends) {
-                    const response = await fetch(DIVIDENDS_URL.replace('${ticker}', tickerName) + sessionId, {
-                        method: "POST",
-                        body: JSON.stringify({
-                            ticker: tickerName
-                        }),
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        }
-                    });
-                    let json = await response.json();
-                    res.payload.symbol['dividends'] = json.payload.dividends;
-                }
-                if (res.payload.contentMarker && res.payload.contentMarker.prognosis) {
-                    const response = await fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId)
-                    let json = await response.json();
-                    res.payload.symbol.consensus = json.payload.consensus;
-                }
-                if (res.payload.symbol?.isin) {
-                    const response = await fetch(CONSENSUS_URL.replace('${isin}', res.payload.symbol.isin) + sessionId)
-                    let json = await response.json();
-                    res.payload.symbol.premium_consensus = json.payload;
-                    console.log(json.payload)
-                }
                 const option = await MainProperties.getAVOption();
                 if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {
                     const response = await fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey);
@@ -1170,20 +1164,34 @@ function getPrognosisList() {
     return new Promise((resolve, reject) => {
             MainProperties.getSession().then(session_id => {
                 getPortfolio(session_id).then(portfolio => {
-                        let portfolioList = [].concat(portfolio.tcs.payload.data, portfolio.iis.payload.data);
-                        portfolioList.forEach(item => {
-                            if (item.contentMarker) {
-                                fetch(PROGNOSIS_URL.replace('${ticker}', item.symbol.ticker) + session_id).then(response => response.json())
-                                    .then(prognosis => {
-                                        res.payload.symbol.consensus = prognosis.payload.consensus;
-                                        resolve(res);
-                                    })
-                                    .catch(e => {
-                                        console.log('Сервис прогнозов недоступен', e);
-                                        resolve(res);
-                                    });
+                        let portfolioList = [].concat(portfolio.tcs.payload.data, portfolio.iis.payload.data, portfolio.favorite);
+                        portfolioList.forEach(async item => {
+                            if (item?.ticker) {
+                                const response = await fetch(PROGNOSIS_URL.replace('${ticker}', item.ticker) + session_id);
+                                let json = await response.json();
+                                item['consensus'] = json.payload.consensus;
+                            }
+                            if (item?.isin) {
+                                const response = await fetch(CONSENSUS_URL.replace('${isin}', item.isin) + session_id)
+                                let json = await response.json();
+                                item['premium_consensus'] = json.payload;
+                            }
+                            if (item?.ticker) {
+                                const response = await fetch(DIVIDENDS_URL.replace('${ticker}', item.ticker) + session_id, {
+                                    method: "POST",
+                                    body: JSON.stringify({
+                                        ticker: item.ticker
+                                    }),
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                    }
+                                });
+                                let json = await response.json();
+                                item['dividends'] = json.payload.dividends;
                             }
                         })
+                        resolve(portfolioList);
                     }
                 );
             }).catch(function (ex) {
@@ -1413,6 +1421,96 @@ function createMobileAlert(params) {
     })
 }
 
+function getTreeMap(country='All') {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+                // POST
+                fetch(SEARCH_URL + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        start: 0,
+                        end: 10000,
+                        sortType: "ByPrice",
+                        orderType: "Asc",
+                        country: country,
+                        popular: true,
+                        //filterOTC: true,
+                        //filterRisky: true,
+
+                    }),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(listOfFound => {
+                        if (listOfFound.status.toLocaleUpperCase() === 'OK') {
+                            // уникальный массив категорий (секторов)
+                            let category = Array.from(new Set(listOfFound.payload.values.map(({symbol}) => symbol.sector)));
+                            let min = Math.min.apply(null, listOfFound.payload.values.map(item => item.relative))*100
+                                , max = Math.max.apply(null, listOfFound.payload.values.map(item => item.relative))*100;
+                            // список тикеров для TreeMap
+                            let list = listOfFound.payload.values.reduce((result, item, index) => {
+                                if (item.earnings) {
+                                    let fill;
+                                    item.earnings.relative *= 100;
+                                    //item.earnings.relative = Math.random()*100;
+                                    if (item.earnings.relative > -100 && item.earnings.relative < -50) {
+                                        fill = '#F5383D';
+                                    }
+                                    if (item.earnings.relative > -50 && item.earnings.relative < -2) {
+                                        fill = '#C64045'
+                                    }
+                                    if (item.earnings.relative > -2 && item.earnings.relative < 2) {
+                                        fill = '#414553'
+                                    }
+                                    if (item.earnings.relative > 2 && item.earnings.relative < 50) {
+                                        fill = '#367D51'
+                                    }
+                                    if (item.earnings.relative > 50) {
+                                        fill = '#33B15A'
+                                    }
+
+                                    let obj = {
+                                        parent: item.symbol.sector,
+                                        id: item.symbol.ticker,
+                                        product: item.symbol.ticker,
+                                        showName: item.symbol.showName,
+                                        relative: item.earnings.relative.toFixed(2), // здесь истинное значение для вывода на экран
+                                        value: Math.abs(item.earnings.relative), //treemap не учитывает отриц значения, приходится перобразовыввать
+                                        fill: fill,
+                                    };
+                                    result.push(obj);
+                                }
+                                return result;
+                            }, []);
+                            // склееиваем все списки
+                            resolve([{ // родительский пустой узел
+                                parent: null,
+                                id: 0,
+                                product: ''
+                            }].concat(category.reduce((result, item, index) => {
+                                let obj = { // категории
+                                    parent: 0,
+                                    id: item,
+                                    product: item,
+                                };
+                                result.push(obj);
+                                return result;
+                            }, [])).concat(list));// список тикеров
+                        } else {
+                            console.log('Сервис поиска недоступен');
+                            reject(undefined)
+                        }
+                    }).catch(e => {
+                    console.log(e);
+                    reject(undefined);
+                })
+            }
+        )
+    })
+}
+
 // основной слушатель
 chrome.runtime.onConnect.addListener(function (port) {
     console.log("Connected .....");
@@ -1635,6 +1733,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                     })();
 
 
+                });
+                break;
+            case 'getTreemap':
+                getTreeMap(msg.params).then(res => {
+                    port.postMessage(Object.assign({},
+                        {result: "treemap"},
+                        {list: res}));
+                    console.log("send treemap .....");
                 });
                 break;
             case 'postComment':
@@ -1887,6 +1993,8 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 const portfolio = class {
     items;
     orders;
+    favorite;
+    holidays = new Set();
 
     set items(items) {
         this.items = items;
@@ -1902,6 +2010,22 @@ const portfolio = class {
 
     get orders() {
         return this.orders;
+    };
+
+    set favorite(favorite) {
+        this.favorite = favorite;
+    };
+
+    get favorite() {
+        return this.favorite;
+    };
+
+    set holidays(holidays) {
+        this.holidays.add(holidays);
+    };
+
+    get holidays() {
+        return this.holidays;
     };
 
     static async getLiquid() {
