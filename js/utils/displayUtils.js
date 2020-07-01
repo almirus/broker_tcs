@@ -390,14 +390,16 @@ export function drawPremiumConsensus(data) {
     let canvas = document.createElement('canvas');
     canvas.width = 100;
     canvas.height = 12;
-    canvas.title = `Консенсус прогноз от 👑Refinitiv\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков`;
-    let ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'green';
-    ctx.fillRect(0, 2, data.absolute.buy * 100 / data.analystsCount, 7);
-    ctx.fillStyle = 'orange';
-    ctx.fillRect(data.absolute.buy * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 7);
-    ctx.fillStyle = 'red';
-    ctx.fillRect(data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount + data.absolute.sell * 100 / data.analystsCount, 7);
+    if (data?.absolute?.buy) {
+        canvas.title = `Консенсус прогноз от 👑Refinitiv\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков`;
+        let ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'green';
+        ctx.fillRect(0, 2, data.absolute.buy * 100 / data.analystsCount, 7);
+        ctx.fillStyle = 'orange';
+        ctx.fillRect(data.absolute.buy * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 7);
+        ctx.fillStyle = 'red';
+        ctx.fillRect(data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount + data.absolute.sell * 100 / data.analystsCount, 7);
+    }
     return canvas;
 }
 

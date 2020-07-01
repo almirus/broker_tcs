@@ -15,6 +15,7 @@ import {
     OPTION_CONVERT_TO_RUB,
     OPTION_COSMETICS,
     OPTION_FAVORITE,
+    OPTION_FAVORITE_LIST,
     OPTION_REDIRECT,
     OPTION_SESSION,
     OPTION_SORT_BY_NEAREST,
@@ -247,7 +248,7 @@ port.onMessage.addListener(function (msg) {
                     .tooltip()
                     .useHtml(true)
                     .titleFormat(function () {
-                        return this.getData('product');
+                        return `${this.getData('product')} ${this.getData('relative')}%`;
                     })
                     .format(function () {
                         return (
@@ -301,8 +302,6 @@ function setTickerPulseButton() {
             let button = e.target;
             document.getElementById('pulse').checked = true;
             document.getElementById('alert_table').style.display = 'none';
-            document.getElementById('sort_by_nearest').style.display = 'none';
-            document.getElementById('label_sort_by_nearest').style.display = 'none';
             document.getElementById('price_table').style.display = 'none';
             document.getElementById('news_table').style.display = 'block';
             document.getElementById('graphic_table').style.display = 'none';
@@ -877,7 +876,7 @@ function create_alert_table(data_list) {
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
                 let prognosis_style = cached_element && cached_element.consensus && cached_element.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-                let prognosis_link = cached_element && cached_element.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}', cached_element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
+                let prognosis_link = cached_element && cached_element.consensus ? `<a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}', cached_element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
                                 ${cached_element.consensus.consensus.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: cached_element.consensus.currency,
@@ -920,7 +919,7 @@ function create_alert_table(data_list) {
                 td3.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
                 td3.align = 'right';
                 let td4 = document.createElement('td');
-                td4.innerHTML = `<strong title="Цена при достижении которой будет выведено уведомление с предложением продать">${element.sell_price}</strong>`;
+                td4.innerHTML = `${element.sell_price ? `<strong title="Цена при достижении которой будет выведено уведомление с предложением продать">${element.sell_price}` : ''}</strong>`;
                 td4.className = 'onlineSell';
                 td4.align = 'right';
                 if (element.orderId || element.subscriptPrice) { //StopLoss TakeProfit Subscriptions
@@ -932,7 +931,7 @@ function create_alert_table(data_list) {
                     };
                     if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
                         <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
-                    else td4.innerHTML = element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('');
+                    else td4.innerHTML = element.subscriptPrice ? element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('') : '';
                 }
 
                 let td6 = document.createElement('td');
@@ -944,7 +943,7 @@ function create_alert_table(data_list) {
                                 (element.status === 'New' ? 'Заявка' : '')
                         );
                 } else td6.innerHTML = element.best_before ? (alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString())
-                    : 'бессрочно';
+                    : (element.favoriteList ? 'из списка избранного' : 'бессрочно');
                 td6.align = 'center';
                 if (element.orderId) {
                     if (element.operationType === 'Sell') tr.className = element.status === 'PartiallyFill' ? 'onlineSellPartial' : 'isOnlineOrderSell';
@@ -1016,8 +1015,7 @@ document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('orders_table').style.display = 'none';
     document.getElementById('alert_table').style.display = 'block';
-    document.getElementById('sort_by_nearest').style.display = 'inline';
-    document.getElementById('label_sort_by_nearest').style.display = 'inline';
+
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
@@ -1025,8 +1023,7 @@ document.getElementById('alert_list').addEventListener('change', function (e) {
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('orders_table').style.display = 'none';
-    document.getElementById('sort_by_nearest').style.display = 'none';
-    document.getElementById('label_sort_by_nearest').style.display = 'none';
+
     document.getElementById('price_table').style.display = 'block';
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
@@ -1035,8 +1032,7 @@ document.getElementById('add_alert_list').addEventListener('change', function (e
 document.getElementById('graphic').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('orders_table').style.display = 'none';
-    document.getElementById('sort_by_nearest').style.display = 'none';
-    document.getElementById('label_sort_by_nearest').style.display = 'none';
+
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('graphic_table').style.display = 'block';
     document.getElementById('news_table').style.display = 'none';
@@ -1082,8 +1078,6 @@ document.getElementById('graphic').addEventListener('change', function (e) {
 
 document.getElementById('news').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
-    document.getElementById('sort_by_nearest').style.display = 'none';
-    document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'block';
     document.getElementById('graphic_table').style.display = 'none';
@@ -1092,8 +1086,6 @@ document.getElementById('news').addEventListener('change', function (e) {
 });
 document.getElementById('pulse').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
-    document.getElementById('sort_by_nearest').style.display = 'none';
-    document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'block';
     document.getElementById('graphic_table').style.display = 'none';
@@ -1102,8 +1094,6 @@ document.getElementById('pulse').addEventListener('change', function (e) {
 });
 document.getElementById('treemap').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
-    document.getElementById('sort_by_nearest').style.display = 'none';
-    document.getElementById('label_sort_by_nearest').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'block';
     document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
@@ -1114,6 +1104,7 @@ document.getElementById('treemap').addEventListener('change', function (e) {
 });
 
 document.getElementById('add_treemap_type').addEventListener('change', function (e) {
+    document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
     port.postMessage({method: "getTreemap", params: e.target.value});
 });
 
@@ -1318,6 +1309,18 @@ document.getElementById(OPTION_FAVORITE).addEventListener('change', function (e)
 chrome.storage.sync.get([OPTION_FAVORITE], function (result) {
     console.log('get favorite option');
     document.getElementById(OPTION_FAVORITE).checked = result[OPTION_FAVORITE] === true;
+});
+
+// сохраняем применение Добавление Избранного
+document.getElementById(OPTION_FAVORITE_LIST).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_FAVORITE_LIST]: e.target.checked}, function () {
+        console.log('add favorite option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_FAVORITE_LIST], function (result) {
+    console.log('get add favorite option');
+    document.getElementById(OPTION_FAVORITE_LIST).checked = result[OPTION_FAVORITE_LIST] === true;
 });
 
 // запрашиваем права на выдачу уведомлений

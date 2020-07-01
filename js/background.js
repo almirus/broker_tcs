@@ -32,6 +32,7 @@ import {
     OPTION_ALPHAVANTAGE_KEY,
     OPTION_CONVERT_TO_RUB,
     OPTION_FAVORITE,
+    OPTION_FAVORITE_LIST,
     OPTION_REDIRECT,
     OPTION_SESSION,
     ORDERS_URL,
@@ -634,7 +635,7 @@ function findTicker(search, session_id) {
                 method: "POST",
                 body: JSON.stringify({
                     start: 0,
-                    end: 100,
+                    end: 10,
                     sortType: "ByName",
                     orderType: "Asc",
                     country: "All",
@@ -743,6 +744,7 @@ function getFavorite() {
                     json.payload.stocks.forEach(item => {
                         return_data.push({
                             symbol: {
+                                showName: item.symbol.showName,
                                 isin: item.symbol.isin,
                                 ticker: item.symbol.ticker,
                                 symbolType: item.symbol.symbolType
@@ -1206,6 +1208,12 @@ function updateAlertPrices() {
     return new Promise(function (resolve) {
         MainProperties.getSession().then(session_id => {
             Promise.all([
+                getFavorite().then(favorite_list => {
+                    return (favorite_list.map(item => {
+                        item.symbol['favoriteList'] = true;
+                        return item.symbol
+                    }))
+                }),
                 getOrders(session_id).then(orders => {
                     return (orders)
                 }),
@@ -1215,7 +1223,7 @@ function updateAlertPrices() {
                 getSubscriptions(session_id).then(subscriptions => {
                     return (subscriptions)
                 }),
-            ]).then(async ([orders, stops, subscriptions]) => {
+            ]).then(async ([favorite_list, orders, stops, subscriptions]) => {
                 portfolio.orders = orders.map(item => {
                     return {
                         symbol: {
@@ -1224,7 +1232,7 @@ function updateAlertPrices() {
                         }
                     };
                 });
-                let alert_data = [].concat(orders, stops, subscriptions);
+                let alert_data = [].concat(await MainProperties.getFavoriteListOption() ? favorite_list : [], orders, stops, subscriptions);
                 let i = 0;
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
@@ -1251,6 +1259,7 @@ function updateAlertPrices() {
                             subscriptPrice: item.subscriptions,
                             quantity: item.quantity,
                             quantityExecuted: item.quantityExecuted,
+                            favoriteList: item.favoriteList,
                         };
                         i++;
                     })
@@ -1421,7 +1430,7 @@ function createMobileAlert(params) {
     })
 }
 
-function getTreeMap(country='All') {
+function getTreeMap(country = 'All') {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
                 // POST
@@ -1429,7 +1438,7 @@ function getTreeMap(country='All') {
                     method: "POST",
                     body: JSON.stringify({
                         start: 0,
-                        end: 10000,
+                        end: 500,
                         sortType: "ByPrice",
                         orderType: "Asc",
                         country: country,
@@ -1447,27 +1456,27 @@ function getTreeMap(country='All') {
                         if (listOfFound.status.toLocaleUpperCase() === 'OK') {
                             // уникальный массив категорий (секторов)
                             let category = Array.from(new Set(listOfFound.payload.values.map(({symbol}) => symbol.sector)));
-                            let min = Math.min.apply(null, listOfFound.payload.values.map(item => item.relative))*100
-                                , max = Math.max.apply(null, listOfFound.payload.values.map(item => item.relative))*100;
+                            let min = Math.min.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100
+                                , max = Math.max.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100;
                             // список тикеров для TreeMap
                             let list = listOfFound.payload.values.reduce((result, item, index) => {
                                 if (item.earnings) {
                                     let fill;
                                     item.earnings.relative *= 100;
                                     //item.earnings.relative = Math.random()*100;
-                                    if (item.earnings.relative > -100 && item.earnings.relative < -50) {
+                                    if (item.earnings.relative < -30) {
                                         fill = '#F5383D';
                                     }
-                                    if (item.earnings.relative > -50 && item.earnings.relative < -2) {
+                                    if (item.earnings.relative >= -30 && item.earnings.relative <= -1) {
                                         fill = '#C64045'
                                     }
-                                    if (item.earnings.relative > -2 && item.earnings.relative < 2) {
+                                    if (item.earnings.relative > -1 && item.earnings.relative < 1) {
                                         fill = '#414553'
                                     }
-                                    if (item.earnings.relative > 2 && item.earnings.relative < 50) {
+                                    if (item.earnings.relative >= 1 && item.earnings.relative <= 30) {
                                         fill = '#367D51'
                                     }
-                                    if (item.earnings.relative > 50) {
+                                    if (item.earnings.relative > 30) {
                                         fill = '#33B15A'
                                     }
 
@@ -1713,7 +1722,8 @@ chrome.runtime.onConnect.addListener(function (port) {
             case 'getPulse':
                 getNews(msg.params.nav_id).then(news => {
                     (async () => {
-                        let favorite = await getFavorite();
+                        let favorite = [];
+                        if (await MainProperties.getFavoriteOption()) favorite = await getFavorite();
                         // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
                         // пульс доступен только для акций, поэтому фильтруем
                         news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
@@ -1970,6 +1980,20 @@ export class MainProperties {
         );
 
     };
+
+    static async getFavoriteListOption() {
+        if (!(this._favoriteListOption === undefined)) {
+            //console.log('get cached sessionId');
+            return this._favoriteListOption
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_FAVORITE_LIST], result => {
+                this._favoriteListOption = result[OPTION_FAVORITE_LIST];
+                resolve(result[OPTION_FAVORITE_LIST]);
+            })
+        );
+
+    };
 }
 
 // вызывается при изменении storage
@@ -1986,6 +2010,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             if (key === OPTION_ALPHAVANTAGE_KEY) MainProperties._AVKey = storageChange.newValue;
             if (key === OPTION_SESSION) MainProperties._sessionOption = storageChange.newValue;
             if (key === OPTION_FAVORITE) MainProperties._favoriteOption = storageChange.newValue;
+            if (key === OPTION_FAVORITE_LIST) MainProperties._favoriteListOption = storageChange.newValue;
         }
     }
 });
