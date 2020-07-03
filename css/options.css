@@ -467,7 +467,7 @@ h2.white{
 .pulse .post{
     padding-left: 10px;
 }
-.post a{
+.post a, .holidays{
     max-width: 300px;
     white-space: nowrap;
     overflow: hidden;

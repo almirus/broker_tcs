@@ -346,6 +346,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     prices: symbol.payload.prices,
                     earnings: symbol.payload.earnings,
                     contentMarker: symbol.payload.contentMarker,
+                    instrumentStatusDesc: symbol.payload.instrumentStatusDesc,
                     symbol: {
                         dayLow: symbol.payload.symbol.dayLow,
                         dayHigh: symbol.payload.symbol.dayHigh,
