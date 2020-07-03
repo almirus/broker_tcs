@@ -8,15 +8,20 @@ import {
     CANCEL_ORDER,
     CANCEL_STOP,
     CHECK_VERSION_URL,
+    COMMENTS_URL,
+    CONSENSUS_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
+    DIVIDENDS_URL,
     EUR_RUB,
     FAVORITE_URL,
     HOST_URL,
     INFO_URL,
     INTERVAL_TO_CHECK,
+    LIQUID_URL,
     LOGIN_URL,
+    NEWS_URL,
     OPERATIONS_URL,
     OPTION_ALERT,
     OPTION_ALERT_TODAY,
@@ -26,23 +31,36 @@ import {
     OPTION_ALPHAVANTAGE,
     OPTION_ALPHAVANTAGE_KEY,
     OPTION_CONVERT_TO_RUB,
+    OPTION_FAVORITE,
+    OPTION_FAVORITE_LIST,
     OPTION_REDIRECT,
     OPTION_SESSION,
     ORDERS_URL,
     PING_URL,
+    PLURAL_SECURITY_TYPE,
     PORTFOLIO_URL,
     PRICE_URL,
+    PROFILE_ACTIVITY_URL,
+    PROFILE_INSTRUMENTS_URL,
+    PROFILE_URL,
     PROGNOSIS_URL,
+    PULSE_COMMENT_LIKE_URL,
+    PULSE_FOR_TICKER_URL,
+    PULSE_POST_LIKE_URL,
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
+    SIGN_OUT_URL,
     STOP_URL,
+    SUBSCRIPTIONS_URL,
     SYMBOL_EXTENDED_LINK,
     SYMBOL_FUNDAMENTAL_URL,
     SYMBOL_LINK,
     SYMBOL_URL,
     TICKER_LIST,
+    UNSUBSCRIBE,
     USD_RUB,
+    USER_LIST_URL,
     USER_URL
 } from "/js/constants.mjs";
 
@@ -167,7 +185,7 @@ function getAllSum() {
  * @return {object} данные для отображения на форме
  */
 function updatePopup() {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         let date = new Date();
         let time_str = {timestamp: date.toLocaleDateString() + ' ' + date.toLocaleTimeString()};
         getAllSum().then(function (sums) {
@@ -184,7 +202,7 @@ function updatePopup() {
  * @return {object} данные для отображения на форме
  */
 function getUserInfo() {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             fetch(USER_URL + session_id)
                 .then(response => {
@@ -220,7 +238,7 @@ function getUserInfo() {
  * @return {Promise<any>}
  */
 function getPortfolio(sessionId) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         Promise.all([
             fetch(PORTFOLIO_URL + sessionId, { // tcs+bcs
                 method: "POST",
@@ -243,15 +261,29 @@ function getPortfolio(sessionId) {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
-            }).then(response => response.json())
-        ])
-            .then(([tcs, iis]) => {
-                resolve({tcs: tcs, iis: iis || []})
-            })
-            .catch(error => {
-                console.log(`cant get portfolio, because ${error}`);
-                reject({tcs: [], iis: []});
-            })
+            }).then(response => response.json()),
+            fetch(FAVORITE_URL + sessionId)
+                .then(response => response.json())
+                .then(json => {
+                    console.log('list of favorite');
+                    let return_data = [];
+                    json.payload.stocks.forEach(item => {
+                        return_data.push({
+                            isin: item.symbol.isin,
+                            ticker: item.symbol.ticker,
+                            showName: item.symbol.showName,
+                            lotSize: item.symbol.lotSize,
+                        });
+                    });
+                    return return_data;
+                })
+
+        ]).then(([tcs, iis, favorite]) => {
+            resolve({tcs: tcs, iis: iis || [], favorite: favorite})
+        }).catch(error => {
+            console.log(`cant get portfolio, because ${error}`);
+            reject({tcs: [], iis: []});
+        })
     })
 }
 
@@ -266,63 +298,97 @@ function getPortfolio(sessionId) {
 async function convertPortfolio(data = [], needToConvert, currencyCourse, sessionId) {
     let return_data = [];
     for (const element of data) {
-        let securityType = (element.securityType === "Currency") ? "currencies" : element.securityType.toLowerCase() + 's';
+        let securityType = PLURAL_SECURITY_TYPE[element.securityType];
         await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
             let current_amount = element.currentAmount;
             let expected_yield = element.expectedYield || {};
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
-            if (symbol.payload.symbol.isOTC) {
-                earning_today = symbol.payload.absoluteOTC * element.currentBalance;
-                //expected_yield.value = symbol.payload.relativeOTC;
-            }
-            if (needToConvert && current_amount.currency === 'USD') {
-                earning_today = earning_today * currencyCourse.payload.last.value;
-                current_amount.value = current_amount.value * currencyCourse.payload.last.value;
-                current_amount.currency = 'RUB';
-                expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
-                expected_yield.currency = 'RUB';
-            }
-
-            return_data.push({
-                prices: symbol.payload.prices,
-                earnings: symbol.payload.earnings,
-                contentMarker: symbol.payload.contentMarker,
-                symbol: {
-                    dayLow: symbol.payload.symbol.dayLow,
-                    dayHigh: symbol.payload.symbol.dayHigh,
-                    dayOpen: symbol.payload.symbol.dayOpen,
-                    lastOTC: symbol.payload.lastOTC || '',
-                    absoluteOTC: symbol.payload.absoluteOTC || 0,
-                    relativeOTC: symbol.payload.relativeOTC || 0,
-                    consensus: symbol.payload.symbol.consensus,
-                    symbolType: symbol.payload.symbol.symbolType,
-                    isOTC: symbol.payload.symbol.isOTC,
-                    sessionOpen: symbol.payload.symbol.sessionOpen,
-                    sessionClose: symbol.payload.symbol.sessionClose,
-                    premarketStartTime: symbol.payload.symbol.premarketStartTime,
-                    premarketEndTime: symbol.payload.symbol.premarketEndTime,
-                    marketEndTime: symbol.payload.symbol.marketEndTime,
-                    marketStartTime: symbol.payload.symbol.marketStartTime,
-                    securityType: securityType,
-                    ticker: element.ticker,
-                    isin: element.isin,
-                    status: element.status,
-                    showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
-                    lotSize: element.currentBalance,
-                    expectedYieldRelative: element.expectedYieldRelative,
-                    expectedYieldPerDayRelative: element.expectedYieldPerDayRelative/100,
-                    expectedYield: expected_yield,
-                    currentPrice: element.currentPrice,
-                    currentAmount: current_amount,
-                    earningToday: earning_today,
-                    averagePositionPrice: element.averagePositionPrice || {
-                        value: 0,
-                        currency: element.currentPrice.currency
+            if (!symbol.payload.symbol) {
+                return_data.push({
+                    prices: undefined,
+                    earnings: undefined,
+                    contentMarker: undefined,
+                    symbol: {
+                        symbolType: 'Note',
+                        isOTC: false,
+                        securityType: securityType,
+                        ticker: element.ticker,
+                        isin: element.isin,
+                        status: element.status,
+                        showName: symbol.payload.showName,
+                        lotSize: element.currentBalance,
+                        currentAmount: element.currentAmount ? element.currentAmount : {
+                            value: symbol.payload.nominal * element.currentBalance,
+                            currency: symbol.payload.currency
+                        },
+                        averagePositionPrice: {
+                            value: symbol.payload.nominal,
+                            currency: symbol.payload.currency
+                        },
+                        timeToOpen: '',
                     },
-                    timeToOpen: symbol.payload.symbol.timeToOpen,
-                },
-                exchangeStatus: symbol.payload.exchangeStatus
-            });
+                    exchangeStatus: ''
+                });
+            } else {
+                if (symbol.payload.symbol.isOTC) {
+                    earning_today = symbol.payload.absoluteOTC * element.currentBalance;
+                    //expected_yield.value = symbol.payload.relativeOTC;
+                }
+                if (needToConvert && current_amount?.currency === 'USD') {
+                    earning_today = earning_today * currencyCourse.payload.last.value;
+                    current_amount.value = current_amount.value * currencyCourse.payload.last.value;
+                    current_amount.currency = 'RUB';
+                    expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
+                    expected_yield.currency = 'RUB';
+                }
+                return_data.push({
+                    prices: symbol.payload.prices,
+                    earnings: symbol.payload.earnings,
+                    contentMarker: symbol.payload.contentMarker,
+                    instrumentStatusDesc: symbol.payload.instrumentStatusDesc,
+                    symbol: {
+                        dayLow: symbol.payload.symbol.dayLow,
+                        dayHigh: symbol.payload.symbol.dayHigh,
+                        "52WLow": symbol.payload.symbol["52WLow"],
+                        "52WHigh": symbol.payload.symbol["52WHigh"],
+                        dayOpen: symbol.payload.symbol.dayOpen,
+                        lastOTC: symbol.payload.lastOTC || '',
+                        absoluteOTC: symbol.payload.absoluteOTC || 0,
+                        relativeOTC: symbol.payload.relativeOTC || 0,
+                        consensus: symbol.payload.symbol.consensus,
+                        premium_consensus: symbol.payload.symbol.premium_consensus,
+                        dividends: symbol.payload.symbol.dividends,
+                        symbolType: symbol.payload.symbol.symbolType,
+                        isOTC: symbol.payload.symbol.isOTC,
+                        sessionOpen: symbol.payload.symbol.sessionOpen,
+                        sessionClose: symbol.payload.symbol.sessionClose,
+                        premarketStartTime: symbol.payload.symbol.premarketStartTime,
+                        premarketEndTime: symbol.payload.symbol.premarketEndTime,
+                        marketEndTime: symbol.payload.symbol.marketEndTime,
+                        marketStartTime: symbol.payload.symbol.marketStartTime,
+                        securityType: securityType,
+                        ticker: element.ticker,
+                        longIsEnabled: symbol.payload.symbol.longIsEnabled,
+                        shortIsEnabled: symbol.payload.symbol.shortIsEnabled,
+                        isin: element.isin,
+                        status: element.status,
+                        showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
+                        lotSize: element.currentBalance,
+                        expectedYieldRelative: element.expectedYieldRelative,
+                        expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
+                        expectedYield: expected_yield,
+                        currentPrice: element.currentPrice,
+                        currentAmount: current_amount,
+                        earningToday: earning_today,
+                        averagePositionPrice: element.averagePositionPrice || {
+                            value: 0,
+                            currency: element.currentPrice?.currency
+                        },
+                        timeToOpen: symbol.payload.symbol.timeToOpen,
+                    },
+                    exchangeStatus: symbol.payload.exchangeStatus
+                });
+            }
         })
     }
     return return_data;
@@ -335,11 +401,11 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
  * @return {Promise<any>}
  */
 function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
-    return new Promise(function (resolve, reject) {
-        MainProperties.getSession().then(function (session_id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
             fetch(CANCEL_ORDER.replace('${orderId}', orderId).replace('${brokerAccountType}', brokerAccountType) + session_id)
                 .then(response => response.json())
-                .then(function (json) {
+                .then(json => {
                     if (json.status === 'Error') {
                         console.log('cant delete order', json);
                         reject(undefined);
@@ -348,6 +414,31 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
                     resolve(json);
                 }).catch(ex => {
                 console.log('cant delete order', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
+/**
+ * Удаляет уведомление с мобильного
+ * @param orderId
+ * @return {Promise<any>}
+ */
+function unsubscribe(orderId) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(UNSUBSCRIBE.replace('${orderId}', orderId) + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant delete subscribe', json);
+                        reject(undefined);
+                    } else
+                        console.log('success subscribe order');
+                    resolve(json);
+                }).catch(ex => {
+                console.log('cant delete subscribe', ex);
                 reject(undefined);
             })
         })
@@ -361,29 +452,19 @@ function deleteOrder(orderId, brokerAccountType = 'Tinkoff') {
  * @return {Promise<any>}
  */
 function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
-    return new Promise(function (resolve, reject) {
-        MainProperties.getSession().then(function (session_id) {
-            fetch(CANCEL_STOP + session_id, {
-                method: "POST",
-                body: JSON.stringify({
-                    orderId: orderId,
-                    brokerAccountType: brokerAccountType
-                }),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                }
-            })
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(CANCEL_STOP.replace('${orderId}', orderId).replace('${brokerAccountType}', brokerAccountType) + session_id)
                 .then(response => response.json())
-                .then(function (json) {
+                .then(json => {
                     if (json.status === 'Error') {
-                        console.log('cant delete order', json);
+                        console.log('cant delete stop', json);
                         reject(undefined);
                     } else
-                        console.log('success deleting order');
+                        console.log('success deleting stop');
                     resolve(json);
                 }).catch(ex => {
-                console.log('cant delete order', ex);
+                console.log('cant delete stop', ex);
                 reject(undefined);
             })
         })
@@ -396,8 +477,8 @@ function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
  * @return {Promise<any>}
  */
 function exportPortfolio(brokerAccountType = 'Tinkoff') {
-    return new Promise(function (resolve, reject) {
-        MainProperties.getSession().then(function (session_id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
             fetch(OPERATIONS_URL + session_id, {
                 method: "POST",
                 body: JSON.stringify({
@@ -431,7 +512,7 @@ function exportPortfolio(brokerAccountType = 'Tinkoff') {
  * @return {object} данные для отображения на форме
  */
 function getListStock(name) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log('try to get list');
         MainProperties.getSession().then(session_id => {
             if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
@@ -470,7 +551,7 @@ function getListStock(name) {
                     })
                 } else
                     findTicker(name, session_id)
-                        .then(function (json) {
+                        .then(json => {
                             console.log('found list');
                             let return_data = [];
                             json.payload.values.forEach(item => {
@@ -480,6 +561,7 @@ function getListStock(name) {
                                         ticker: item.symbol.ticker,
                                         showName: item.symbol.showName,
                                         lotSize: item.symbol.lotSize,
+                                        isOTC: item.symbol.isOTC
                                     },
                                     exchangeStatus: item.exchangeStatus
                                 });
@@ -499,6 +581,7 @@ function getListStock(name) {
                             return_data.push({
                                 prices: item.prices,
                                 symbol: {
+                                    isin: item.symbol.isin,
                                     ticker: item.symbol.ticker,
                                     showName: item.symbol.showName,
                                     lotSize: item.symbol.lotSize,
@@ -506,6 +589,7 @@ function getListStock(name) {
                                 exchangeStatus: item.exchangeStatus
                             });
                         });
+                        portfolio.favorite = return_data;
                         resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                     }).catch(function (ex) {
                     console.log('parsing failed', ex);
@@ -516,13 +600,20 @@ function getListStock(name) {
                     getPriceInfo(USD_RUB, undefined, session_id).then(currency => {
                         MainProperties.getConvertToRUB().then(needConvert => {
                             console.log('get session option');
-                            getPortfolio(session_id).then(portfolio => {
+                            getPortfolio(session_id).then(allPortfolio => {
+
                                 console.log('list of portfolio');
                                 Promise.all([
-                                        convertPortfolio(portfolio.tcs.payload.data, needConvert, currency, session_id),
-                                        convertPortfolio(portfolio.iis.payload.data, needConvert, currency, session_id)
+                                        convertPortfolio(allPortfolio.tcs.payload.data, needConvert, currency, session_id),
+                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currency, session_id),
+
                                     ]
                                 ).then(([tcs_data, iis_data]) => {
+                                    portfolio.favorite = allPortfolio.favorite;
+                                    portfolio.items = {
+                                        stocks_tcs: tcs_data,
+                                        stocks_iis: iis_data
+                                    };
                                     resolve(Object.assign({}, {result: "listStock"}, {stocks_tcs: tcs_data}, {stocks_iis: iis_data}));
                                 });
                             }).catch(function (ex) {
@@ -538,13 +629,13 @@ function getListStock(name) {
 }
 
 function findTicker(search, session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
             // POST
             fetch(SEARCH_URL + session_id, {
                 method: "POST",
                 body: JSON.stringify({
                     start: 0,
-                    end: 100,
+                    end: 10,
                     sortType: "ByName",
                     orderType: "Asc",
                     country: "All",
@@ -572,7 +663,7 @@ function findTicker(search, session_id) {
 }
 
 function getAvailableCash(brokerName) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log('try to get available cash');
         MainProperties.getSession().then(session_id => {
                 // POST
@@ -602,8 +693,261 @@ function getAvailableCash(brokerName) {
     })
 }
 
+function getSubscriptions(session_id) {
+    return new Promise((resolve, reject) => {
+        console.log('Get Subscriptions');
+        fetch(SUBSCRIPTIONS_URL + session_id)
+            .then(response => response.json())
+            .then(json => {
+                if (json.status === 'Error') {
+                    console.log('cant get Subscriptions', json);
+                    reject([]);
+                } else
+                    console.log('success get Subscriptions');
+                resolve(json.payload.subscriptions);
+            }).catch(ex => {
+            console.log('cant get Subscriptions', ex);
+            reject(undefined);
+        })
+    })
+}
+
+function getComments(id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Get Comments');
+            fetch(COMMENTS_URL.replace('${commentId}', id) + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get Comments', json);
+                        //resolve([]);
+                    } else
+                        console.log('success get Comments');
+                    resolve(json.payload);
+                }).catch(ex => {
+                console.log('cant get Comments', ex);
+                resolve([]);
+            })
+        })
+    })
+}
+
+function getFavorite() {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(FAVORITE_URL + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    console.log('list of Favourite');
+                    let return_data = [];
+                    json.payload.stocks.forEach(item => {
+                        return_data.push({
+                            symbol: {
+                                showName: item.symbol.showName,
+                                isin: item.symbol.isin,
+                                ticker: item.symbol.ticker,
+                                symbolType: item.symbol.symbolType
+                            }
+                        });
+                    });
+                    MainProperties.getFavoriteOption().then(isFavoriteChecked => {
+                        resolve(isFavoriteChecked ? return_data : []);
+                    })
+                }).catch(function (ex) {
+                console.log('parsing failed', ex);
+                reject([]);
+            })
+        })
+    });
+}
+
+function getNews(nav_id) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Get News');
+            let url = '';
+            let type = '';
+            switch (true) {
+                case /users/.test(nav_id):
+                    url = USER_LIST_URL + session_id;
+                    type = 'user';
+                    break;
+                case /profile/.test(nav_id):
+                    url = PROFILE_ACTIVITY_URL.replace('${navId}', nav_id.slice(0, nav_id.search('_profile'))) + session_id;
+                    type = 'profile';
+                    break;
+                case /instrument/.test(nav_id):
+                    type = 'instrument';
+                    url = PROFILE_INSTRUMENTS_URL.replace('${navId}', nav_id.slice(0, nav_id.search('_instrument'))) + session_id;
+                    break;
+                case /^[0-9]+$/.test(nav_id) || !nav_id:
+                    url = NEWS_URL.replace('${navId}', nav_id) + session_id;
+                    break;
+                case /^[A-Z0-9]+$/.test(nav_id):
+                    type = 'ticker';
+                    url = PULSE_FOR_TICKER_URL.replace('${navId}', nav_id) + session_id;
+                    break;
+            }
+            fetch(url)
+                .then(response => response.json())
+                .then(json => {
+                    const getFilteredComments = (news) => {
+                        return news.map(async item => {
+                            item['type'] = item['type'] || type;
+                            if (item.comments_count > 0 || item.commentsCount > 0)
+                                await getComments(item.id || item.item.id).then(comments => {
+                                    return item['comments'] = comments; // модифицируем исходный массив, добавляем комменты
+                                });
+                            else return item;
+                        })
+                    };
+                    Promise.all(getFilteredComments(json.payload.items || [])).then(() => {
+                        if (json.status === 'Error') {
+                            console.log('cant get News', json);
+                            resolve({});
+                        } else
+                            console.log('success get News');
+                        resolve(json.payload);
+                    });
+                }).catch(ex => {
+                console.log('cant get News', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
+function postComment(postId, text) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Post comment');
+            // POST
+            fetch(COMMENTS_URL.replace('${commentId}', postId) + session_id, {
+                method: "POST",
+                body: JSON.stringify({text: text}),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => response.json())
+                .then(res => {
+
+                })
+        });
+    })
+}
+
+function likeComment(commentId, like) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Like comment');
+            if (like)
+                // POST
+                fetch(PULSE_COMMENT_LIKE_URL.replace('${commentId}', commentId) + session_id, {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Comment is liked');
+                    });
+            else {
+                // DELETE
+                fetch(PULSE_COMMENT_LIKE_URL.replace('${commentId}', commentId) + session_id, {
+                    method: "DELETE",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Comment is disliked');
+                    });
+            }
+        });
+    })
+}
+
+function likePost(postId, like) {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Like post');
+            if (like)
+                // POST
+                fetch(PULSE_POST_LIKE_URL.replace('${postId}', postId) + session_id, {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Post is liked');
+                    });
+            else {
+                // DELETE
+                fetch(PULSE_POST_LIKE_URL.replace('${postId}', postId) + session_id, {
+                    method: "DELETE",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        console.log('Post is disliked');
+                    });
+            }
+        });
+    })
+}
+
+function getProfile(id = '') {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('Get profile');
+            fetch(PROFILE_URL.replace('${profileId}', id) + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get profile', json);
+                        resolve([]);
+                    } else
+                        console.log('success get profile');
+                    resolve(json.payload);
+                }).catch(ex => {
+                console.log('cant get profile', ex);
+                resolve([]);
+            })
+        })
+    })
+}
+
+function logout() {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            console.log('logout');
+            fetch(SIGN_OUT_URL + session_id)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant logout', json);
+                        resolve(0);
+                    } else
+                        console.log('success logout');
+                    resolve(1);
+                }).catch(ex => {
+                console.log('cant logout', ex);
+                resolve(0);
+            })
+        })
+    })
+}
+
 function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         console.log(`Get price for ${tickerName}`);
         if (tickerName) {
             // POST
@@ -616,21 +960,17 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
                 }
             }).then(response => response.json())
                 .then(res => {
-                    if (res.status.toLocaleUpperCase() === 'OK') {
-                        fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
-                            .then(extendInfo => {
-                                res.payload.isFavorite = extendInfo.payload.isFavorite;
-                                res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
-                                res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
-                                resolve(res);
-                            }).catch(e => {
-                            console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
-                            reject(res)
-                        });
-                    } else {
-                        console.log(`Сервис цен для ${tickerName} недоступен`);
+                    fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                        .then(extendInfo => {
+                            res.payload.isFavorite = extendInfo.payload.isFavorite;
+                            //res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
+                            //res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
+                            res.payload.subscriptions = extendInfo.payload.priceAlert;
+                            resolve(res);
+                        }).catch(e => {
+                        console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
                         reject(res)
-                    }
+                    });
                 }).catch(e => {
                 console.log(e);
                 reject(undefined);
@@ -641,20 +981,20 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
 }
 
 function getSymbolInfo(tickerName, securityType, sessionId) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         // POST
         console.log('try to get symbolInfo for', tickerName);
         fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
             method: "POST",
-            body: JSON.stringify({ticker: tickerName}),
+            body: securityType.includes('notes') ? JSON.stringify({isin: tickerName}) : JSON.stringify({ticker: tickerName}),
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             }
         }).then(response => response.json())
-            .then(res => {
-                if (res.status.toLocaleUpperCase() === 'OK') {
-                    fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
+            .then(async res => {
+                if (res.status.toLocaleUpperCase() === 'OK' && !securityType.includes('notes')) {
+                    const response = await fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
                         method: "POST",
                         body: JSON.stringify({
                             period: 'year',
@@ -664,51 +1004,31 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         }
-                    }).then(response => response.json())
-                        .then(json => {
-                            res.payload.symbol.dayHigh = json.payload.dayHigh;
-                            res.payload.symbol.dayLow = json.payload.dayLow;
-                            res.payload.symbol.dayOpen = json.payload.dayOpen;
-
-                            if (res.payload.contentMarker.prognosis) {
-                                console.log('try to get prognosis for', tickerName);
-                                fetch(PROGNOSIS_URL.replace('${ticker}', tickerName) + sessionId).then(response => response.json())
-                                    .then(prognosis => {
-                                        res.payload.symbol.consensus = prognosis.payload.consensus;
-                                        resolve(res);
-                                    })
-                                    .catch(e => {
-                                        console.log('Сервис прогнозов недоступен', e);
-                                        resolve(res);
-                                    });
-                            } else {
-                                MainProperties.getAVOption().then(option => {
-                                    // если OTC и установлена настройка использвать alphavantage и начиная за 30 минут до открытия биржи
-                                    if (option.AVOption && res.payload.symbol.isOTC && res.payload.symbol.timeToOpen - (60000 * 30) < 0)
-                                        fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey).then(response => response.json())
-                                            .then(otc => {
-                                                if (otc.Note) {
-                                                    console.log('Достигнуто ограничение alphavantage');
-                                                } else {
-                                                    res.payload.lastOTC = parseFloat(otc["Global Quote"]["05. price"]);
-                                                    res.payload.absoluteOTC = parseFloat(otc["Global Quote"]["09. change"]);
-                                                    res.payload.relativeOTC = parseFloat(otc["Global Quote"]["10. change percent"]) / 100;
-                                                }
-                                                resolve(res);
-                                            })
-                                            .catch(e => {
-                                                console.log('Сервис alphavantage недоступен', e);
-                                                resolve(res);
-                                            });
-                                    else resolve(res);
-                                })
-                            }
-                        });
-
-                } else {
-                    console.log(`Сервис информации о бумаге ${tickerName} недоступен`);
-                    reject(res)
+                    });
+                    let json = await response.json();
+                    res.payload.symbol.dayHigh = json.payload.dayHigh;
+                    res.payload.symbol.dayLow = json.payload.dayLow;
+                    res.payload.symbol.dayOpen = json.payload.dayOpen;
+                    res.payload.symbol["52WLow"] = json.payload["52WLow"];
+                    res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
+                    res.payload.symbol.dividends = [];
                 }
+                const option = await MainProperties.getAVOption();
+                if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {
+                    const response = await fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey);
+                    let json = await response.json();
+                    if (json.Note) {
+                        console.log('Достигнуто ограничение alphavantage');
+                    } else {
+                        res.payload.lastOTC = parseFloat(json["Global Quote"]["05. price"]);
+                        res.payload.absoluteOTC = parseFloat(json["Global Quote"]["09. change"]);
+                        res.payload.relativeOTC = parseFloat(json["Global Quote"]["10. change percent"]) / 100;
+                        res.payload['symbol']['dayHigh'] = parseFloat(json["Global Quote"]["03. high"]);
+                        res.payload['symbol']['dayLow'] = parseFloat(json["Global Quote"]["04. low"]);
+                        res.payload['symbol']['dayOpen'] = parseFloat(json["Global Quote"]["02. open"]);
+                    }
+                }
+                resolve(res)
             }).catch(e => {
             console.log('cant get symbolInfo, because', e);
             reject(e);
@@ -717,7 +1037,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
 }
 
 function checkTicker(item) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             getPriceInfo(item.ticker, undefined, session_id).then(res => {
                 let last_price = res.payload.last.value;
@@ -751,24 +1071,26 @@ function deleteFromAlert(ticker, sell_price, buy_price) {
 }
 
 function getOrders(session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         fetch(ORDERS_URL + session_id)
             .then(response => response.json())
-            .then(function (json) {
+            .then(json => {
                 let return_data = [];
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: (element.securityType || 'stock').toLowerCase() + 's',
+                        securityType: element.securityType || 'Stock',
                         showName: element.showName,
                         quantity: element.quantity,
+                        operationType: element.operationType,
                         buy_price: element.operationType === 'Buy' ? element.price.value : '',
                         sell_price: element.operationType === 'Sell' ? element.price.value : '',
                         best_before: undefined,
                         active: true,
                         timeToExpire: element.timeToExpire,
                         orderId: element.orderId,
-                        status: element.status
+                        status: element.status,
+                        quantityExecuted: element.quantityExecuted,
                     });
                 });
                 resolve(return_data)
@@ -781,17 +1103,18 @@ function getOrders(session_id) {
 }
 
 function getStop(session_id) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         fetch(STOP_URL + session_id)
             .then(response => response.json())
-            .then(function (json) {
+            .then(json => {
                 let return_data = [];
                 json.payload.orders.forEach(element => {
                     return_data.push({
                         ticker: element.ticker,
-                        securityType: element.securityType.toLowerCase() + 's',
+                        securityType: element.securityType,
                         showName: element.showName,
                         quantity: element.quantity,
+                        operationType: element.operationType,
                         buy_price: element.operationType === 'Buy' ? element.stopPrice : '',
                         sell_price: element.operationType === 'Sell' ? element.stopPrice : '',
                         best_before: undefined,
@@ -810,53 +1133,139 @@ function getStop(session_id) {
     })
 }
 
+function getLiquidList(brokerAccountType = 'Tinkoff') {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+            fetch(LIQUID_URL + session_id, {
+                method: "POST",
+                body: JSON.stringify({
+                    brokerAccountType: brokerAccountType
+                }),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(json => {
+                    if (json.status === 'Error') {
+                        console.log('cant get liquid', json);
+                        reject(undefined);
+                    } else
+                        console.log('success get liquid list');
+                    resolve(json.payload);
+                }).catch(ex => {
+                console.log('cant get liquid', ex);
+                reject(undefined);
+            })
+        })
+    })
+}
+
+function getPrognosisList() {
+    return new Promise((resolve, reject) => {
+            MainProperties.getSession().then(session_id => {
+                getPortfolio(session_id).then(portfolio => {
+                        let portfolioList = [].concat(portfolio.tcs.payload.data, portfolio.iis.payload.data, portfolio.favorite);
+                        portfolioList.forEach(async item => {
+                            if (item?.ticker) {
+                                const response = await fetch(PROGNOSIS_URL.replace('${ticker}', item.ticker) + session_id);
+                                let json = await response.json();
+                                item['consensus'] = json.payload.consensus;
+                            }
+                            if (item?.isin) {
+                                const response = await fetch(CONSENSUS_URL.replace('${isin}', item.isin) + session_id)
+                                let json = await response.json();
+                                item['premium_consensus'] = json.payload;
+                            }
+                            if (item?.ticker) {
+                                const response = await fetch(DIVIDENDS_URL.replace('${ticker}', item.ticker) + session_id, {
+                                    method: "POST",
+                                    body: JSON.stringify({
+                                        ticker: item.ticker
+                                    }),
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                    }
+                                });
+                                let json = await response.json();
+                                item['dividends'] = json.payload.dividends;
+                            }
+                        })
+                        resolve(portfolioList);
+                    }
+                );
+            }).catch(function (ex) {
+                console.log('parsing failed', ex);
+                reject(undefined);
+            });
+        }
+    )
+}
+
 function updateAlertPrices() {
     return new Promise(function (resolve) {
         MainProperties.getSession().then(session_id => {
-            chrome.storage.sync.get([TICKER_LIST], data => {
-                Promise.all([
-                    getOrders(session_id).then(orders => {
-                        return (orders)
-                    }),
-                    getStop(session_id).then(stops => {
-                        return (stops)
-                    })
-                ]).then(async ([orders, stops]) => {
-                    let alert_data = [].concat(orders, stops);
-                    let i = 0;
-                    for (const item of alert_data.concat(data[TICKER_LIST] || [])) {
-                        //alert_data.forEach(function (item, i, alertList) {
-                        await getPriceInfo(item.ticker, undefined, session_id).then(res => {
-
-                            alert_data[i] = {
-                                ticker: item.ticker,
-                                securityType: (item.securityType || 'stocks').toLowerCase(),
-                                showName: item.showName,
-                                buy_price: item.buy_price,
-                                sell_price: item.sell_price,
-                                best_before: item.best_before,
-                                active: item.active,
-                                earnings: res.payload.earnings,
-                                exchangeStatus: res.payload.exchangeStatus,
-                                currency: !res.payload.last ? 'USD' : res.payload.last.currency,
-                                online_average_price: !res.payload.last ? 0 : res.payload.last.value,
-                                online_buy_price: res.payload.buy ? res.payload.buy.value : '',
-                                online_sell_price: res.payload.sell ? res.payload.sell.value : '',
-                                orderId: item.orderId,
-                                timeToExpire: item.timeToExpire,
-                                status: item.status,
-                                isFavorite: res.payload.isFavorite,
-                                subscriptId: res.payload.subscriptId,
-                                subscriptPrice: res.payload.subscriptPrice,
-                                quantity: item.quantity,
-                            };
-                            i++;
-                        })
-                    }
-                    resolve(Object.assign({}, {result: "listAlerts"}, {stocks: alert_data}));
+            Promise.all([
+                getFavorite().then(favorite_list => {
+                    return (favorite_list.map(item => {
+                        item.symbol['favoriteList'] = true;
+                        return item.symbol
+                    }))
+                }),
+                getOrders(session_id).then(orders => {
+                    return (orders)
+                }),
+                getStop(session_id).then(stops => {
+                    return (stops)
+                }),
+                getSubscriptions(session_id).then(subscriptions => {
+                    return (subscriptions)
+                }),
+            ]).then(async ([favorite_list, orders, stops, subscriptions]) => {
+                portfolio.orders = orders.map(item => {
+                    return {
+                        symbol: {
+                            ticker: item.ticker,
+                            symbolType: (item.symbolType || item.securityType || 'Stock')
+                        }
+                    };
                 });
-
-            })
+                let alert_data = [].concat(await MainProperties.getFavoriteListOption() ? favorite_list : [], orders, stops, subscriptions);
+                let i = 0;
+                for (const item of alert_data) {
+                    //alert_data.forEach(function (item, i, alertList) {
+                    await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
+                        alert_data[i] = {
+                            ticker: item.ticker,
+                            securityType: PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')],
+                            showName: item.showName,
+                            buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
+                            sell_price: item.sell_price,
+                            best_before: item.best_before,
+                            active: item.active,
+                            earnings: res.payload.earnings,
+                            exchangeStatus: res.payload.exchangeStatus,
+                            currency: !res.payload.last ? 'USD' : res.payload.last.currency,
+                            online_average_price: !res.payload.last ? 0 : res.payload.last.value,
+                            online_buy_price: res.payload.buy ? res.payload.buy.value : '',
+                            online_sell_price: res.payload.sell ? res.payload.sell.value : '',
+                            orderId: item.orderId,
+                            operationType: item.operationType,
+                            timeToExpire: item.timeToExpire,
+                            status: item.status,
+                            isFavorite: res.payload.isFavorite,
+                            subscriptPrice: item.subscriptions,
+                            quantity: item.quantity,
+                            quantityExecuted: item.quantityExecuted,
+                            favoriteList: item.favoriteList,
+                        };
+                        i++;
+                    })
+                }
+                resolve(Object.assign({}, {result: "listAlerts"}, {stocks: alert_data}));
+            });
         })
     })
 }
@@ -899,7 +1308,7 @@ function checkPortfolioAlerts() {
 }
 
 function getOldRelative(ticker) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         chrome.storage.local.get([ALERT_TICKER_LIST], data => {
             let alert_data = data[ALERT_TICKER_LIST] || {};
             console.log(`get relative for ${ticker}=${alert_data[ticker]}`);
@@ -1021,6 +1430,96 @@ function createMobileAlert(params) {
     })
 }
 
+function getTreeMap(country = 'All') {
+    return new Promise((resolve, reject) => {
+        MainProperties.getSession().then(session_id => {
+                // POST
+                fetch(SEARCH_URL + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        start: 0,
+                        end: 500,
+                        sortType: "ByPrice",
+                        orderType: "Asc",
+                        country: country,
+                        popular: true,
+                        //filterOTC: true,
+                        //filterRisky: true,
+
+                    }),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(listOfFound => {
+                        if (listOfFound.status.toLocaleUpperCase() === 'OK') {
+                            // уникальный массив категорий (секторов)
+                            let category = Array.from(new Set(listOfFound.payload.values.map(({symbol}) => symbol.sector)));
+                            let min = Math.min.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100
+                                , max = Math.max.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100;
+                            // список тикеров для TreeMap
+                            let list = listOfFound.payload.values.reduce((result, item, index) => {
+                                if (item.earnings) {
+                                    let fill;
+                                    item.earnings.relative *= 100;
+                                    //item.earnings.relative = Math.random()*100;
+                                    if (item.earnings.relative < -30) {
+                                        fill = '#F5383D';
+                                    }
+                                    if (item.earnings.relative >= -30 && item.earnings.relative <= -1) {
+                                        fill = '#C64045'
+                                    }
+                                    if (item.earnings.relative > -1 && item.earnings.relative < 1) {
+                                        fill = '#414553'
+                                    }
+                                    if (item.earnings.relative >= 1 && item.earnings.relative <= 30) {
+                                        fill = '#367D51'
+                                    }
+                                    if (item.earnings.relative > 30) {
+                                        fill = '#33B15A'
+                                    }
+
+                                    let obj = {
+                                        parent: item.symbol.sector,
+                                        id: item.symbol.ticker,
+                                        product: item.symbol.ticker,
+                                        showName: item.symbol.showName,
+                                        relative: item.earnings.relative.toFixed(2), // здесь истинное значение для вывода на экран
+                                        value: Math.abs(item.earnings.relative), //treemap не учитывает отриц значения, приходится перобразовыввать
+                                        fill: fill,
+                                    };
+                                    result.push(obj);
+                                }
+                                return result;
+                            }, []);
+                            // склееиваем все списки
+                            resolve([{ // родительский пустой узел
+                                parent: null,
+                                id: 0,
+                                product: ''
+                            }].concat(category.reduce((result, item, index) => {
+                                let obj = { // категории
+                                    parent: 0,
+                                    id: item,
+                                    product: item,
+                                };
+                                result.push(obj);
+                                return result;
+                            }, [])).concat(list));// список тикеров
+                        } else {
+                            console.log('Сервис поиска недоступен');
+                            reject(undefined)
+                        }
+                    }).catch(e => {
+                    console.log(e);
+                    reject(undefined);
+                })
+            }
+        )
+    })
+}
+
 // основной слушатель
 chrome.runtime.onConnect.addListener(function (port) {
     console.log("Connected .....");
@@ -1075,7 +1574,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
                 break;
             case 'getSession':
-                MainProperties.getSession().then(function (session_id) {
+                MainProperties.getSession().then(session_id => {
                     console.log("send message session .....");
                     port.postMessage(Object.assign({}, {result: "session"}, {sessionId: session_id}));
                 }).catch(e => {
@@ -1120,7 +1619,7 @@ chrome.runtime.onConnect.addListener(function (port) {
             case 'getVersionAPI':
                 fetch(CHECK_VERSION_URL)
                     .then(response => response.json())
-                    .then(async function (json) {
+                    .then(async json => {
                         port.postMessage(Object.assign({}, {result: "versionAPI"}, {version: json}));
                     });
                 break;
@@ -1142,6 +1641,20 @@ chrome.runtime.onConnect.addListener(function (port) {
                 cancelStop(msg.params)
                     .then(result => {
                             console.log('try to delete order', result);
+                            updateAlertPrices().then(function (alert_list) {
+                                console.log("send message tickerInfo .....");
+                                port.postMessage(alert_list);
+                            })
+                        }
+                    )
+                    .catch(e => {
+                        console.log(`cant send delete order, because ${e}`)
+                    });
+                break;
+            case 'unsubscribe':
+                unsubscribe(msg.params)
+                    .then(result => {
+                            console.log('try to unsubscribe', result);
                             updateAlertPrices().then(function (alert_list) {
                                 console.log("send message tickerInfo .....");
                                 port.postMessage(alert_list);
@@ -1180,6 +1693,93 @@ chrome.runtime.onConnect.addListener(function (port) {
                         .catch(e => {
                             console.log(`cant send data for export, because ${e}`)
                         });
+                break;
+            case 'getLiquid':
+                portfolio.getLiquid().then(list => {
+                    port.postMessage(Object.assign({},
+                        {result: "listLiquid"},
+                        {list: list}));
+                    console.log("send liquid list .....");
+                });
+                break;
+            case 'getPrognosis':
+                portfolio.getPrognosis().then(list => {
+                    port.postMessage(Object.assign({},
+                        {result: "listPrognosis"},
+                        {list: list}));
+                    console.log("send prognosis list .....");
+                });
+                break;
+            case 'getNews':
+                getNews(msg.params.nav_id).then(news => {
+                    news['nav_id'] = msg.params.nav_id
+                    port.postMessage(Object.assign({},
+                        {result: "news"},
+                        {news: news}));
+                    console.log("send news list .....");
+                });
+                break;
+            case 'getPulse':
+                getNews(msg.params.nav_id).then(news => {
+                    (async () => {
+                        let favorite = [];
+                        if (await MainProperties.getFavoriteOption()) favorite = await getFavorite();
+                        // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
+                        // пульс доступен только для акций, поэтому фильтруем
+                        news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
+                            return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
+                        }).reduce((prev, curr) => {
+                            return [...prev, ...[curr.symbol.ticker]];
+                        }, []))];
+                        news['nav_id'] = msg.params.nav_id;
+                        //news['tickers_list'] = tickers_list;
+                        getProfile().then(profile => {
+                            news['profile'] = profile;
+                            port.postMessage(Object.assign({},
+                                {result: "pulse"},
+                                {news: news}));
+                            console.log("send puls list .....");
+                        });
+                    })();
+
+
+                });
+                break;
+            case 'getTreemap':
+                getTreeMap(msg.params).then(res => {
+                    port.postMessage(Object.assign({},
+                        {result: "treemap"},
+                        {list: res}));
+                    console.log("send treemap .....");
+                });
+                break;
+            case 'postComment':
+                postComment(msg.params.postId, msg.params.text).then(res => {
+                    console.log("post comment .....");
+                });
+                break;
+            case 'setLikeComment':
+                likeComment(msg.params.commentId, msg.params.like).then(res => {
+                    console.log("like comment .....");
+                });
+                break;
+            case 'setLikePost':
+                likePost(msg.params.commentId, msg.params.like).then(res => {
+                    console.log("like post .....");
+                });
+                break;
+            case 'getProfile':
+                getProfile(msg.params.profileId).then(res => {
+                    port.postMessage(Object.assign({},
+                        {result: "profile"},
+                        {profile: res}));
+                    console.log("send profile .....");
+                });
+                break;
+            case 'logout':
+                logout().then(res => {
+                    console.log("logout .....");
+                });
                 break;
             default:
                 port.postMessage('unknown request');
@@ -1227,7 +1827,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
 });
 
 async function getRate(fromTo) {
-    await MainProperties.getSession().then(async function (session_id) {
+    await MainProperties.getSession().then(async session_id => {
         await getPriceInfo(fromTo, session_id).then(ticker => {
             return ticker.payload.last.value;
         })
@@ -1366,6 +1966,34 @@ export class MainProperties {
                 })
         })
     }
+
+    static async getFavoriteOption() {
+        if (!(this._favoriteOption === undefined)) {
+            //console.log('get cached sessionId');
+            return this._favoriteOption
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_FAVORITE], result => {
+                this._favoriteOption = result[OPTION_FAVORITE];
+                resolve(result[OPTION_FAVORITE]);
+            })
+        );
+
+    };
+
+    static async getFavoriteListOption() {
+        if (!(this._favoriteListOption === undefined)) {
+            //console.log('get cached sessionId');
+            return this._favoriteListOption
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_FAVORITE_LIST], result => {
+                this._favoriteListOption = result[OPTION_FAVORITE_LIST];
+                resolve(result[OPTION_FAVORITE_LIST]);
+            })
+        );
+
+    };
 }
 
 // вызывается при изменении storage
@@ -1381,6 +2009,67 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             if (key === OPTION_ALPHAVANTAGE) MainProperties._AVOption = storageChange.newValue;
             if (key === OPTION_ALPHAVANTAGE_KEY) MainProperties._AVKey = storageChange.newValue;
             if (key === OPTION_SESSION) MainProperties._sessionOption = storageChange.newValue;
+            if (key === OPTION_FAVORITE) MainProperties._favoriteOption = storageChange.newValue;
+            if (key === OPTION_FAVORITE_LIST) MainProperties._favoriteListOption = storageChange.newValue;
         }
     }
 });
+
+const portfolio = class {
+    items;
+    orders;
+    favorite;
+    holidays = new Set();
+
+    set items(items) {
+        this.items = items;
+    };
+
+    get items() {
+        return this.items;
+    };
+
+    set orders(orders) {
+        this.orders = orders;
+    };
+
+    get orders() {
+        return this.orders;
+    };
+
+    set favorite(favorite) {
+        this.favorite = favorite;
+    };
+
+    get favorite() {
+        return this.favorite;
+    };
+
+    set holidays(holidays) {
+        this.holidays.add(holidays);
+    };
+
+    get holidays() {
+        return this.holidays;
+    };
+
+    static async getLiquid() {
+        if (!(this._liquidList === undefined)) {
+            return this._liquidList
+        }
+        return await getLiquidList().then(list => {
+            this._liquidList = list;
+            return list;
+        })
+    }
+
+    static async getPrognosis() {
+        if (!(this._prognosisList === undefined)) {
+            return this._prognosisList
+        }
+        return await getPrognosisList().then(list => {
+            this._prognosisList = list;
+            return list;
+        })
+    }
+};

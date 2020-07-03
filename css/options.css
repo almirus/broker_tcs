@@ -1,13 +1,8 @@
-@font-face {
-    font-family: NotomojiColor;
-    font-weight: 400;
-    src: url(fonts/NotoColorEmoji.ttf) format("truetype");
-}
-
-@font-face {
-    font-family: Notomoji;
-    font-weight: 400;
-    src: url(fonts/NotoEmoji-Regular.ttf) format("truetype");
+#treemap_container {
+    width: 100%;
+    height: 800px;
+    margin: 0;
+    padding: 0;
 }
 
 #container input {
@@ -29,7 +24,11 @@
 }
 
 tr.process td{
-    background-color: #d4d4d4;
+     background-color: #d4d4d4;
+}
+
+tr.short td{
+    background-color: rgba(0, 138, 255, 0.15);
 }
 .tickerPrice {
     width: 100px;
@@ -51,6 +50,14 @@ tr.process td{
     color: red !important;
 }
 
+.onlineBuyPartial {
+    background-color: #009900;
+}
+
+.onlineSellPartial {
+    background-color: #c50000;
+}
+
 div.fieldsetRow {
     display: flex;
 }
@@ -66,6 +73,10 @@ fieldset legend {
 }
 
 .priceTable {
+    width: 100%;
+}
+
+.alertPriceTable {
     width: 100%;
 }
 
@@ -160,8 +171,15 @@ p.info {
 .symbolStatus {
     margin-bottom: -0.35em;
     padding-right: 2px;
+    vertical-align: middle;
 }
-
+.statusProcess{
+    color: #756f7e;
+}
+.statusProcess:after{
+    content: '⏳';
+    font-size: 6pt;
+}
 .maxWidth {
     width: 100px;
     max-width: 100px;
@@ -211,6 +229,11 @@ input[type="datetime-local"] {
     font-size: 10pt;
     cursor: default;
 }
+
+.disabled {
+    opacity: .3;
+}
+
 .lastOTC{
     color: cornflowerblue;
 }
@@ -227,4 +250,287 @@ input[type="datetime-local"] {
     cursor: pointer;
     color: green;
     border-bottom: 1px dotted #000;
+}
+.subscribePrice {
+    margin: 5px;
+    padding-left: 5px;
+    padding-right: 10px;
+    color: white;
+    background-color: #42ba08;
+    border-radius: 15%;
+    display: inline-block;
+}
+.subscribePrice:active {
+    background-color: red;
+}
+.close {
+    position: absolute;
+    border-radius: 50%;
+    background-color: #f40024;
+    padding: 0 8px;
+    cursor: pointer;
+    color: white;
+    margin-top: 5px;
+    margin-left: -12px;
+    height: 16px;
+}
+.close:before, .close:after {
+    position: absolute;
+    content: ' ';
+    height: 10px;
+    margin-top: 3px;
+    margin-left: -1px;
+    width: 2px;
+    background-color: white;
+}
+.close:before {
+    transform: rotate(45deg);
+}
+.close:after {
+    transform: rotate(-45deg);
+}
+.close:hover {
+    opacity: 1;
+}
+#news_table{
+
+}
+#news_table .nav{
+    margin-top: 20px;
+}
+ul.navigation {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+.newsNav, .pulseNav{
+    background-color: #e6dbf6;
+    padding: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    border-radius: 12px;
+    display: inline;
+    float: left;
+}
+.current{
+    background-color: #938aa0;
+}
+.newsBody{
+    display: none;
+}
+.newsBody div,img{
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+}
+
+.newsAnnounce {
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+.bordered{
+    border-bottom: solid 1px black;
+}
+.vedomosti{
+    background-color: #fff6f1;
+}
+h2.header{
+    padding-left: 10px;
+    width: 98%;
+}
+h2.black{
+    color: black;
+    text-shadow: 2px 2px 5px #e6dbf6;
+}
+h2.white{
+    color: aliceblue;
+    text-shadow: 2px 2px 5px #756f7e;
+}
+.newsAnnounce .date{
+    padding: 10px;
+}
+.newsAnnounce .announce{
+    padding-left: 10px;
+}
+.newsAnnounce .black{
+    color: black;
+    text-shadow: 1px 1px 1px #d8d8d8;
+}
+.newsAnnounce .white{
+     color: white;
+     text-shadow: 1px 1px 1px #000000;
+}
+.forecast{
+    cursor: pointer;
+}
+.forecast a.width100, .pulse a.width100{
+    width: 100%;
+    text-align: left;
+}
+.forecast h2.header{
+    max-width: 80%;
+    display:inline-block;
+}
+.forecast .recommendation{
+    color: white;
+    padding: 10px;
+    text-shadow: 1px 1px 1px #000000;
+    font-size: 12pt;
+}
+.forecast .logo{
+    border-radius: 50%;
+    float: right;
+    height: 60px;
+    width: 60px;
+    margin-right: 15px;
+    margin-top: 20px;
+
+}
+.newsAnnounce .logo{
+    border-radius: 50%;
+    float: right;
+    height: 30px;
+    width: 30px;
+    margin-left: -10px;
+}
+.translate{
+    float: right;
+    padding: 10px;
+    cursor: pointer;
+    margin-top: -35px;
+}
+.logoContainer{
+    float: right;
+    margin-right: 15px;
+    height: 100%;
+    padding-left: 10px;
+}
+.dayNumber{
+    background: linear-gradient(to top left, #3399ff 0%, #ff66ff 100%);
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: white;
+    cursor: pointer;
+}
+.pulse{
+    text-align: left;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    color: black;
+    text-shadow: 1px 0 1px #d8d8d8;
+    border-bottom: solid black 1px;
+    cursor: default !important;
+}
+.pulse .logoContainer{
+    margin-top: -50px;
+}
+.pulse .profile{
+    font-size: 9pt;
+    margin-left: 10px;
+    text-shadow: none;
+    font-weight: normal;
+}
+.pulse .answerLink,.commentLink{
+    float: right;
+    cursor: pointer;
+    text-decoration-style:  dashed;
+    padding-left: 5px;
+}
+.pulse .comments{
+    padding-top: 15px;
+}
+.pulse .comment{
+    margin-left: 30px;
+    margin-bottom: 5px;
+    background-color: #e6dbf6;
+    text-shadow: 1px 0 1px #d8d8d8;
+    border-radius: 15px;
+    padding: 5px;
+}
+.pulse .answer textarea{
+    width:100%;
+}
+.pulseProfile{
+    cursor: pointer;
+}
+.profile img{
+    width: 16px;
+    vertical-align: middle;
+    padding-right: 3px;
+}
+.pulse h2{
+    padding-left: 10px;
+}
+.pulse .post{
+    padding-left: 10px;
+}
+.post a, .holidays{
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+a.ticket{
+    overflow: visible;
+}
+.pulse .postTime{
+    text-align: left;
+    padding-left: 40px;
+    color: gray;
+    font-size: 7pt;
+    margin-top: -20px;
+}
+.pulse img.avatar{
+    width: 25px;
+    border-radius: 50%;
+    vertical-align:middle;
+}
+.pulseTicker{
+    background-color: transparent;
+    padding: 0;
+    cursor: pointer;
+    margin:0;
+    border-radius: 12px;
+    display: inline;
+}
+.pulseIcon{
+    padding: 0;
+    margin:0;
+    display: inline;
+    float: right;
+    visibility: hidden;
+}
+span.pulseTicker:hover+span.pulseIcon{
+    visibility: visible;
+}
+.heart {
+    cursor: pointer;
+    height: 15px;
+    width: 50px;
+    background-image:url( 'https://abs.twimg.com/a/1446542199/img/t1/web_heart_animation.png');
+    background-position: left;
+    background-repeat:no-repeat;
+    background-size:2900%;
+    float: left;
+    margin-left: -18px;
+    margin-right: -15px;
+}
+.heartCount{
+    float: left;
+    padding-right: 15px;
+}
+.isLiked {
+    background-position:right;
+}
+
+.is_animating {
+    animation: heart-burst .8s steps(28) 1;
+}
+
+@keyframes heart-burst {
+    from {background-position:left;}
+    to { background-position:right;}
 }

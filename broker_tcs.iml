@@ -10,5 +10,7 @@
     <orderEntry type="library" name="@types/chrome" level="application" />
     <orderEntry type="library" name="@types/chrome-apps" level="application" />
     <orderEntry type="library" name="@types/chrome" level="application" />
+    <orderEntry type="library" name="@types/chrome" level="application" />
+    <orderEntry type="library" name="@types/chrome-apps" level="application" />
   </component>
 </module>

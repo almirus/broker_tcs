@@ -36,22 +36,27 @@ export function exportCSVFile(headers, items, fileTitle, postfix, collapse = fal
 function filterData(items, account = 'Tinkoff', currency, collapse) {
     let result = [];
     if (!collapse) {
-        let accountData = items.filter(item =>
-            item.accountType === account
-            && (item.status === 'done' || item.status === 'progress')
-            && (item.quantity > 0)
-            && (currency === 'all' ? true : item.currency === currency)
-        );
+        let accountData;
+        if (account === 'all')
+            accountData = items;
+        else
+            accountData = items.filter(item =>
+                item.accountType === account
+                && (item.status === 'done' || item.status === 'progress')
+                && (item.quantity > 0)
+                && (currency === 'all' ? true : item.currency === currency)
+            );
         accountData.forEach(item => {
             result.push({
-                isin: item.isin,
-                symbol: item.ticker === 'TCS' ? 'TCSq' : item.ticker,
-                commission: Math.abs(item.commission || 0),
-                date: new Intl.DateTimeFormat('en-US').format(new Date(item.date)),
-                type: item.operationType.toLowerCase() === 'buywithcard' ? 'buy' : item.operationType.toLowerCase(),
-                price: item.price,
-                currency: item.currency,
-                amount: item.quantity,
+                isin: item.isin || ' ',
+                symbol: (item.ticker === 'TCS' ? 'TCSq' : item.ticker) || ' ',
+                commission: Math.abs(item.commission || 0) || ' ',
+                date: item.date ? new Intl.DateTimeFormat('en-US').format(new Date(item.date)) : ' ',
+                type: (item.operationType.toLowerCase() === 'buywithcard' ? 'buy' : item.operationType) || ' ',
+                price: (!(item.operationType.toLowerCase() === 'buy' && item.operationType.toLowerCase() === 'sell') ? item.payment : item.price) || ' ',
+                currency: item.currency || ' ',
+                amount: item.quantity || ' ',
+                description: item.description
             })
         })
     } else {
@@ -68,6 +73,7 @@ function filterData(items, account = 'Tinkoff', currency, collapse) {
                 price: item.symbol.averagePositionPrice.value,
                 currency: item.symbol.averagePositionPrice.currency,
                 amount: item.symbol.lotSize,
+                description: item.description
             })
         });
     }
