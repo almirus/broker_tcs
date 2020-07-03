@@ -341,7 +341,6 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
                     expected_yield.currency = 'RUB';
                 }
-
                 return_data.push({
                     prices: symbol.payload.prices,
                     earnings: symbol.payload.earnings,
