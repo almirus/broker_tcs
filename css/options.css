@@ -529,7 +529,15 @@ span.pulseTicker:hover+span.pulseIcon{
 .is_animating {
     animation: heart-burst .8s steps(28) 1;
 }
-
+.imgPulse{
+    max-height: 60px;
+}
+.imgPulse {
+    transition: 0.3s;
+}
+.imgPulse:hover {
+    transform: scale(10);
+}
 @keyframes heart-burst {
     from {background-position:left;}
     to { background-position:right;}

@@ -215,7 +215,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 let images = '';
                 if (news.postImages?.length > 0) {
                     news.postImages.map(img => {
-                        images += `<img src="${IMAGE_URL.replace('${imgId}', img.id)}">`;
+                        images += `<img class="imgPulse" src="${IMAGE_URL.replace('${imgId}', img.id)}">`;
                     });
                 }
                 return `
@@ -266,7 +266,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
                 let images = '';
                 if (news.postImages?.length > 0) {
                     news.postImages.map(img => {
-                        images += `<img src="${IMAGE_URL.replace('${imgId}', img.id)}">`;
+                        images += `<img class="imgPulse" src="${IMAGE_URL.replace('${imgId}', img.id)}">`;
                     });
                 }
                 let avatar = news.item.profile.image ? `<img class="avatar" src="${AVATAR_URL.replace('${img}', news.item.profile.image)}">` : '<img class="avatar" src="/icons/empty_user.png">';

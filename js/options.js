@@ -510,9 +510,9 @@ function create_portfolio_table(divId, data) {
     tr.appendChild(th7);
 
     table.appendChild(tr);
-    let holidays = new Set();
+
     data.forEach(function (element, i) {
-            holidays.add(element.instrumentStatusDesc);
+            if (element.instrumentStatusDesc) holidays.add(element.instrumentStatusDesc);
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
             td1.className = 'maxWidth';
@@ -675,7 +675,7 @@ function create_portfolio_table(divId, data) {
             table.appendChild(tr);
         }
     );
-    if (holidays.size > 1) {
+    if (holidays.size > 0) {
         document.getElementById('holidays').innerText = '🎈' + Array.from(holidays).join(' ');
         document.getElementById('holidays').title = 'Биржа не работает, ' + Array.from(holidays).join(' ');
     }
@@ -1387,5 +1387,5 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 
 let liquidList = {};
 let listPrognosis = {};
-
+let holidays = new Set();
 
