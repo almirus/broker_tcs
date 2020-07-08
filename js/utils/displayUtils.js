@@ -390,15 +390,20 @@ export function drawPremiumConsensus(data) {
     let canvas = document.createElement('canvas');
     canvas.width = 100;
     canvas.height = 12;
+    let ctx = canvas.getContext('2d');
     if (data?.absolute?.buy) {
         canvas.title = `Консенсус прогноз от 👑Refinitiv\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков`;
-        let ctx = canvas.getContext('2d');
         ctx.fillStyle = 'green';
         ctx.fillRect(0, 2, data.absolute.buy * 100 / data.analystsCount, 7);
         ctx.fillStyle = 'orange';
         ctx.fillRect(data.absolute.buy * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 7);
         ctx.fillStyle = 'red';
         ctx.fillRect(data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount + data.absolute.sell * 100 / data.analystsCount, 7);
+    } else {
+        canvas.title = 'Нет прогноза';
+        ctx.strokeStyle = "rgba(90,83,83,0.62)";
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(0, 0, 100, 12);
     }
     return canvas;
 }

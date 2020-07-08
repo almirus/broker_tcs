@@ -36,7 +36,7 @@
             Форма <a href="https://help.tinkoff.ru/trading-account/intaxes/usa-dividends/" target="_blank">w8</a> <span
                 id="approvedW8" style="font-weight: bold">~</span><br>
             <span id="employee" style="font-weight: bold"></span>
-            <div class="header">
+             <div class="header">
                 <span id="cashTCS"></span><span id="cashBCS"></span><span id="cashIIS"></span><br>
                 <span>Стоимость всего <a href="https://www.tinkoff.ru/invest/broker_account/" target="_blank"
                                          title="Открыть страницу брокера">портфеля</a></span>
@@ -52,6 +52,7 @@
                 <span id="allAccounts" class="toggle-content"></span>
             </div>
             <span style="float: left;" class="holidays" id="holidays"></span>
+            <a class="toggle" data-toggle="new" style="float: right" href="#new" title="Новости">🆕New </a>
             <a class="toggle" data-toggle="info" style="float: right" href="#info" title="Основные настройки">⚙️Настройки </a>
             <a class="toggle" data-toggle="export" style="float: right" href="#export" title="Экспорт портфеля в CSV">🔄️
                 Экспорт </a><br>
@@ -65,6 +66,19 @@
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Если установлена галочка будут выгружены только позиции, которые на данный момент в портфеле">
                     <div id="exportOperations"></div>
+                </fieldset>
+            </div>
+            <div class="toggle-content" id="new">
+                <fieldset class="table">
+                    <legend>Новости</legend>
+                    <ul>
+                        <li>Новый 💎<a href="https://chrome.google.com/webstore/detail/tinkoffticker/dpflhleimmbhmcihedanghbdeoinpiig?hl=ru" target="_blank">плагин</a>
+                        <li>Пульс отображает картинки
+                        <li>Добавлено отображение праздников (если биржа закрыта)
+                        <li>В список для отслеживания можно добавить список избранного
+                        <li>Добавлены прогнозы под каждым тикером
+                        <li>Добавлена карта цен
+                    </ul>
                 </fieldset>
             </div>
             <div class="toggle-content" id="info">
@@ -252,6 +266,7 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII="/>
                     <option value="All" selected>Все</option>
                     <option value="Russian">Российский рынок</option>
                     <option value="Foreign">Иностранный рынок</option>
+                    <option value="Mine">Мой список (портфель+избранное)</option>
                 </select>
                 <div id="treemap_container">
                     <img src="css/loader.gif" alt="loading">

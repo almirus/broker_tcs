@@ -346,7 +346,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                     prices: symbol.payload.prices,
                     earnings: symbol.payload.earnings,
                     contentMarker: symbol.payload.contentMarker,
-                    instrumentStatusDesc: symbol.payload.instrumentStatusDesc,
+                    holidayDescription: symbol.payload.holidayDescription,
                     symbol: {
                         dayLow: symbol.payload.symbol.dayLow,
                         dayHigh: symbol.payload.symbol.dayHigh,
@@ -1431,94 +1431,95 @@ function createMobileAlert(params) {
     })
 }
 
-function getTreeMap(country = 'All') {
-    return new Promise((resolve, reject) => {
-        MainProperties.getSession().then(session_id => {
-                // POST
-                fetch(SEARCH_URL + session_id, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        start: 0,
-                        end: 500,
-                        sortType: "ByPrice",
-                        orderType: "Asc",
-                        country: country,
-                        popular: true,
-                        //filterOTC: true,
-                        //filterRisky: true,
+async function getTreeMap(country = 'All') {
+    let session_id = await MainProperties.getSession();
+    let list;
+    let search_obj = {
+        start: 0,
+        end: 500,
+        sortType: "ByPrice",
+        orderType: "Asc",
+        country: country,
+        popular: true,
+    };
+    if (country === 'Mine') {
+        search_obj.country = 'All';
+        let favorite = await getFavorite();
+        // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
+        list = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
+            return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
+        }).reduce((prev, curr) => {
+            return [...prev, ...[curr.symbol.ticker]];
+        }, []))];
+        search_obj['tickers'] = list;
+    }
+    // POST
+    let response = await fetch(SEARCH_URL + session_id, {
+        method: "POST",
+        body: JSON.stringify(search_obj),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    let listOfFound = await response.json();
 
-                    }),
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    }
-                }).then(response => response.json())
-                    .then(listOfFound => {
-                        if (listOfFound.status.toLocaleUpperCase() === 'OK') {
-                            // уникальный массив категорий (секторов)
-                            let category = Array.from(new Set(listOfFound.payload.values.map(({symbol}) => symbol.sector)));
-                            let min = Math.min.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100
-                                , max = Math.max.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100;
-                            // список тикеров для TreeMap
-                            let list = listOfFound.payload.values.reduce((result, item, index) => {
-                                if (item.earnings) {
-                                    let fill;
-                                    item.earnings.relative *= 100;
-                                    //item.earnings.relative = Math.random()*100;
-                                    if (item.earnings.relative < -30) {
-                                        fill = '#F5383D';
-                                    }
-                                    if (item.earnings.relative >= -30 && item.earnings.relative <= -1) {
-                                        fill = '#C64045'
-                                    }
-                                    if (item.earnings.relative > -1 && item.earnings.relative < 1) {
-                                        fill = '#414553'
-                                    }
-                                    if (item.earnings.relative >= 1 && item.earnings.relative <= 30) {
-                                        fill = '#367D51'
-                                    }
-                                    if (item.earnings.relative > 30) {
-                                        fill = '#33B15A'
-                                    }
+    if (listOfFound.status.toLocaleUpperCase() === 'OK') {
+        // уникальный массив категорий (секторов)
+        let category = Array.from(new Set(listOfFound.payload.values.map(({symbol}) => symbol.sector)));
+        // список тикеров для TreeMap
+        let list = listOfFound.payload.values.reduce((result, item, index) => {
+            if (item.earnings) {
+                let fill;
+                item.earnings.relative *= 100;
+                //item.earnings.relative = Math.random()*100;
+                if (item.earnings.relative < -30) {
+                    fill = '#F5383D';
+                }
+                if (item.earnings.relative >= -30 && item.earnings.relative <= -1) {
+                    fill = '#C64045'
+                }
+                if (item.earnings.relative > -1 && item.earnings.relative < 1) {
+                    fill = '#414553'
+                }
+                if (item.earnings.relative >= 1 && item.earnings.relative <= 30) {
+                    fill = '#367D51'
+                }
+                if (item.earnings.relative > 30) {
+                    fill = '#33B15A'
+                }
 
-                                    let obj = {
-                                        parent: item.symbol.sector,
-                                        id: item.symbol.ticker,
-                                        product: item.symbol.ticker,
-                                        showName: item.symbol.showName,
-                                        relative: item.earnings.relative.toFixed(2), // здесь истинное значение для вывода на экран
-                                        value: Math.abs(item.earnings.relative), //treemap не учитывает отриц значения, приходится перобразовыввать
-                                        fill: fill,
-                                    };
-                                    result.push(obj);
-                                }
-                                return result;
-                            }, []);
-                            // склееиваем все списки
-                            resolve([{ // родительский пустой узел
-                                parent: null,
-                                id: 0,
-                                product: ''
-                            }].concat(category.reduce((result, item, index) => {
-                                let obj = { // категории
-                                    parent: 0,
-                                    id: item,
-                                    product: item,
-                                };
-                                result.push(obj);
-                                return result;
-                            }, [])).concat(list));// список тикеров
-                        } else {
-                            console.log('Сервис поиска недоступен');
-                            reject(undefined)
-                        }
-                    }).catch(e => {
-                    console.log(e);
-                    reject(undefined);
-                })
+                let obj = {
+                    parent: item.symbol.sector,
+                    id: item.symbol.ticker,
+                    product: item.symbol.ticker,
+                    showName: item.symbol.showName,
+                    relative: item.earnings.relative.toFixed(2), // здесь истинное значение для вывода на экран
+                    value: Math.abs(item.earnings.relative), //treemap не учитывает отриц значения, приходится перобразовыввать
+                    fill: fill,
+                };
+                result.push(obj);
             }
-        )
-    })
+            return result;
+        }, []);
+        // склееиваем все списки
+        return ([{ // родительский пустой узел
+            parent: null,
+            id: 0,
+            product: ''
+        }].concat(category.reduce((result, item, index) => {
+            let obj = { // категории
+                parent: 0,
+                id: item,
+                product: item,
+            };
+            result.push(obj);
+            return result;
+        }, [])).concat(list));// список тикеров
+    } else {
+        console.log('Сервис поиска недоступен');
+        return (undefined)
+    }
 }
 
 // основной слушатель

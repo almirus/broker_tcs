@@ -512,7 +512,7 @@ function create_portfolio_table(divId, data) {
     table.appendChild(tr);
 
     data.forEach(function (element, i) {
-            if (element.instrumentStatusDesc) holidays.add(element.instrumentStatusDesc);
+            if (element.holidayDescription) holidays.add(element.holidayDescription);
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
             td1.className = 'maxWidth';
@@ -596,9 +596,9 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
                 })}</a>${prognosis_link}</div>`;
-            if (cached_element.premium_consensus && cached_element.premium_consensus?.analystsCount > 0) {
-                td3.appendChild(drawPremiumConsensus(cached_element.premium_consensus));
-            }
+
+                td3.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
+
             let td4 = document.createElement('td');
             if (element.prices) {
                 td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
@@ -906,9 +906,9 @@ function create_alert_table(data_list) {
                     </div>`;
                 let td8 = document.createElement('td');
                 td8.innerHTML = prognosis_link;
-                if (cached_element && cached_element.premium_consensus?.analystsCount > 0) {
-                    td8.appendChild(drawPremiumConsensus(cached_element.premium_consensus));
-                }
+
+                    td8.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
+
 
                 let td3 = document.createElement('td');
                 td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
