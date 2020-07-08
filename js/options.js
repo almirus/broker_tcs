@@ -510,9 +510,9 @@ function create_portfolio_table(divId, data) {
     tr.appendChild(th7);
 
     table.appendChild(tr);
-    let holidays = new Set();
+
     data.forEach(function (element, i) {
-            holidays.add(element.instrumentStatusDesc);
+            if (element.holidayDescription) holidays.add(element.holidayDescription);
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
             td1.className = 'maxWidth';
@@ -581,87 +581,7 @@ function create_portfolio_table(divId, data) {
                     (element.prices && element.prices.sell ? `<div data-sell-ticker="${element.symbol.ticker}"   title="Цена продажи">
             <a class="onlineSell" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/sell" target="_blank" title="Продать">${element.prices.sell ? element.prices.sell.value : ''}</a>
             </div>` : '');
-        let prognosis_style = element.contentMarker.prognosis && element.symbol.consensus && element.symbol.consensus.consRecommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-        let prognosis_link = element.contentMarker.prognosis && element.symbol.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOS_LINK.replace('${symbol}', element.symbol.ticker)}" target="_blank" title="Сводная рекомендация: ${element.symbol.consensus.consRecommendation}">
-        ${element.symbol.consensus.consensus.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.consensus.currency,
-            minimumFractionDigits: element.symbol.consensus.consensus < 0.1 ? 4 : 2
-        })}
-        </a><span class="percent" title="Прогнозируемое изменение с учетом текущей цены">
-        ${prognosis_style === 'onlineBuy' ? '+' : ''}${element.symbol.consensus.priceChangeRel.toFixed(2)} %
-        </span>` : '';
 
-        let td3 = document.createElement('td');
-        td3.width = '120';
-        td3.align = 'left';
-        let events_url = EVENTS_LINK.replace('${symbol}', element.symbol.ticker);
-        if (element.symbol.averagePositionPrice.value === 0)
-            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка в данных у брокера</div>`;
-        else
-            td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Средняя цена. Посмотреть транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.symbol.averagePositionPrice.currency,
-                minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
-            })}</a>${prognosis_link}</div>`;
-        let td4 = document.createElement('td');
-        td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.earnings.absolute.currency,
-            minimumFractionDigits: Math.abs(element.earnings.absolute.value) < 1 ? 4 : 2
-        }) : element.symbol.isOTC && element.symbol.absoluteOTC ? element.symbol.absoluteOTC.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.averagePositionPrice.currency,
-            minimumFractionDigits: element.symbol.absoluteOTC < 0.1 ? 4 : 2
-        }) + '*' : ''}</div>
-        <div data-daypercent-ticker="${element.symbol.ticker}"><strong>${!element.symbol.isOTC && element.symbol.expectedYieldPerDayRelative ? element.symbol.expectedYieldPerDayRelative.toLocaleString('ru-RU', {
-            style: 'percent',
-            maximumSignificantDigits: 2
-        }) : element.symbol.isOTC && element.symbol.relativeOTC ? element.symbol.relativeOTC.toLocaleString('ru-RU', {
-            style: 'percent',
-            maximumSignificantDigits: 2
-        }) + '*' : ''}</strong></div>
-        <div title="Доход за день, расчитывается на основе цены открытия">${element.earnings ? element.symbol.earningToday.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.currentAmount.currency
-        }) : element.symbol.isOTC && element.symbol.earningToday ? element.symbol.earningToday.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.currentAmount.currency
-        }) + '*' : ''}</div>`;
-        if (element.symbol.isOTC) td4.className = element.symbol.relativeOTC / 1 < 0 ? 'onlineSell' : 'onlineBuy';
-        else td4.className = element.earnings ? element.earnings.absolute.value / 1 < 0 ? 'onlineSell' : 'onlineBuy' : '';
-
-
-        let td5 = document.createElement('td');
-        td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize}</div>`;
-
-        let td6 = document.createElement('td');
-        td6.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.currentAmount.value.toLocaleString('ru-RU', {
-            style: 'currency',
-            currency: element.symbol.currentAmount.currency
-        })}</div>`;
-
-        let td7 = document.createElement('td');
-        if (element.symbol.expectedYield.value === 0 && element.symbol.status === 'process') {
-            td7.innerHTML = `<div data-ticker="${element.symbol.ticker}" title="Лимитная заявка">Еще не исполнена</div>`;
-            tr.className = 'process';
-        } else {
-            td7.className = element.symbol.expectedYield.value / 1 < 0 ? 'onlineSell' : 'onlineBuy';
-            td7.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.expectedYield.value.toLocaleString('ru-RU', {
-                style: 'currency',
-                currency: element.symbol.expectedYield.currency
-            })}<br>${(element.symbol.expectedYieldRelative / 100).toLocaleString('ru-RU', {
-                style: 'percent',
-                maximumSignificantDigits: 2
-            })}</div>`;
-        }
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-        tr.appendChild(td3);
-        tr.appendChild(td4);
-        tr.appendChild(td5);
-        tr.appendChild(td6);
-        tr.appendChild(td7);
             }
             let td3 = document.createElement('td');
 
@@ -676,9 +596,9 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
                 })}</a>${prognosis_link}</div>`;
-            if (cached_element.premium_consensus && cached_element.premium_consensus?.analystsCount > 0) {
-                td3.appendChild(drawPremiumConsensus(cached_element.premium_consensus));
-            }
+
+                td3.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
+
             let td4 = document.createElement('td');
             if (element.prices) {
                 td4.innerHTML = `<div data-daysum-ticker="${element.symbol.ticker}">${element.earnings ? element.earnings.absolute.value.toLocaleString('ru-RU', {
@@ -755,7 +675,7 @@ function create_portfolio_table(divId, data) {
             table.appendChild(tr);
         }
     );
-    if (holidays.size > 1) {
+    if (holidays.size > 0) {
         document.getElementById('holidays').innerText = '🎈' + Array.from(holidays).join(' ');
         document.getElementById('holidays').title = 'Биржа не работает, ' + Array.from(holidays).join(' ');
     }
@@ -986,9 +906,9 @@ function create_alert_table(data_list) {
                     </div>`;
                 let td8 = document.createElement('td');
                 td8.innerHTML = prognosis_link;
-                if (cached_element && cached_element.premium_consensus?.analystsCount > 0) {
-                    td8.appendChild(drawPremiumConsensus(cached_element.premium_consensus));
-                }
+
+                    td8.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
+
 
                 let td3 = document.createElement('td');
                 td3.innerHTML = element.earnings ? `<div data-daysum-ticker="${element.ticker}">${element.earnings.absolute.value.toLocaleString('ru-RU', {
@@ -1436,7 +1356,6 @@ port.postMessage({method: "getPrognosis"});
 port.postMessage({method: "getNews", params: {nav_id: ''}});
 
 
-
 // запускаем фоновый пинг сервера + в нем все проверки
 chrome.alarms.create("updatePortfolio", {
     delayInMinutes: INTERVAL_TO_CHECK,
@@ -1468,3 +1387,5 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
 
 let liquidList = {};
 let listPrognosis = {};
+let holidays = new Set();
+
