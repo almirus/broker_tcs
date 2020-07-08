@@ -400,7 +400,7 @@ export function drawPremiumConsensus(data) {
         ctx.fillStyle = 'red';
         ctx.fillRect(data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount + data.absolute.sell * 100 / data.analystsCount, 7);
     } else {
-        canvas.title = 'Нет прогноза';
+        canvas.title = 'Нет прогноза от Refinitiv';
         ctx.strokeStyle = "rgba(90,83,83,0.62)";
         ctx.lineWidth = 0.5;
         ctx.strokeRect(0, 0, 100, 12);

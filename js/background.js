@@ -331,7 +331,8 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                 });
             } else {
                 if (symbol.payload.symbol.isOTC) {
-                    earning_today = symbol.payload.absoluteOTC * element.currentBalance;
+                    earning_today = symbol.payload.earnings.absolute.value * element.currentBalance;
+
                     //expected_yield.value = symbol.payload.relativeOTC;
                 }
                 if (needToConvert && current_amount?.currency === 'USD') {
@@ -1233,8 +1234,13 @@ function updateAlertPrices() {
                         }
                     };
                 });
+                favorite_list = favorite_list.filter(favoriteItem => {
+                    // исключаем из списка Избранного элементы из др списков, чтобы сократить итоговой список
+                    return !([].concat(orders, stops, subscriptions).find(item => item.ticker === favoriteItem.ticker));
+                })
                 let alert_data = [].concat(await MainProperties.getFavoriteListOption() ? favorite_list : [], orders, stops, subscriptions);
                 let i = 0;
+                //TODO сделать запрос к поиску
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
                     await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
