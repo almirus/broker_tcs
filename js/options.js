@@ -530,7 +530,7 @@ function create_portfolio_table(divId, data) {
                 remain_time = "Время до открытия " + msToTime(element.symbol.timeToOpen);
             } else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
             let cached_element = listPrognosis && listPrognosis.filter(item => item?.ticker === element.symbol.ticker)[0];
-            let feature_div = cached_element.dividends ? cached_element.dividends[cached_element.dividends.length - 1] : undefined;
+            let feature_div = cached_element?.dividends ? cached_element.dividends[cached_element.dividends.length - 1] : undefined;
             let daysToDiv;
             if (feature_div && Date.now() < new Date(feature_div.lastBuyDate)) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24), 10);
             let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя даты покупки для получения дивидендов ${new Date(feature_div.lastBuyDate).toLocaleDateString()}, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}</a>` : '';
@@ -549,8 +549,8 @@ function create_portfolio_table(divId, data) {
             let mobile_alert = element.symbol.subscriptId ? `<span title="Уведомление добавлено на мобильном по цене ${element.subscriptPrice}">📳</span>` : '';
             let warning = element.contentMarker && element.contentMarker.recalibration ? '<span title="Есть негативные новости по инструменту"><a href="' + RECALIBRATION_LINK + element.symbol.ticker + '" target="_blank">💀</a></span>' : '';
 
-            let prognosis_style = cached_element.consensus && cached_element.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-            let prognosis_link = cached_element.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}', cached_element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
+            let prognosis_style = cached_element?.consensus && cached_element.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
+            let prognosis_link = cached_element?.consensus ? `<br><a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}', cached_element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
                                 ${cached_element.consensus.consensus.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: cached_element.consensus.currency,
@@ -628,7 +628,7 @@ function create_portfolio_table(divId, data) {
                     currency: element.symbol.currentAmount.currency
                 }) + '*' : ''}</div>`;
 
-                if (element.symbol.isOTC) td4.className = (element.symbol.relativeOTC || element.symbol.expectedYieldPerDayRelative) / 1 < 0 ? 'onlineSell' : 'onlineBuy';
+                if (element.symbol.isOTC) td4.className = (element.symbol.relativeOTC || element.symbol.earningToday) / 1 < 0 ? 'onlineSell' : 'onlineBuy';
                 else td4.className = element.earnings ? element.earnings.absolute.value / 1 * (element.symbol.lotSize) < 0 ? 'onlineSell' : 'onlineBuy' : ''; // если lotSize < 0 то шорт
 
             }
@@ -1081,6 +1081,7 @@ document.getElementById('graphic').addEventListener('change', function (e) {
 });
 
 document.getElementById('news').addEventListener('change', function (e) {
+    document.getElementById("news_table").innerHTML = ' <img src="css/loader.gif" alt="loading">';
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'block';
@@ -1089,6 +1090,7 @@ document.getElementById('news').addEventListener('change', function (e) {
     port.postMessage({method: "getNews", params: {nav_id: ''}});
 });
 document.getElementById('pulse').addEventListener('change', function (e) {
+    document.getElementById("news_table").innerHTML = ' <img src="css/loader.gif" alt="loading">';
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'block';
@@ -1106,7 +1108,11 @@ document.getElementById('treemap').addEventListener('change', function (e) {
     let country = document.getElementById('add_treemap_type').value;
     port.postMessage({method: "getTreemap", params: country});
 });
-
+document.getElementById('treemap_update').addEventListener('click', function (e) {
+    let country = document.getElementById('add_treemap_type').value;
+    document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
+    port.postMessage({method: "getTreemap", params: country});
+});
 document.getElementById('add_treemap_type').addEventListener('change', function (e) {
     document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
     port.postMessage({method: "getTreemap", params: e.target.value});
