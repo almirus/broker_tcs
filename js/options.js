@@ -31,6 +31,7 @@ import {exportCSVFile} from "./utils/csvExporter.js";
 import {
     drawDayProgress,
     drawPremiumConsensus,
+    drawPremiumConsensusFinn,
     fillCashData,
     getAllAccountsHtmlInfo,
     getExportAccountHtml,
@@ -135,9 +136,11 @@ port.onMessage.addListener(function (msg) {
             }
             document.getElementById('riskProfile').innerText = msg.riskProfile;
             document.getElementById('qualStatus').innerText = msg.qualStatus;
+            /*
             if (msg.qualStatus === 'есть статус') {
                 document.getElementById('alphavantage_option').style = 'display:block';
             }
+            */
             document.getElementById('approvedW8').innerText = msg.approvedW8;
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
             let iis = (msg.accounts.filter(item => item.accountType === 'TinkoffIis' && item.hasOperations)).length > 0
@@ -537,7 +540,7 @@ function create_portfolio_table(divId, data) {
             let ls = '';
             if (element.symbol.longIsEnabled || element.symbol.shortIsEnabled) ls = `<span title="Long\Short">${(element.symbol.longIsEnabled ? 'L' : '') + '/' + (element.symbol.shortIsEnabled ? 'S' : '')}</span>`;
 
-            let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">📊</span>' : '';
+            let otc = element.symbol.isOTC ? '<span title="Внебиржевой инструмент\r\nДоступна только последняя цена, недоступна дневная доходность">👑</span>' : '';
             let etf = element.symbol.symbolType === 'ETF' ? '<span title="ETF">🗃️</span>' : '';
             let currency = element.symbol.symbolType === 'Currency' ? '<span title="Валюта">💰</span>' : '';
             let bond = element.symbol.symbolType === 'Bond' ? '<span title="Облигации">📒</span>' : '';
@@ -597,7 +600,8 @@ function create_portfolio_table(divId, data) {
                     minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
                 })}</a>${prognosis_link}</div>`;
 
-                td3.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
+            td3.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
+            td3.appendChild(drawPremiumConsensusFinn(cached_element?.finn_consensus));
 
             let td4 = document.createElement('td');
             if (element.prices) {
@@ -876,6 +880,7 @@ function create_alert_table(data_list) {
                 td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
                     //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                     (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
+                    (element.isOTC ? '<span class="icon" title="Внебирживой инструмент">👑</span>' : '') +
                     (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '<span class="icon disabled" title="Не в избранном">⭐</span>') +
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
@@ -907,7 +912,7 @@ function create_alert_table(data_list) {
                 let td8 = document.createElement('td');
                 td8.innerHTML = prognosis_link;
 
-                    td8.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
+                td8.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
 
 
                 let td3 = document.createElement('td');
@@ -933,7 +938,8 @@ function create_alert_table(data_list) {
                         PartiallyFill: 'Частично исполненная заявка',
                         New: 'Заявка'
                     };
-                    if (element.orderId) td4.innerHTML = `<span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
+                    if (element.orderId) td4.innerHTML = `
+                        <span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
                         <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
                     else td4.innerHTML = element.subscriptPrice ? element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('') : '';
                 }
@@ -1395,3 +1401,21 @@ let liquidList = {};
 let listPrognosis = {};
 let holidays = new Set();
 
+(() => {
+    // проверка настроек
+    chrome.storage.sync.get([OPTION_ALPHAVANTAGE, OPTION_ALPHAVANTAGE_KEY], result => {
+        if (result[OPTION_ALPHAVANTAGE] && result[OPTION_ALPHAVANTAGE_KEY].match('[A-Z0-9]{16}')) {
+            document.getElementById('mainProperties').classList.add('blink_me');
+            document.getElementById('mainProperties').title = 'Основные настройки. Нужно поменять ключ к API';
+            document.getElementById(OPTION_ALPHAVANTAGE_KEY).style.cssText = 'box-shadow: 0 0 3px #CC0000; margin: 10px';
+        } else {
+            document.getElementById('mainProperties').className = 'toggle';
+            document.getElementById(OPTION_ALPHAVANTAGE_KEY).cssText = 'outline-color: inherit;';
+            document.getElementById('mainProperties').title = 'Основные настройки.';
+            document.getElementById(OPTION_ALPHAVANTAGE_KEY).style.cssText = '';
+
+
+        }
+
+    })
+})()

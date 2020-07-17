@@ -38,7 +38,7 @@ export const OPERATIONS_URL = 'https://api.tinkoff.ru/trading/user/operations?se
 export const SUBSCRIPTIONS_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_subscriptions?sessionId=';
 export const LIQUID_URL = 'https://api.tinkoff.ru/trading/portfolio/liquid_portfolio?sessionId=';
 export const RECALIBRATION_LINK = 'https://www.tinkoff.ru/invest/recommendations/recalibration/';
-
+export const FINN_RECOMENDATION ='https://finnhub.io/api/v1/stock/recommendation?symbol=${ticker}&token=';
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?cpswc=true&ccc=true&deviceId=2cb59723b132726c&appVersion=4.0.2&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';
@@ -81,6 +81,7 @@ export const ALERT_TICKER_LIST = 'alertTickerList';
 //up to 5 API requests per minute and 500 requests per day
 export const ALPHAVANTAGE_KEY = 'M3JMJM8U22EIIO2Y';
 export const AV_SYMBOL_URL = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=';
+export const FINN_SYMBOL_URL = 'https://finnhub.io/api/v1/quote?symbol=${ticker}&token=';
 //https://rest-demo.tradingview.com/tradingview/v1/mapping
 export const USD_RUB = 'USDRUB';
 export const EUR_RUB = 'EURRUB';

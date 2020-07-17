@@ -3,7 +3,6 @@
 import {
     ALERT_TICKER_LIST,
     ALL_ACCOUNTS,
-    AV_SYMBOL_URL,
     BUY_LINK,
     CANCEL_ORDER,
     CANCEL_STOP,
@@ -16,6 +15,8 @@ import {
     DIVIDENDS_URL,
     EUR_RUB,
     FAVORITE_URL,
+    FINN_RECOMENDATION,
+    FINN_SYMBOL_URL,
     HOST_URL,
     INFO_URL,
     INTERVAL_TO_CHECK,
@@ -63,6 +64,7 @@ import {
     USER_LIST_URL,
     USER_URL
 } from "/js/constants.mjs";
+
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -267,14 +269,19 @@ function getPortfolio(sessionId) {
                 .then(json => {
                     console.log('list of favorite');
                     let return_data = [];
-                    json.payload.stocks.forEach(item => {
-                        return_data.push({
-                            isin: item.symbol.isin,
-                            ticker: item.symbol.ticker,
-                            showName: item.symbol.showName,
-                            lotSize: item.symbol.lotSize,
+                    [].concat(json.payload.stocks)
+                        .concat(json.payload.bonds)
+                        .concat(json.payload.currencies)
+                        .concat(json.payload.etf)
+                        .concat(json.payload.isgs)
+                        .forEach(item => {
+                            return_data.push({
+                                isin: item.symbol.isin,
+                                ticker: item.symbol.ticker,
+                                showName: item.symbol.showName,
+                                lotSize: item.symbol.lotSize,
+                            });
                         });
-                    });
                     return return_data;
                 })
 
@@ -358,6 +365,7 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
                         relativeOTC: symbol.payload.relativeOTC || 0,
                         consensus: symbol.payload.symbol.consensus,
                         premium_consensus: symbol.payload.symbol.premium_consensus,
+                        finn_consensus: symbol.payload.symbol.finn_consensus,
                         dividends: symbol.payload.symbol.dividends,
                         symbolType: symbol.payload.symbol.symbolType,
                         isOTC: symbol.payload.symbol.isOTC,
@@ -578,18 +586,24 @@ function getListStock(name) {
                     .then(json => {
                         console.log('list of favorite');
                         let return_data = [];
-                        json.payload.stocks.forEach(item => {
-                            return_data.push({
-                                prices: item.prices,
-                                symbol: {
-                                    isin: item.symbol.isin,
-                                    ticker: item.symbol.ticker,
-                                    showName: item.symbol.showName,
-                                    lotSize: item.symbol.lotSize,
-                                },
-                                exchangeStatus: item.exchangeStatus
+                        [].concat(json.payload.stocks)
+                            .concat(json.payload.bonds)
+                            .concat(json.payload.currencies)
+                            .concat(json.payload.etf)
+                            .concat(json.payload.isgs)
+                            .forEach(item => {
+                                return_data.push({
+                                    prices: item.prices,
+                                    symbol: {
+                                        isin: item.symbol.isin,
+                                        ticker: item.symbol.ticker,
+                                        showName: item.symbol.showName,
+                                        lotSize: item.symbol.lotSize,
+                                        isOTC: item.symbol.isOTC
+                                    },
+                                    exchangeStatus: item.exchangeStatus
+                                });
                             });
-                        });
                         portfolio.favorite = return_data;
                         resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                     }).catch(function (ex) {
@@ -742,16 +756,22 @@ function getFavorite() {
                 .then(json => {
                     console.log('list of Favourite');
                     let return_data = [];
-                    json.payload.stocks.forEach(item => {
-                        return_data.push({
-                            symbol: {
-                                showName: item.symbol.showName,
-                                isin: item.symbol.isin,
-                                ticker: item.symbol.ticker,
-                                symbolType: item.symbol.symbolType
-                            }
+                    [].concat(json.payload.stocks)
+                        .concat(json.payload.bonds)
+                        .concat(json.payload.currencies)
+                        .concat(json.payload.etf)
+                        .concat(json.payload.isgs)
+                        .forEach(item => {
+                            return_data.push({
+                                symbol: {
+                                    showName: item.symbol.showName,
+                                    isin: item.symbol.isin,
+                                    ticker: item.symbol.ticker,
+                                    symbolType: item.symbol.symbolType,
+                                    isOTC: item.symbol.isOTC
+                                }
+                            });
                         });
-                    });
                     MainProperties.getFavoriteOption().then(isFavoriteChecked => {
                         resolve(isFavoriteChecked ? return_data : []);
                     })
@@ -1016,17 +1036,18 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                 }
                 const option = await MainProperties.getAVOption();
                 if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {
-                    const response = await fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey);
-                    let json = await response.json();
-                    if (json.Note) {
-                        console.log('Достигнуто ограничение alphavantage');
-                    } else {
-                        res.payload.lastOTC = parseFloat(json["Global Quote"]["05. price"]);
-                        res.payload.absoluteOTC = parseFloat(json["Global Quote"]["09. change"]);
-                        res.payload.relativeOTC = parseFloat(json["Global Quote"]["10. change percent"]) / 100;
-                        res.payload['symbol']['dayHigh'] = parseFloat(json["Global Quote"]["03. high"]);
-                        res.payload['symbol']['dayLow'] = parseFloat(json["Global Quote"]["04. low"]);
-                        res.payload['symbol']['dayOpen'] = parseFloat(json["Global Quote"]["02. open"]);
+                    try {
+                        const response = await fetch(FINN_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey);
+                        let json = await response.json();
+                        res.payload.lastOTC = parseFloat(json.c);
+                        res.payload.absoluteOTC = parseFloat(json.c - json.pc);
+                        res.payload.relativeOTC = parseFloat((json.c - json.pc) * 100 / json.o) / 100;
+                        res.payload['symbol']['dayHigh'] = parseFloat(json.h);
+                        res.payload['symbol']['dayLow'] = parseFloat(json.l);
+                        res.payload['symbol']['dayOpen'] = parseFloat(json.o);
+
+                    } catch (e) {
+                        console.error('Достигнуто ограничение finnhub', e);
                     }
                 }
                 resolve(res)
@@ -1173,6 +1194,14 @@ function getPrognosisList() {
                                 const response = await fetch(PROGNOSIS_URL.replace('${ticker}', item.ticker) + session_id);
                                 let json = await response.json();
                                 item['consensus'] = json.payload.consensus;
+                                if (item.securityType)// только для портфеля запрашиваем рекомендации
+                                    try {
+                                        const option = await MainProperties.getAVOption();
+                                        const response = await fetch(FINN_RECOMENDATION.replace('${ticker}', item.ticker) + option.AVKey);
+                                        item['finn_consensus'] = await response.json();
+                                    } catch (e) {
+                                        console.error(e);
+                                    }
                             }
                             if (item?.isin) {
                                 const response = await fetch(CONSENSUS_URL.replace('${isin}', item.isin) + session_id)
@@ -1262,6 +1291,7 @@ function updateAlertPrices() {
                             timeToExpire: item.timeToExpire,
                             status: item.status,
                             isFavorite: res.payload.isFavorite,
+                            isOTC: item.isOTC,
                             subscriptPrice: item.subscriptions,
                             quantity: item.quantity,
                             quantityExecuted: item.quantityExecuted,

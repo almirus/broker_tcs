@@ -171,7 +171,7 @@ p.info {
 .symbolStatus {
     margin-bottom: -0.35em;
     padding-right: 2px;
-    vertical-align: middle;
+    vertical-align: top;
 }
 .statusProcess{
     color: #756f7e;
@@ -319,7 +319,7 @@ ul.navigation {
 .newsBody{
     display: none;
 }
-.newsBody div,img{
+.newsBody img{
     max-width: 100% !important;
     height: auto !important;
     margin: 0 !important;
@@ -541,4 +541,14 @@ span.pulseTicker:hover+span.pulseIcon{
 @keyframes heart-burst {
     from {background-position:left;}
     to { background-position:right;}
+}
+
+.blink_me {
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
 }

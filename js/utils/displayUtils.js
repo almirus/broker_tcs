@@ -399,11 +399,42 @@ export function drawPremiumConsensus(data) {
         ctx.fillRect(data.absolute.buy * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 7);
         ctx.fillStyle = 'red';
         ctx.fillRect(data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount, 2, data.absolute.buy * 100 / data.analystsCount + data.absolute.hold * 100 / data.analystsCount + data.absolute.sell * 100 / data.analystsCount, 7);
-    } else {
-        canvas.title = 'Нет прогноза от Refinitiv';
-        ctx.strokeStyle = "rgba(90,83,83,0.62)";
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(0, 0, 100, 12);
+    }
+    return canvas;
+}
+
+export function drawPremiumConsensusFinn(data) {
+    let canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 12;
+    let ctx = canvas.getContext('2d');
+    if (data?.length > 0) {
+
+        let result = {buy: 0, hold: 0, sell: 0, strongBuy: 0, strongSell: 0, sum: 0};
+        data.forEach(item => {
+            result.buy += item.buy;
+            result.hold += item.hold;
+            result.sell += item.sell;
+            result.strongBuy += item.strongBuy;
+            result.strongSell += item.strongSell;
+        });
+        result.buy /= data.length;
+        result.hold /= data.length;
+        result.sell /= data.length;
+        result.strongBuy /= data.length;
+        result.strongSell /= data.length;
+        result.sum = result.buy + result.hold + result.sell + result.strongBuy + result.strongSell;
+        canvas.title = `Консенсус прогноз от FinnHUB на основе ${data.length} прогнозов`;
+        ctx.fillStyle = 'rgb(23,111,55)';
+        ctx.fillRect(0, 2, result.strongBuy * 100 / result.sum, 7);
+        ctx.fillStyle = 'rgb(29,185,84)';
+        ctx.fillRect(result.strongBuy * 100 / result.sum, 2, result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 7);
+        ctx.fillStyle = 'rgb(185,139,29)';
+        ctx.fillRect(result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 2, result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 7);
+        ctx.fillStyle = 'rgb(244,91,91)';
+        ctx.fillRect(result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 2, result.sell * 100 / result.sum + result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 7);
+        ctx.fillStyle = 'rgb(243,0,0)';
+        ctx.fillRect(result.sell * 100 / result.sum + result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 2, result.strongSell * 100 / result.sum + result.strongSell * 100 / result.sum +result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 7);
     }
     return canvas;
 }
