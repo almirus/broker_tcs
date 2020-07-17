@@ -70,6 +70,8 @@ export const OPTION_ALERT_TODAY = 'alert_today';
 export const OPTION_ALERT_TODAY_VALUE = 'alert_today_value';
 export const OPTION_ALERT_TODAY_PER_SYMBOL = 'alert_today_per_symbol';
 export const OPTION_ALERT_TODAY_VALUE_PER_SYMBOL = 'alert_today_value_per_symbol';
+export const OPTION_ALERT_ORDER_PER_SYMBOL = 'alert_order_per_symbol';
+export const OPTION_ALERT_ORDER_VALUE_PER_SYMBOL = 'alert_order_value_per_symbol';
 export const OPTION_CONVERT_TO_RUB = 'convert_to_rub';
 export const OPTION_SORT_BY_NEAREST = 'sort_by_nearest';
 export const OPTION_ALPHAVANTAGE = 'alphavantage';
@@ -78,6 +80,9 @@ export const OPTION_FAVORITE = 'favorite';
 export const OPTION_FAVORITE_LIST = 'add_favorite';
 export const TICKER_LIST = 'tickerList';
 export const ALERT_TICKER_LIST = 'alertTickerList';
+export const OPTION_RIFINITIV='rifinitiv';
+export const OPTION_FINN_ENABLED='finnconsensus';
+export const OPTION_FINN_GETLAST='finnconsensus_1m';
 //up to 5 API requests per minute and 500 requests per day
 export const ALPHAVANTAGE_KEY = 'M3JMJM8U22EIIO2Y';
 export const AV_SYMBOL_URL = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=';

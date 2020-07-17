@@ -424,7 +424,7 @@ export function drawPremiumConsensusFinn(data) {
         result.strongBuy /= data.length;
         result.strongSell /= data.length;
         result.sum = result.buy + result.hold + result.sell + result.strongBuy + result.strongSell;
-        canvas.title = `Консенсус прогноз от FinnHUB на основе ${data.length} прогнозов`;
+        canvas.title = `Консенсус прогноз от FinnHUB на основе ${data.length} прогноз${data.length === 1 ? 'а' : 'ов'}, самый свежий от ${data[0].period}`;
         ctx.fillStyle = 'rgb(23,111,55)';
         ctx.fillRect(0, 2, result.strongBuy * 100 / result.sum, 7);
         ctx.fillStyle = 'rgb(29,185,84)';
@@ -434,7 +434,7 @@ export function drawPremiumConsensusFinn(data) {
         ctx.fillStyle = 'rgb(244,91,91)';
         ctx.fillRect(result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 2, result.sell * 100 / result.sum + result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 7);
         ctx.fillStyle = 'rgb(243,0,0)';
-        ctx.fillRect(result.sell * 100 / result.sum + result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 2, result.strongSell * 100 / result.sum + result.strongSell * 100 / result.sum +result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 7);
+        ctx.fillRect(result.sell * 100 / result.sum + result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 2, result.strongSell * 100 / result.sum + result.strongSell * 100 / result.sum + result.hold * 100 / result.sum + result.buy * 100 / result.sum + result.strongBuy * 100 / result.sum, 7);
     }
     return canvas;
 }

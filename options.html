@@ -76,6 +76,7 @@
                             актуальные цены OTC, необходимо
                             <a href="https://finnhub.io/register" target="_blank"
                                title="Перейти на сайт и зарегистрировать ключ">зарегистрироваться</a> и поменять ключ!
+                        <li>Можно ставить оповещение на возможное срабатывание в ближайшее время заявки (заранее)
                         <li>Мелкие исправления, теперь рядом с внебирживыми выводится 👑
                         <li>Новый 💎<a
                                 href="https://chrome.google.com/webstore/detail/tinkoffticker/dpflhleimmbhmcihedanghbdeoinpiig?hl=ru"
@@ -137,6 +138,17 @@
                          title="Выдает уведомление, если стоимость любой позиции в портфеле поменялась в течении дня на указанную величину. Нужно учитывать, что брокер считает доходность по цене последней сделки&#013;Нажмите цифру чтобы изменить">
 
                     <br>
+                    <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_order_per_symbol">
+                    <label for="alert_order_per_symbol">Оповещать, если цена <strong>близка к исполнению заявки</strong> на
+                        ±<input class="textInput" type="number"
+                                title="Установить доходность, при достижении которой будет выведено уведомление"
+                                name="alert_order_value_per_symbol"
+                                id="alert_order_value_per_symbol" maxlength="3"
+                                min="0">%</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Выдает уведомление, если цена приблизилась к исполнению заявки на указанные % &#013;Нажмите цифру чтобы изменить">
+
+                    <br>
                     <input type="checkbox" value="0" name="convert_to_rub" id="convert_to_rub">
                     <label for="convert_to_rub">Показывать итоговые суммы в рублях</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
@@ -163,7 +175,7 @@
                     <input type="checkbox" value="0" name="finnconsensus_1m" id="finnconsensus_1m">
                     <label for="finnconsensus_1m">Выводить только самый свежий имеющийся</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                         title="Если выбрано будет выведен самый свежий прогноз, иначе средний из всех имеющихся">
+                         title="Если выбрано будет выведен самый свежий прогноз, иначе среднее арифмитическое из 6 последних">
                     <br>
                     <input type="checkbox" value="0" name="rifinitiv" id="rifinitiv">
                     <label for="rifinitiv">Выводить прогноз от Rifinitiv</label>
@@ -234,8 +246,10 @@
             <label for="pulse">🔥 Пульс (beta)</label>
             <input type="radio" value="4" name="list_type" id="treemap">
             <label for="treemap">Карта цен</label>
+            <!--
             <input type="radio" value="5" name="list_type" id="analisis">
             <label for="analisis">Анализ</label><br>
+            -->
             <div id="alert_table"></div>
             <div id="price_table" style="display: none">
                 <label for="add_list_type">Добавить бумаги из</label>

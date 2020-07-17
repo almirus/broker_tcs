@@ -34,7 +34,10 @@ import {
     OPTION_CONVERT_TO_RUB,
     OPTION_FAVORITE,
     OPTION_FAVORITE_LIST,
+    OPTION_FINN_ENABLED,
+    OPTION_FINN_GETLAST,
     OPTION_REDIRECT,
+    OPTION_RIFINITIV,
     OPTION_SESSION,
     ORDERS_URL,
     PING_URL,
@@ -1194,16 +1197,21 @@ function getPrognosisList() {
                                 const response = await fetch(PROGNOSIS_URL.replace('${ticker}', item.ticker) + session_id);
                                 let json = await response.json();
                                 item['consensus'] = json.payload.consensus;
-                                if (item.securityType)// только для портфеля запрашиваем рекомендации
+                                const api = await MainProperties.getAVOption();
+                                const finn = await MainProperties.getFinnOption();
+                                if (finn.FinnEnabled && item.securityType)// только для портфеля запрашиваем рекомендации
                                     try {
-                                        const option = await MainProperties.getAVOption();
-                                        const response = await fetch(FINN_RECOMENDATION.replace('${ticker}', item.ticker) + option.AVKey);
-                                        item['finn_consensus'] = await response.json();
+                                        const response = await fetch(FINN_RECOMENDATION.replace('${ticker}', item.ticker) + api.AVKey);
+                                        let array = await response.json();
+                                        if (finn.FinnLast) array = array.slice(0, 1); // только один прогноз
+                                        else array = array.slice(0, 6);
+                                        item['finn_consensus'] = array; // последние 6 пронозов
                                     } catch (e) {
                                         console.error(e);
                                     }
                             }
-                            if (item?.isin) {
+                            const rif = await MainProperties.getRifOption();
+                            if (rif.RifEnabled && item?.isin) {
                                 const response = await fetch(CONSENSUS_URL.replace('${isin}', item.isin) + session_id)
                                 let json = await response.json();
                                 item['premium_consensus'] = json.payload;
@@ -2004,6 +2012,56 @@ export class MainProperties {
         })
     }
 
+    static async getFinnOption() {
+        if (!(this._FinnEnabled === undefined) && !(this._FinnLast === undefined)) {
+            return {FinnEnabled: this._FinnEnabled, FinnLast: this._FinnLast};
+        }
+        const promises = [
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_FINN_ENABLED], (result) => {
+                    this._FinnEnabled = result[OPTION_FINN_ENABLED];
+                    resolve(result[OPTION_FINN_ENABLED]);
+                })
+            ),
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_FINN_GETLAST], (result) => {
+                    this._FinnLast = result[OPTION_FINN_GETLAST];
+                    resolve(result[OPTION_FINN_GETLAST]);
+                })
+            )
+        ];
+        return new Promise(resolve => {
+            Promise.all(promises)
+                .then(([Enabled, Last]) => {
+                    this._FinnEnabled = Enabled;
+                    this._FinnLast = Last;
+                    //console.log('get NOT cached AVOption');
+                    resolve({FinnEnabled: Enabled, FinnLast: Last});
+                })
+        })
+    }
+
+    static async getRifOption() {
+        if (!(this._RifEnabled === undefined)) {
+            return {RifEnabled: this._RifEnabled};
+        }
+        const promises = [
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_RIFINITIV], (result) => {
+                    this._RifEnabled = result[OPTION_RIFINITIV];
+                    resolve(result[OPTION_RIFINITIV]);
+                })
+            )
+        ];
+        return new Promise(resolve => {
+            Promise.all(promises)
+                .then(([Enabled]) => {
+                    this._RifEnabled = Enabled;
+                    resolve({RifEnabled: Enabled});
+                })
+        })
+    }
+
     static async getFavoriteOption() {
         if (!(this._favoriteOption === undefined)) {
             //console.log('get cached sessionId');
@@ -2048,6 +2106,34 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             if (key === OPTION_SESSION) MainProperties._sessionOption = storageChange.newValue;
             if (key === OPTION_FAVORITE) MainProperties._favoriteOption = storageChange.newValue;
             if (key === OPTION_FAVORITE_LIST) MainProperties._favoriteListOption = storageChange.newValue;
+            // при установке галочек в опциях запрашиваем вновь прогноз, который будет измененм в зависомости от опций
+            if (key === OPTION_RIFINITIV) {
+                MainProperties._RifEnabled = storageChange.newValue;
+                portfolio._prognosisList = undefined;
+                (async () => {
+                    await getPrognosisList().then(list => {
+                        portfolio._prognosisList = list;
+                    });
+                })()
+            }
+            if (key === OPTION_FINN_ENABLED) {
+                MainProperties._FinnEnabled = storageChange.newValue;
+                portfolio._prognosisList = undefined;
+                (async () => {
+                    await getPrognosisList().then(list => {
+                        portfolio._prognosisList = list;
+                    });
+                })()
+            }
+            if (key === OPTION_FINN_GETLAST) {
+                MainProperties._FinnLast = storageChange.newValue;
+                portfolio._prognosisList = undefined;
+                (async () => {
+                    await getPrognosisList().then(list => {
+                        portfolio._prognosisList = list;
+                    });
+                })()
+            }
         }
     }
 });

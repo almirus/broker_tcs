@@ -6,6 +6,8 @@ import {
     INTERVAL_TO_CHECK,
     LOGIN_URL,
     OPTION_ALERT,
+    OPTION_ALERT_ORDER_PER_SYMBOL,
+    OPTION_ALERT_ORDER_VALUE_PER_SYMBOL,
     OPTION_ALERT_TODAY,
     OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
@@ -16,7 +18,10 @@ import {
     OPTION_COSMETICS,
     OPTION_FAVORITE,
     OPTION_FAVORITE_LIST,
+    OPTION_FINN_ENABLED,
+    OPTION_FINN_GETLAST,
     OPTION_REDIRECT,
+    OPTION_RIFINITIV,
     OPTION_SESSION,
     OPTION_SORT_BY_NEAREST,
     port,
@@ -24,7 +29,7 @@ import {
     RECALIBRATION_LINK,
     SYMBOL_LINK,
     TICKER_LIST,
-    YANDEX_TRANSLATE,
+    YANDEX_TRANSLATE
 } from "/js/constants.mjs";
 import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
@@ -1240,6 +1245,20 @@ chrome.storage.sync.get([OPTION_ALERT_TODAY_PER_SYMBOL], function (result) {
     document.getElementById(OPTION_ALERT_TODAY_PER_SYMBOL).checked = result[OPTION_ALERT_TODAY_PER_SYMBOL] === true;
 });
 
+
+// сохраняем применение Изменение цены по бумаге за день
+document.getElementById(OPTION_ALERT_ORDER_PER_SYMBOL).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_ALERT_ORDER_PER_SYMBOL]: e.target.checked}, function () {
+        console.log('Alert_order_per_symbol option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALERT_ORDER_PER_SYMBOL], function (result) {
+    console.log('get Alert_order_per_symbol option');
+    document.getElementById(OPTION_ALERT_ORDER_PER_SYMBOL).checked = result[OPTION_ALERT_ORDER_PER_SYMBOL] === true;
+});
+
+
 // сохраняем величину уменьшения увеличения по отдельной бумаге
 document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL]: e.target.value}, function () {
@@ -1253,6 +1272,22 @@ document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).addEventListener('c
 chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result) {
     console.log('get Alert_today_value_per_symbol option');
     document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
+});
+
+
+// сохраняем величину уменьшения увеличения по отдельной бумаге
+document.getElementById(OPTION_ALERT_ORDER_VALUE_PER_SYMBOL).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL]: e.target.value}, function () {
+        console.log('Alert_order_value_per_symbol option set to ' + e.target.value);
+    });
+    chrome.storage.local.set({[ALERT_TICKER_LIST]: {}}, () => {
+        console.log('reset relative ');
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_ALERT_ORDER_VALUE_PER_SYMBOL], function (result) {
+    console.log('get Alert_order_value_per_symbol option');
+    document.getElementById(OPTION_ALERT_ORDER_VALUE_PER_SYMBOL).value = result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL] || 1;
 });
 
 
@@ -1283,17 +1318,21 @@ chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
 // сохраняем применение Использовать Alpantage
 document.getElementById(OPTION_ALPHAVANTAGE).addEventListener('change', function (e) {
     if (e.target.checked && !document.getElementById(OPTION_ALPHAVANTAGE_KEY).value) {
-        alert('Сначала укажите ключ полученный с сайта Alphavantage');
+        alert('Сначала укажите ключ полученный с сайта FinnHUB');
         e.target.checked = false;
     } else
         chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
             console.log('alphavantage option set to ' + e.target.checked);
+            document.getElementById(OPTION_FINN_ENABLED).disabled=!e.target.checked;
+            document.getElementById(OPTION_FINN_GETLAST).disabled=!e.target.checked;
         })
 });
 // подгружаем настройки
 chrome.storage.sync.get([OPTION_ALPHAVANTAGE], function (result) {
     console.log('get alphavantage option');
     document.getElementById(OPTION_ALPHAVANTAGE).checked = result[OPTION_ALPHAVANTAGE] === true;
+    document.getElementById(OPTION_FINN_ENABLED).disabled=!result[OPTION_ALPHAVANTAGE] === true;
+    document.getElementById(OPTION_FINN_GETLAST).disabled=!result[OPTION_ALPHAVANTAGE] === true;
 });
 
 // сохраняем применение  Alpantage key
@@ -1338,6 +1377,45 @@ chrome.storage.sync.get([OPTION_FAVORITE_LIST], function (result) {
     console.log('get add favorite option');
     document.getElementById(OPTION_FAVORITE_LIST).checked = result[OPTION_FAVORITE_LIST] === true;
 });
+
+// сохраняем применение rifinitiv
+document.getElementById(OPTION_RIFINITIV).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_RIFINITIV]: e.target.checked}, function () {
+        console.log('add rifinitiv option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_RIFINITIV], function (result) {
+    console.log('get rifinitiv option');
+    document.getElementById(OPTION_RIFINITIV).checked = result[OPTION_RIFINITIV] === true;
+});
+
+// сохраняем применение Finn
+document.getElementById(OPTION_FINN_ENABLED).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_FINN_ENABLED]: e.target.checked}, function () {
+        console.log('add finn option set to ' + e.target.checked);
+        document.getElementById(OPTION_FINN_GETLAST).disabled = !e.target.checked;
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_FINN_ENABLED], function (result) {
+    console.log('get finn option');
+    document.getElementById(OPTION_FINN_ENABLED).checked = result[OPTION_FINN_ENABLED] === true;
+    document.getElementById(OPTION_FINN_GETLAST).disabled = !result[OPTION_FINN_ENABLED];
+});
+
+// сохраняем применение Только один прогноз
+document.getElementById(OPTION_FINN_GETLAST).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_FINN_GETLAST]: e.target.checked}, function () {
+        console.log('add last month option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_FINN_GETLAST], function (result) {
+    console.log('get last month option');
+    document.getElementById(OPTION_FINN_GETLAST).checked = result[OPTION_FINN_GETLAST] === true;
+});
+
 
 // запрашиваем права на выдачу уведомлений
 if (window.Notification && Notification.permission !== "granted") {
@@ -1387,16 +1465,6 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     }
 });
 
-// вызывается при изменении storage
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-    for (let key in changes) {
-
-        // перерисовываем таблицу с уведомлениями при изменении Storage
-        //if (key === TICKER_LIST) debounce(create_alert_table(), 1000);
-
-    }
-});
-
 let liquidList = {};
 let listPrognosis = {};
 let holidays = new Set();
@@ -1406,15 +1474,13 @@ let holidays = new Set();
     chrome.storage.sync.get([OPTION_ALPHAVANTAGE, OPTION_ALPHAVANTAGE_KEY], result => {
         if (result[OPTION_ALPHAVANTAGE] && result[OPTION_ALPHAVANTAGE_KEY].match('[A-Z0-9]{16}')) {
             document.getElementById('mainProperties').classList.add('blink_me');
-            document.getElementById('mainProperties').title = 'Основные настройки. Нужно поменять ключ к API';
+            document.getElementById('mainProperties').title = 'Нужно поменять ключ к API';
             document.getElementById(OPTION_ALPHAVANTAGE_KEY).style.cssText = 'box-shadow: 0 0 3px #CC0000; margin: 10px';
         } else {
             document.getElementById('mainProperties').className = 'toggle';
             document.getElementById(OPTION_ALPHAVANTAGE_KEY).cssText = 'outline-color: inherit;';
             document.getElementById('mainProperties').title = 'Основные настройки.';
             document.getElementById(OPTION_ALPHAVANTAGE_KEY).style.cssText = '';
-
-
         }
 
     })
