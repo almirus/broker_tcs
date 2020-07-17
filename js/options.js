@@ -868,7 +868,7 @@ function create_alert_table(data_list) {
         chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
             if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
             list_for_iteration.forEach(function (element) {
-                let opacity_rate = giveLessDiffToTarget(element);
+                let opacity_rate = element.opacity_rate;
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
                 if (!data_list) {
                     element.online_average_price = 'Обновление';
@@ -1272,6 +1272,7 @@ document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).addEventListener('c
 chrome.storage.sync.get([OPTION_ALERT_TODAY_VALUE_PER_SYMBOL], function (result) {
     console.log('get Alert_today_value_per_symbol option');
     document.getElementById(OPTION_ALERT_TODAY_VALUE_PER_SYMBOL).value = result[OPTION_ALERT_TODAY_VALUE_PER_SYMBOL] || 5;
+
 });
 
 
@@ -1288,6 +1289,9 @@ document.getElementById(OPTION_ALERT_ORDER_VALUE_PER_SYMBOL).addEventListener('c
 chrome.storage.sync.get([OPTION_ALERT_ORDER_VALUE_PER_SYMBOL], function (result) {
     console.log('get Alert_order_value_per_symbol option');
     document.getElementById(OPTION_ALERT_ORDER_VALUE_PER_SYMBOL).value = result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL] || 1;
+    chrome.storage.local.set({[ALERT_TICKER_LIST]: {}}, () => {
+        console.log('reset relative ');
+    })
 });
 
 

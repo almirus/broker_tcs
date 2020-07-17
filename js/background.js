@@ -25,6 +25,8 @@ import {
     NEWS_URL,
     OPERATIONS_URL,
     OPTION_ALERT,
+    OPTION_ALERT_ORDER_PER_SYMBOL,
+    OPTION_ALERT_ORDER_VALUE_PER_SYMBOL,
     OPTION_ALERT_TODAY,
     OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
@@ -67,6 +69,7 @@ import {
     USER_LIST_URL,
     USER_URL
 } from "/js/constants.mjs";
+import {giveLessDiffToTarget} from "./utils/sortUtils.js";
 
 
 function redirect_to_page(url, open_new = false) {
@@ -1263,6 +1266,7 @@ function updateAlertPrices() {
                 }),
             ]).then(async ([favorite_list, orders, stops, subscriptions]) => {
                 portfolio.orders = orders.map(item => {
+                    // проверяем на близость к исполнению
                     return {
                         symbol: {
                             ticker: item.ticker,
@@ -1276,10 +1280,41 @@ function updateAlertPrices() {
                 })
                 let alert_data = [].concat(await MainProperties.getFavoriteListOption() ? favorite_list : [], orders, stops, subscriptions);
                 let i = 0;
+                const alertOrderOption = await MainProperties.getAlertOrderOption();
                 //TODO сделать запрос к поиску
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
                     await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
+                        let opacity_rate = giveLessDiffToTarget({
+                            online_buy_price: res.payload.buy ? res.payload.buy.value : '',
+                            online_sell_price: res.payload.sell ? res.payload.sell.value : '',
+                            buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
+                            sell_price: item.sell_price,
+                        });
+
+                        if (item.orderId && alertOrderOption.alertEnabled && opacity_rate>0 && Math.abs(opacity_rate)*100 <= alertOrderOption.alertOrder) {
+                            getOldRelative(item.ticker + '_order').then(old_relative => {
+                                console.log('repeated alert for '+item.ticker,old_relative);
+                                //chrome.storage.sync.remove(item.ticker + '_order');
+
+                            }).catch(e => {
+                                // сохраняем достигнутую доходность
+                                setOldRelative(item.ticker + '_order', alertOrderOption.alertOrder);
+                                chrome.notifications.create(OPTION_ALERT_ORDER_PER_SYMBOL+ '|' + item.ticker, {
+                                    type: 'basic',
+                                    iconUrl: '/icons/order.png',
+                                    title: `Заявка по ${item.ticker} близка к исполнению (примерно на ${Math.abs(opacity_rate)*100}%)`,
+                                    message: 'Проверьте свой портфель',
+                                    requireInteraction: true,
+                                    buttons: [
+                                        {title: 'Удалить уведомление и перейти в портфель'}
+                                    ],
+                                    priority: 0
+                                });
+                                console.log('alert order near to execution')
+                            });
+
+                        }
                         alert_data[i] = {
                             ticker: item.ticker,
                             securityType: PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')],
@@ -1295,6 +1330,7 @@ function updateAlertPrices() {
                             online_buy_price: res.payload.buy ? res.payload.buy.value : '',
                             online_sell_price: res.payload.sell ? res.payload.sell.value : '',
                             orderId: item.orderId,
+                            opacity_rate: opacity_rate,
                             operationType: item.operationType,
                             timeToExpire: item.timeToExpire,
                             status: item.status,
@@ -1847,6 +1883,10 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
         //redirect_to_page(SYMBOL_LINK + ticker[1])
         chrome.notifications.clear(notificationId)
     }
+    if (notificationId.includes(OPTION_ALERT_ORDER_PER_SYMBOL)) {
+        //redirect_to_page(SYMBOL_LINK + ticker[1])
+        chrome.notifications.clear(notificationId)
+    }
 });
 // листнер на клик по кнопкам в уведомлении
 chrome.notifications.onButtonClicked.addListener(function (notificationId, btnIdx) {
@@ -1867,6 +1907,15 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
         // перейти в акцию
         if (btnIdx === 0) {
             redirect_to_page(SYMBOL_LINK.replace('${securityType}', ticker[2] || 'stocks') + ticker[1], true)
+        }
+    }
+    // нажали на кнопках в Уведомлении об изменении цены акций
+    if (notificationId.includes(OPTION_ALERT_ORDER_PER_SYMBOL)) {
+        chrome.notifications.clear(notificationId);
+        chrome.storage.sync.remove(ticker[1]+'_order');
+        // перейти в список
+        if (btnIdx === 0) {
+            redirect_to_page('https://www.tinkoff.ru/invest/orders/', true)
         }
     }
 });
@@ -2076,6 +2125,27 @@ export class MainProperties {
 
     };
 
+    static async getAlertOrderOption() {
+        if (!(this._alertOrder === undefined)&& !(this._alertOrderEnabled === undefined)) {
+            //console.log('get cached sessionId');
+            return {alertOrder: this._alertOrder, alertEnabled: this._alertOrderEnabled};
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_ALERT_ORDER_PER_SYMBOL, OPTION_ALERT_ORDER_VALUE_PER_SYMBOL], result => {
+                if (result[OPTION_ALERT_ORDER_PER_SYMBOL]) {
+                    this._alertOrder = result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL];
+                    this._alertOrderEnabled = result[OPTION_ALERT_ORDER_PER_SYMBOL];
+                    resolve({alertOrder:result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL], alertEnabled: result[OPTION_ALERT_ORDER_PER_SYMBOL]});
+                } else {
+                    this._alertOrder = 0;
+                    this.alertEnabled = false;
+                    resolve({alertOrder:0, alertEnabled: false});
+                }
+            })
+        );
+
+    };
+
     static async getFavoriteListOption() {
         if (!(this._favoriteListOption === undefined)) {
             //console.log('get cached sessionId');
@@ -2106,6 +2176,8 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             if (key === OPTION_SESSION) MainProperties._sessionOption = storageChange.newValue;
             if (key === OPTION_FAVORITE) MainProperties._favoriteOption = storageChange.newValue;
             if (key === OPTION_FAVORITE_LIST) MainProperties._favoriteListOption = storageChange.newValue;
+            if (key === OPTION_ALERT_ORDER_VALUE_PER_SYMBOL) MainProperties._alertOrder = storageChange.newValue;
+            if (key === OPTION_ALERT_ORDER_PER_SYMBOL) MainProperties._alertOrderEnabled = storageChange.newValue;
             // при установке галочек в опциях запрашиваем вновь прогноз, который будет измененм в зависомости от опций
             if (key === OPTION_RIFINITIV) {
                 MainProperties._RifEnabled = storageChange.newValue;
