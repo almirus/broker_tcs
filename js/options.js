@@ -220,7 +220,7 @@ port.onMessage.addListener(function (msg) {
         case 'treemap':
 
             document.getElementById('treemap_container').innerHTML = '';
-            console.log(msg.list);
+            //console.log(msg.list);
             anychart.onDocumentReady(() => {
                 let dataTree = anychart.data.tree(msg.list, 'as-table');
                 let chart = anychart.treeMap(dataTree);
@@ -403,9 +403,9 @@ function setAddButtonHandler() {
             let ticker = button.dataset.ticker;
             let showName = button.dataset.showname;
             let buy_price = document.getElementById('buy_price_' + button.dataset.ticker).value;
-            let sell_price = document.getElementById('sell_price_' + button.dataset.ticker).value;
+            let sell_price = undefined; //document.getElementById('sell_price_' + button.dataset.ticker).value;
             let mobile_alert = 1;
-            let date = document.getElementById('datetime_' + button.dataset.ticker).value;
+            let date = undefined;//document.getElementById('datetime_' + button.dataset.ticker).value;
             let mobile_alert_price;
             if (mobile_alert && buy_price && sell_price) {
                 mobile_alert_price = prompt('Вы указали одновременно и цену покупки и продажи\nДля мобильного уведомления нужно указать только одну (last price), введите интересующую стоимость для ' + button.dataset.ticker, buy_price);
@@ -707,20 +707,13 @@ function create_table(data) {
     let th2 = document.createElement('th');
     th2.appendChild(document.createTextNode('последняя цена'));
     let th3 = document.createElement('th');
-    th3.appendChild(document.createTextNode('увдм. для покупки'));
-    let th4 = document.createElement('th');
-    th4.appendChild(document.createTextNode('увдм. для продажи'));
-    let th5 = document.createElement('th');
-    th5.appendChild(document.createTextNode('уведомление активно до'));
-    let th6 = document.createElement('th');
+    th3.appendChild(document.createTextNode('добавить уведомление'));
 
     let th7 = document.createElement('th');
     tr.appendChild(th1);
     tr.appendChild(th2);
     tr.appendChild(th3);
-    tr.appendChild(th4);
-    tr.appendChild(th5);
-    tr.appendChild(th6);
+
     tr.appendChild(th7);
     table.appendChild(tr);
     if (data && data.length > 0) {
@@ -735,27 +728,16 @@ function create_table(data) {
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
-            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="купить  <=" title="Введите цену, при достижении которой в браузер будет выдано уведомление&#013;Будет сравниваться с ценой покупки">`;
+            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="цена" title="Введите цену, при достижении которой в браузер будет выдано уведомление&#013;Будет сравниваться с ценой покупки">`;
             td3.className = 'tickerCol';
             let td4 = document.createElement('td');
-            //td4.innerHTML = element.prices.sell.value + element.prices.sell.currency + '<br>' + '<input class="tickerPrice sell" type="number">';
-            td4.innerHTML = `<input class="tickerPrice sell" id="sell_price_${element.symbol.ticker}" type="number" placeholder="продать >="  title="Введите цену, при достижении которой в браузер будет выдано уведомление&#013;Будет сравниваться с ценой продажи">`;
-            td4.className = 'tickerCol';
-            let td5 = document.createElement('td');
-            td5.className = 'tickerCol';
-            td5.innerHTML = `<input type="datetime-local" id="datetime_${element.symbol.ticker}" title="Если не установлено, то бессрочно. Не забудьте добавить время">`;
-            let td6 = document.createElement('td');
-            //td6.width = '50';
-            //td6.innerHTML = `<input type="checkbox" id="mobile_alert_${element.symbol.ticker}" title="При достижении цены оповещение также сработает на телефоне в приложении Брокера&#013;Уведомления на телефоне бессрочные и срабатывают только по last price"><label class="icon" for="mobile_alert_${element.symbol.ticker}">📳</label>`;
             let td7 = document.createElement('td');
             td7.className = 'tickerCol';
             td7.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
             tr.appendChild(td1);
             tr.appendChild(td2);
             tr.appendChild(td3);
-            tr.appendChild(td4);
-            tr.appendChild(td5);
-            tr.appendChild(td6);
+
             tr.appendChild(td7);
             table.appendChild(tr);
         })

@@ -392,7 +392,8 @@ export function drawPremiumConsensus(data) {
     canvas.height = 12;
     let ctx = canvas.getContext('2d');
     if (data?.absolute?.buy) {
-        canvas.title = `Консенсус прогноз от 👑Refinitiv\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков`;
+        canvas.title = `Консенсус прогноз от 👑Refinitiv\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков\n
+        Покупать ${data.absolute.buy}, держать ${data.absolute.hold}, продавать ${data.absolute.sell}`;
         ctx.fillStyle = 'green';
         ctx.fillRect(0, 2, data.absolute.buy * 100 / data.analystsCount, 7);
         ctx.fillStyle = 'orange';
@@ -418,13 +419,14 @@ export function drawPremiumConsensusFinn(data) {
             result.strongBuy += item.strongBuy;
             result.strongSell += item.strongSell;
         });
-        result.buy /= data.length;
-        result.hold /= data.length;
-        result.sell /= data.length;
-        result.strongBuy /= data.length;
-        result.strongSell /= data.length;
+        result.buy = Math.floor(result.buy / data.length);
+        result.hold = Math.floor(result.hold / data.length);
+        result.sell = Math.floor(result.sell / data.length);
+        result.strongBuy = Math.floor(result.strongBuy / data.length);
+        result.strongSell = Math.floor(result.strongSell / data.length);
         result.sum = result.buy + result.hold + result.sell + result.strongBuy + result.strongSell;
-        canvas.title = `Консенсус прогноз от FinnHUB на основе ${data.length} прогноз${data.length === 1 ? 'а' : 'ов'}, самый свежий от ${data[0].period}`;
+        canvas.title = `Консенсус прогноз от FinnHUB на основе ${data.length} прогноз${data.length === 1 ? 'а' : 'ов'}, самый свежий от ${data[0].period}\n
+        Активно покупать ${result.strongBuy}, покупать ${result.buy}, держать ${result.hold}, продавать ${result.sell}, активно продавать ${result.strongSell}`;
         ctx.fillStyle = 'rgb(23,111,55)';
         ctx.fillRect(0, 2, result.strongBuy * 100 / result.sum, 7);
         ctx.fillStyle = 'rgb(29,185,84)';
@@ -442,6 +444,7 @@ export function drawPremiumConsensusFinn(data) {
 export function drawDayProgress(element) {
     let progress_style = element.symbol.dayOpen >= element.prices.last?.value ? 'red' : 'green';
     let min = element.symbol.dayOpen;
+    element.prices.last['value'] = element.symbol.lastOTC || element.prices.last?.value;
     let max = element.prices.last?.value;
     if (min > max) min = [max, max = min][0];
 
