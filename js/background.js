@@ -1303,7 +1303,7 @@ function updateAlertPrices() {
                                 chrome.notifications.create(OPTION_ALERT_ORDER_PER_SYMBOL+ '|' + item.ticker, {
                                     type: 'basic',
                                     iconUrl: '/icons/order.png',
-                                    title: `Заявка по ${item.ticker} близка к исполнению (примерно на ${Math.abs(opacity_rate)*100}%)`,
+                                    title: `Заявка по ${item.ticker} близка к исполнению (примерно на ${(Math.abs(opacity_rate)*100).toFixed(2)}%)`,
                                     message: 'Проверьте свой портфель',
                                     requireInteraction: true,
                                     buttons: [

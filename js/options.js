@@ -31,7 +31,7 @@ import {
     TICKER_LIST,
     YANDEX_TRANSLATE
 } from "/js/constants.mjs";
-import {giveLessDiffToTarget, sortAlertRow} from "./utils/sortUtils.js";
+import {sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
 import {
     drawDayProgress,
@@ -397,7 +397,20 @@ function setAnswerToggleButton() {
 
 // назначаем динамически handler для отслеживания кнопки Добавить
 function setAddButtonHandler() {
+    Array.from(document.getElementsByClassName("tickerPrice")).forEach(function (input) {
+        input.addEventListener('input', event => {
+            let ticker = event.target.dataset.ticker;
+            let last = document.getElementById('last_' + ticker).innerText * 1;
+            if (document.getElementById('buy_price_' + ticker).value * 1 > 0) {
+                let percent = 100 - last * 100 / document.getElementById('buy_price_' + ticker).value;
+                if (percent < 0) document.getElementById('percent_' + ticker).className = 'onlineSell'
+                else document.getElementById('percent_' + ticker).className = 'onlineBuy';
+                document.getElementById('percent_' + ticker).innerText = percent.toFixed(2);
+            }
+        });
+    });
     Array.from(document.getElementsByClassName("addTicker")).forEach(function (input) {
+
         input.addEventListener('click', function (e) {
             let button = e.target;
             let ticker = button.dataset.ticker;
@@ -724,13 +737,14 @@ function create_table(data) {
             td1.className = 'maxWidth';
             td1.innerHTML = `${element.symbol.isOTC ? '<span title="Внебиржевой инструмент">👑</span>' : ''}${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
-            td2.appendChild(document.createTextNode(element.prices.last ? (element.prices.last?.value + element.prices.last.currency) : ''));
+            td2.innerHTML = `<span id="last_${element.symbol.ticker}">${element.prices.last?.value}</span>${element.prices.last?.currency}`;
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
-            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" type="number" placeholder="цена" title="Введите цену, при достижении которой в браузер будет выдано уведомление&#013;Будет сравниваться с ценой покупки">`;
+            td3.innerHTML = `<input class="tickerPrice buy" id="buy_price_${element.symbol.ticker}" data-ticker="${element.symbol.ticker}" type="number" placeholder="цена" title="Введите цену, при достижении которой в браузер будет выдано уведомление&#013;Будет сравниваться с ценой покупки">
+            составляет <strong><span id="percent_${element.symbol.ticker}"></span></strong>% от последней цены`;
             td3.className = 'tickerCol';
-            let td4 = document.createElement('td');
+            //let td4 = document.createElement('td');
             let td7 = document.createElement('td');
             td7.className = 'tickerCol';
             td7.innerHTML = `<input type="button" class="addTicker" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
@@ -928,7 +942,11 @@ function create_alert_table(data_list) {
                     if (element.orderId) td4.innerHTML = `
                         <span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
                         <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
-                    else td4.innerHTML = element.subscriptPrice ? element.subscriptPrice.map(elem => `<span class="subscribePrice">${elem.price}</span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>`).join('') : '';
+                    else td4.innerHTML = element.subscriptPrice ? element.subscriptPrice.map(elem =>
+                        `<span class="subscribePrice">${elem.price}
+                            <span class="subscribePercent">${(100-elem.price*100/element.online_average_price).toFixed(1)}%</span>
+                        </span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>
+                         `).join('') : '';
                 }
 
                 let td6 = document.createElement('td');
@@ -1309,16 +1327,16 @@ document.getElementById(OPTION_ALPHAVANTAGE).addEventListener('change', function
     } else
         chrome.storage.sync.set({[OPTION_ALPHAVANTAGE]: e.target.checked}, function () {
             console.log('alphavantage option set to ' + e.target.checked);
-            document.getElementById(OPTION_FINN_ENABLED).disabled=!e.target.checked;
-            document.getElementById(OPTION_FINN_GETLAST).disabled=!e.target.checked;
+            document.getElementById(OPTION_FINN_ENABLED).disabled = !e.target.checked;
+            document.getElementById(OPTION_FINN_GETLAST).disabled = !e.target.checked;
         })
 });
 // подгружаем настройки
 chrome.storage.sync.get([OPTION_ALPHAVANTAGE], function (result) {
     console.log('get alphavantage option');
     document.getElementById(OPTION_ALPHAVANTAGE).checked = result[OPTION_ALPHAVANTAGE] === true;
-    document.getElementById(OPTION_FINN_ENABLED).disabled=!result[OPTION_ALPHAVANTAGE] === true;
-    document.getElementById(OPTION_FINN_GETLAST).disabled=!result[OPTION_ALPHAVANTAGE] === true;
+    document.getElementById(OPTION_FINN_ENABLED).disabled = !result[OPTION_ALPHAVANTAGE] === true;
+    document.getElementById(OPTION_FINN_GETLAST).disabled = !result[OPTION_ALPHAVANTAGE] === true;
 });
 
 // сохраняем применение  Alpantage key

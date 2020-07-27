@@ -263,6 +263,17 @@ input[type="datetime-local"] {
 .subscribePrice:active {
     background-color: red;
 }
+.subscribePercent{
+    opacity: 0;
+    display: flex;
+    height: 0;
+    transition: all .2s ease-in-out;
+}
+.subscribePrice:hover .subscribePercent {
+    opacity: 1;
+    height: 15px;
+    transition: all .2s ease-in-out;
+}
 .close {
     position: absolute;
     border-radius: 50%;

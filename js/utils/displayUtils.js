@@ -442,21 +442,21 @@ export function drawPremiumConsensusFinn(data) {
 }
 
 export function drawDayProgress(element) {
-    let progress_style = element.symbol.dayOpen >= element.prices.last?.value ? 'red' : 'green';
+    let last = element.symbol.lastOTC || element.prices.last?.value;
+    let progress_style = element.symbol.dayOpen >= last ? 'red' : 'green';
     let min = element.symbol.dayOpen;
-    element.prices.last['value'] = element.symbol.lastOTC || element.prices.last?.value;
-    let max = element.prices.last?.value;
+    let max = last;
     if (min > max) min = [max, max = min][0];
 
     let dayOpenPercent = 100 - (element.symbol.dayHigh - min) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
     let dayLastPercent = 100 - (element.symbol.dayHigh - max) * 100 / (element.symbol.dayHigh - element.symbol.dayLow);
     let minPercent, maxPercent;
-    minPercent = (((element.symbol.dayLow * 100) / element.prices.last?.value) - 100) / 100;
-    maxPercent = (-100 + ((element.symbol.dayHigh * 100) / element.prices.last?.value)) / 100;
+    minPercent = (((element.symbol.dayLow * 100) / last) - 100) / 100;
+    maxPercent = (-100 + ((element.symbol.dayHigh * 100) / last)) / 100;
     let canvas = document.createElement('canvas');
     canvas.width = 100;
     canvas.height = 6;
-    canvas.title = `Текущая цена ${element.prices.last?.value}, дневной диапазон цен ${element.symbol.dayLow}(${minPercent.toLocaleString('ru-RU', {
+    canvas.title = `Текущая цена ${last}, дневной диапазон цен ${element.symbol.dayLow}(${minPercent.toLocaleString('ru-RU', {
         style: 'percent',
         maximumSignificantDigits: 2
     })}) - ${element.symbol.dayHigh}(${maxPercent.toLocaleString('ru-RU', {
