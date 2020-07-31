@@ -227,7 +227,7 @@
         <fieldset class="table">
             <legend>Уведомления/Новости</legend>
             <input type="radio" value="0" checked="checked" name="list_type" id="alert_list">
-            <label for="alert_list">Список отслеживаемых/Заявки</label>
+            <label for="alert_list">Список</label>
             <!--
             <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                  title="Цветной строкой отмечены онлайн заявки (покупка/продажа/takeProfit/stopLoss)&#013;Уведомления срабатывают и на мобильном">
@@ -240,6 +240,8 @@
                  -->
             <input type="radio" value="1" name="list_type" id="add_alert_list">
             <label for="add_alert_list">Добавить для отслеживания</label>
+            <input type="radio" value="5" name="list_type" id="add_notes_list">
+            <label for="add_notes_list">Добавить заметки</label>
             <input type="radio" value="2" name="list_type" id="news">
             <label for="news">Новости</label>
             <input type="radio" value="3" name="list_type" id="pulse">
@@ -250,7 +252,8 @@
             <input type="radio" value="5" name="list_type" id="analisis">
             <label for="analisis">Анализ</label><br>
             -->
-            <div id="alert_table"></div>
+            <div id="notes_table" style="display: none"><img src="css/loader.gif" alt="loading"></div>
+            <div id="alert_table"><img src="css/loader.gif" alt="loading"></div>
             <div id="price_table" style="display: none">
                 <label for="add_list_type">Добавить бумаги из</label>
                 <select id="add_list_type">
@@ -276,6 +279,7 @@
                 <!-- TradingView Widget END -->
             </div>
             <div id="news_table" style="display: none">
+                <img src="css/loader.gif" alt="loading">
             </div>
             <div id="treemap_table" style="display: none">
                 Выберите биржу

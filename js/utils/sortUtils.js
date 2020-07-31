@@ -1,13 +1,5 @@
 'use strict';
 
-export function sortAlertRow(first, second) {
-    let firstNum = giveLessDiffToTarget(first);
-    let secondNum = giveLessDiffToTarget(second);
-    if (firstNum < secondNum) return -1;
-    if (firstNum > secondNum) return 1;
-    return 0;
-}
-
 export function giveLessDiffToTarget(desireTicker) {
     let diffToBuy = 100;
     let diffToSell = 100;

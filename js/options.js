@@ -31,7 +31,6 @@ import {
     TICKER_LIST,
     YANDEX_TRANSLATE
 } from "/js/constants.mjs";
-import {sortAlertRow} from "./utils/sortUtils.js";
 import {exportCSVFile} from "./utils/csvExporter.js";
 import {
     drawDayProgress,
@@ -521,6 +520,9 @@ function create_portfolio_table(divId, data) {
     th8.style.width = '40px';
     th7.className = 'sorting';
 
+    let th9 = document.createElement('th');
+    th9.appendChild(document.createTextNode('заметки'));
+
     tr.appendChild(th1);
     tr.appendChild(th8);
     tr.appendChild(th2);
@@ -529,6 +531,7 @@ function create_portfolio_table(divId, data) {
     tr.appendChild(th5);
     tr.appendChild(th6);
     tr.appendChild(th7);
+    tr.appendChild(th9);
 
     table.appendChild(tr);
 
@@ -862,7 +865,10 @@ function create_alert_table(data_list) {
         table.appendChild(tr);
         let list_for_iteration = data_list;
         chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
-            if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort(sortAlertRow);
+            if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort((f, s) =>
+                (f.opacity_rate > s.opacity_rate) ? 1 : ((s.opacity_rate > f.opacity_rate) ? -1 : 0))
+            else list_for_iteration = list_for_iteration.sort((f, s) =>
+                (f.ticker > s.ticker) ? 1 : ((s.ticker > f.ticker) ? -1 : 0));
             list_for_iteration.forEach(function (element) {
                 let opacity_rate = element.opacity_rate;
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
@@ -944,7 +950,7 @@ function create_alert_table(data_list) {
                         <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
                     else td4.innerHTML = element.subscriptPrice ? element.subscriptPrice.map(elem =>
                         `<span class="subscribePrice">${elem.price}
-                            <span class="subscribePercent">${(100-elem.price*100/element.online_average_price).toFixed(1)}%</span>
+                            <span class="subscribePercent">${(100 - elem.price * 100 / element.online_average_price).toFixed(1)}%</span>
                         </span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>
                          `).join('') : '';
                 }
@@ -1034,6 +1040,8 @@ document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
+
 });
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
@@ -1043,6 +1051,16 @@ document.getElementById('add_alert_list').addEventListener('change', function (e
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
+});
+document.getElementById('add_notes_list').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('orders_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'block';
+    document.getElementById('graphic_table').style.display = 'none';
+    document.getElementById('news_table').style.display = 'none';
+    document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('price_table').style.display = 'none';
 });
 document.getElementById('graphic').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
@@ -1052,6 +1070,7 @@ document.getElementById('graphic').addEventListener('change', function (e) {
     document.getElementById('graphic_table').style.display = 'block';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
     // получаем список бумаг в портфеле
     let string_array_of_ticker = [];
     Array.from(document.getElementsByClassName("ticker")).forEach(input => {
@@ -1098,6 +1117,7 @@ document.getElementById('news').addEventListener('change', function (e) {
     document.getElementById('news_table').style.display = 'block';
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
     port.postMessage({method: "getNews", params: {nav_id: ''}});
 });
 document.getElementById('pulse').addEventListener('change', function (e) {
@@ -1107,6 +1127,7 @@ document.getElementById('pulse').addEventListener('change', function (e) {
     document.getElementById('news_table').style.display = 'block';
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
     port.postMessage({method: "getPulse", params: {nav_id: 61}});
 });
 document.getElementById('treemap').addEventListener('change', function (e) {
@@ -1116,6 +1137,7 @@ document.getElementById('treemap').addEventListener('change', function (e) {
     document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
     let country = document.getElementById('add_treemap_type').value;
     port.postMessage({method: "getTreemap", params: country});
 });
