@@ -1119,6 +1119,7 @@ function getOrders(session_id) {
                         orderId: element.orderId,
                         status: element.status,
                         quantityExecuted: element.quantityExecuted,
+                        brokerAccountType: element.brokerAccountType
                     });
                 });
                 resolve(return_data)
@@ -1149,7 +1150,9 @@ function getStop(session_id) {
                         active: true,
                         timeToExpire: undefined,
                         orderId: element.orderId,
-                        status: element.status
+                        status: element.status,
+                        orderType: element.orderType,
+                        brokerAccountType: element.brokerAccountType
                     });
                 });
                 resolve(return_data)
@@ -1340,6 +1343,8 @@ function updateAlertPrices() {
                             quantity: item.quantity,
                             quantityExecuted: item.quantityExecuted,
                             favoriteList: item.favoriteList,
+                            orderType: item.orderType,
+                            brokerAccountType: item.brokerAccountType
                         };
                         i++;
                     })

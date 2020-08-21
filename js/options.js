@@ -948,7 +948,7 @@ function create_alert_table(data_list) {
                     };
                     if (element.orderId) td4.innerHTML = `
                         <span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
-                        <strong title="${status[element.status] ? status[element.status] : (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit')} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${(element.sell_price || element.buy_price) * element.quantity}</strong>`;
+                        <strong title="${status[element.status] ? status[element.status] : element.orderType} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${((element.sell_price || element.buy_price) * element.quantity).toFixed(2)} счет ${element.brokerAccountType}</strong>`;
                     else td4.innerHTML = element.subscriptPrice ? element.subscriptPrice.map(elem =>
                         `<span class="subscribePrice">${elem.price}
                             <span class="subscribePercent">${(100 - elem.price * 100 / element.online_average_price).toFixed(1)}%</span>
