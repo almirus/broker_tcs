@@ -1289,9 +1289,9 @@ function updateAlertPrices() {
                     //alert_data.forEach(function (item, i, alertList) {
                     await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
                         let opacity_rate = giveLessDiffToTarget({
-                            online_buy_price: res.payload.buy?.value || res.payload.last.value || 0,
-                            online_sell_price: res.payload.sell?.value || res.payload.last.value || 0,
-                            buy_price: item.buy_price || (item.subscriptions? item.subscriptions[0].price : 0),
+                            online_buy_price: res.payload.buy?.value || res.payload.last?.value || 0,
+                            online_sell_price: res.payload.sell?.value || res.payload.last?.value || 0,
+                            buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
                             sell_price: item.sell_price || 0,
                         });
 
@@ -1331,7 +1331,7 @@ function updateAlertPrices() {
                             currency: !res.payload.last ? 'USD' : res.payload.last.currency,
                             online_average_price: !res.payload.last ? 0 : res.payload.last.value,
                             online_buy_price: res.payload.buy?.value,
-                            online_sell_price: res.payload.sell?.value || res.payload.last.value,
+                            online_sell_price: res.payload.sell?.value || res.payload.last?.value || 0,
                             orderId: item.orderId,
                             opacity_rate: opacity_rate,
                             operationType: item.operationType,
