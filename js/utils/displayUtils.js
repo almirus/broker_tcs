@@ -303,6 +303,44 @@ export function renderProfile(profile) {
     });
 }
 
+export function renderListOperations(account, list, hideCommission) {
+    function filterDataForListOperations(account, items) {
+        let result = [];
+        let accountData = items.filter(item =>
+            (item.accountType === account || account === 'All')
+            && (item.status === 'done' || item.status === 'progress')
+            && !(item.operationType === 'BrokCom') || hideCommission
+        );
+
+        accountData.forEach(item => {
+            result.push({
+                isin: item.isin || ' ',
+                symbol: item.ticker || ' ',
+                commission: Math.abs(item.commission || 0) || ' ',
+                date: item.date ? new Date(Date.parse(item.date)) : ' ',
+                type: item.operationType || ' ',
+                price: (!(item.operationType.toLowerCase() === 'buy' && item.operationType.toLowerCase() === 'sell') ? item.payment : item.price) || ' ',
+                currency: item.currency || ' ',
+                amount: item.quantity || item.quantityRest || ' ',
+                description: item.description
+            })
+        })
+        return result;
+    }
+
+    let items = filterDataForListOperations(account, list);
+    let buffer = "<table><tr><th>ISIN</th><th>SYMBOL</th><th>COMMISSION</th><th>DATE</th><th>TYPE</th><th>PRICE</th><th>CURRENCY</th><th>AMOUNT</th><th>DESCRIPTION</th></tr>";
+
+    buffer += items.map(item => {
+        return `
+<tr>
+    <td>${item.isin}</td><td>${item.symbol}</td><td>${item.commission}</td><td>${item.date.toLocaleDateString()}</td><td>${item.type}</td><td>${item.price}</td><td>${item.currency}</td><td>${item.amount}</td><td>${item.description}</td>
+</tr>`;
+    }).join('');
+    buffer += "</table>";
+    document.getElementById('operation_container').innerHTML = buffer;
+}
+
 export function renderTickers(object) {
     let buffer = '<div class="scroll">';
     let newTickers = object.newTickers;

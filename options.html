@@ -240,10 +240,8 @@
             <legend>Уведомления/Новости</legend>
             <input type="radio" value="0" checked="checked" name="list_type" id="alert_list">
             <label for="alert_list">Список</label>
-            <!--
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Цветной строкой отмечены онлайн заявки (покупка/продажа/takeProfit/stopLoss)&#013;Уведомления срабатывают и на мобильном">
-                 -->
+            <input type="radio" value="7" name="list_type" id="operation_list">
+            <label for="operation_list">Операции</label>
             <input type="radio" value="3" name="list_type" id="graphic">
             <label for="graphic">График</label>
             <!--
@@ -323,6 +321,14 @@
                 <span id="newtickers_container">
                     <img src="css/loader.gif" alt="loading">
                 </span>
+            </div>
+            <div id="operation_table" style="display: none">
+                Счет <select class="operation_table" id="operation_account">
+                <option selected="selected" value="All">Все</option>
+                <option value="Tinkoff">ТКС</option>
+                <option value="TinkoffIis">ИИС</option>
+                </select> от <input type="date" id="operation_date_from" class="operation_table"> до <input type="date" id="operation_date_to" class="operation_table"> показывать комиссию отдельно <input type="checkbox" id="operation_commission" class="operation_table"><br>
+                <span id="operation_container"></span>
             </div>
         </fieldset>
     </div>

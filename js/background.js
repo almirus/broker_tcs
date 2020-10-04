@@ -495,14 +495,14 @@ function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
  * @param brokerAccountType
  * @return {Promise<any>}
  */
-function exportPortfolio(brokerAccountType = 'Tinkoff') {
+function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()).toJSON()) {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             fetch(OPERATIONS_URL + session_id, {
                 method: "POST",
                 body: JSON.stringify({
-                    from: "2015-03-01T00:00:00Z",
-                    to: (new Date()).toJSON(),
+                    from: dateFrom,
+                    to: dateTo,
                     "overnightsDisabled": true
                 }),
                 headers: {
@@ -1577,7 +1577,8 @@ async function getNewTickers(clean) {
                 });
             });
         }
-        let newList=[];
+
+        let newList = [];
         // сохраненение нового списка newList останется undefined
         if (!clean) {
             // берем список ранее сохраненного списка
@@ -1642,7 +1643,7 @@ async function getTreeMap(country = 'All', isOTC) {
         popular: true
     };
     if (isOTC) {
-        search_obj['filterOTC'] = isOTC===1
+        search_obj['filterOTC'] = isOTC === 1
     }
     if (country === 'Mine') {
         search_obj.country = 'All';
@@ -1901,6 +1902,21 @@ chrome.runtime.onConnect.addListener(function (port) {
                         console.log(`cant send delete order, because ${e}`)
                     });
                 break;
+            case 'getOperations':
+                exportPortfolio(msg.dateFrom, msg.dateTo)
+                    .then(result => {
+                            port.postMessage(Object.assign({},
+                                {result: "listOfOperations"},
+                                {account: msg.account},
+                                {list: result},
+                                {hideCommission: msg.hideCommission})
+                            );
+                        }
+                    )
+                    .catch(e => {
+                        console.log(`cant send data for operations, because ${e}`)
+                    });
+                break;
             case 'exportPortfolio':
                 console.log('send data for Export');
                 if (msg.params.collapse) {
@@ -1915,7 +1931,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                         );
                     });
                 } else
-                    exportPortfolio(msg.params.account)
+                    exportPortfolio()
                         .then(result => {
                                 port.postMessage(Object.assign({},
                                     {result: "listForExport"},

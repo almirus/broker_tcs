@@ -40,6 +40,7 @@ import {
     getAllAccountsHtmlInfo,
     getExportAccountHtml,
     msToTime,
+    renderListOperations,
     renderNews,
     renderProfile,
     renderPulse,
@@ -197,6 +198,9 @@ port.onMessage.addListener(function (msg) {
                 amount: 'amount',
                 description: 'description'
             }, msg.list, msg.account, msg.currency, msg.collapse);
+            break;
+        case 'listOfOperations':
+            renderListOperations(msg.account, msg.list, msg.hideCommission);
             break;
         case 'listLiquid':
             liquidList = msg.list;
@@ -1269,7 +1273,7 @@ document.getElementById('treemap_update').addEventListener('click', function (e)
     let country = document.getElementById('add_treemap_type').value;
     let isOTC = document.getElementById('onlyOTC').value;
     document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
-    port.postMessage({method: "getTreemap",  country: country, isOTC: isOTC});
+    port.postMessage({method: "getTreemap", country: country, isOTC: isOTC});
 });
 document.getElementById('onlyOTC').addEventListener('change', function (e) {
     let isOTC = e.target.value;
@@ -1296,6 +1300,10 @@ document.getElementById('newtickers').addEventListener('change', function (e) {
     document.getElementById('operation_table').style.display = 'none';
     port.postMessage({method: "getNewTickers"});
 });
+document.getElementById('hideNewList').addEventListener('click', function (e) {
+    document.getElementById("newtickers_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
+    port.postMessage({method: "cleanNewTickers"});
+});
 document.getElementById('operation_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
@@ -1305,12 +1313,22 @@ document.getElementById('operation_list').addEventListener('change', function (e
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
-    port.postMessage({method: "getOperations"});
 });
-document.getElementById('hideNewList').addEventListener('click', function (e) {
-    document.getElementById("newtickers_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
-    port.postMessage({method: "cleanNewTickers"});
-});
+
+Array.from(document.getElementsByClassName('operation_table')).forEach(input => input.addEventListener('change', event => {
+        document.getElementById("operation_container").innerHTML = '<img src="css/loader.gif" alt="loading">';
+        let dateFrom = document.getElementById('operation_date_from').value ? (new Date(document.getElementById('operation_date_from').value)).toJSON() : (new Date()).toJSON();
+        let dateTo = document.getElementById('operation_date_to').value ? (new Date(document.getElementById('operation_date_to').value)).toJSON() : (new Date()).toJSON();
+        port.postMessage({
+            method: "getOperations",
+            account: document.getElementById('operation_account').value || 'All',
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            hideCommission: document.getElementById('operation_commission').checked
+        })
+    })
+);
+
 // подгрузка списка акций по названию
 document.getElementById('symbol_name').addEventListener('input', function (e) {
     if (e.target.value) {
