@@ -22,6 +22,7 @@ import {
     INTERVAL_TO_CHECK,
     LIQUID_URL,
     LOGIN_URL,
+    NEW_TICKERS,
     NEWS_URL,
     OPERATIONS_URL,
     OPTION_ALERT,
@@ -44,6 +45,7 @@ import {
     ORDERS_URL,
     PING_URL,
     PLURAL_SECURITY_TYPE,
+    port,
     PORTFOLIO_URL,
     PRICE_URL,
     PROFILE_ACTIVITY_URL,
@@ -56,6 +58,7 @@ import {
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
+    SHELVES_URL,
     SIGN_OUT_URL,
     STOP_URL,
     SUBSCRIPTIONS_URL,
@@ -1515,7 +1518,93 @@ function createMobileAlert(params) {
     })
 }
 
-async function getTreeMap(country = 'All') {
+async function getNewTickers(clean) {
+    let session_id = await MainProperties.getSession();
+    let search_obj = {
+        country: "All",
+        sortType: "ByPrice",
+        orderType: "Asc",
+    };
+    let response = await fetch(SEARCH_URL + session_id, {
+        method: "POST",
+        body: JSON.stringify(search_obj),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    let listOfFound = await response.json();
+    let list = listOfFound.payload.values.reduce((result, item, index) => {
+        result.push({
+            ticker: item.symbol.ticker,
+            showName: item.symbol.showName,
+            isOTC: item.symbol.isOTC,
+            symbolType: item.symbol.symbolType,
+        });
+        return result;
+    }, []);
+    if (listOfFound.status.toLocaleUpperCase() === 'OK') {
+        async function getValue(name) {
+            return new Promise(resolve => {
+                chrome.storage.local.get(name, data => {
+                    resolve(data);
+                });
+            });
+        }
+        let newList=[];
+        // сохраненение нового списка newList останется undefined
+        if (!clean) {
+            // берем список ранее сохраненного списка
+            newList = await getValue(NEW_TICKERS);
+            newList = newList[NEW_TICKERS];
+        }
+        console.log('get old list');
+        if (newList.length) {
+            // ищем разницу между списками
+            const different = newList.filter(o1 => !list.some(o2 => o1.ticker === o2.ticker));
+            // ищем одинаковые но которые поменяли флаг isOTC
+            let isNotOTC = newList.filter(o1 => list.some(o2 => o1.ticker === o2.ticker && o1.isOTC !== o2.isOTC));
+            // брокер возвращает дубли, удаляем
+            isNotOTC = isNotOTC.filter(item => {
+                return !item.isOTC
+            });
+            return {different: different, isNotOTC: isNotOTC};
+        } else {
+            chrome.storage.local.set({[NEW_TICKERS]: list}, () => {
+                console.log('save newtickets list');
+            })
+            return {different: undefined, isNotOTC: undefined};
+        }
+
+    } else {
+        console.log('Сервис поиска недоступен');
+        return undefined
+    }
+}
+
+async function getIPO() {
+    let session_id = await MainProperties.getSession();
+    let response = await fetch(SHELVES_URL + session_id, {
+        method: "GET",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    let shelves = await response.json();
+
+    if (shelves.status.toLocaleUpperCase() === 'OK') {
+        return shelves.payload.shelves.filter(item => {
+            return item.shelfName && item.shelfName.toLocaleUpperCase() === 'РАЗМЕЩЕНИЯ'
+        })
+
+    } else {
+        console.log('Сервис поиска недоступен');
+        return undefined
+    }
+}
+
+async function getTreeMap(country = 'All', isOTC) {
     let session_id = await MainProperties.getSession();
     let list;
     let search_obj = {
@@ -1524,8 +1613,11 @@ async function getTreeMap(country = 'All') {
         sortType: "ByPrice",
         orderType: "Asc",
         country: country,
-        popular: true,
+        popular: true
     };
+    if (isOTC) {
+        search_obj['filterOTC'] = isOTC===1
+    }
     if (country === 'Mine') {
         search_obj.country = 'All';
         let favorite = await getFavorite();
@@ -1576,7 +1668,7 @@ async function getTreeMap(country = 'All') {
                 let obj = {
                     parent: item.symbol.sector,
                     id: item.symbol.ticker,
-                    product: item.symbol.ticker,
+                    product: (item.symbol.isOTC ? '👑' : '') + item.symbol.ticker,
                     showName: item.symbol.showName,
                     relative: item.earnings.relative.toFixed(2), // здесь истинное значение для вывода на экран
                     value: Math.abs(item.earnings.relative), //treemap не учитывает отриц значения, приходится перобразовыввать
@@ -1837,6 +1929,24 @@ chrome.runtime.onConnect.addListener(function (port) {
                         {result: "treemap"},
                         {list: res}));
                     console.log("send treemap .....");
+                });
+                break;
+            case 'getNewTickers':
+                Promise.all([getNewTickers(), getIPO()]).then(([newTickers, IPOs]) => {
+                    port.postMessage(Object.assign({},
+                        {result: "newTickers"},
+                        {IPOs: IPOs},
+                        {newTickers: newTickers}));
+                    console.log("send list of new tickers.....");
+                });
+                break;
+            case 'cleanNewTickers':
+                Promise.all([getNewTickers(true), getIPO()]).then(([newTickers, IPOs]) => {
+                    port.postMessage(Object.assign({},
+                        {result: "newTickers"},
+                        {IPOs: IPOs},
+                        {newTickers: newTickers}));
+                    console.log("send list of new tickers.....");
                 });
                 break;
             case 'postComment':

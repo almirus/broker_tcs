@@ -52,9 +52,11 @@
                 <span id="allAccounts" class="toggle-content"></span>
             </div>
             <span style="float: left;" class="holidays" id="holidays"></span>
-            <a class="toggle" data-toggle="donate" style="float: right" href="#donate" title="Помочь автору плагина">🍺 На пиво</a>
+            <a class="toggle" data-toggle="donate" style="float: right" href="#donate" title="Помочь автору плагина">🍺
+                На пиво</a>
             <a class="toggle" data-toggle="new" style="float: right" href="#new" title="Новости">🆕New </a>
-            <a id="mainProperties" class="toggle" data-toggle="info" style="float: right" href="#info" title="Основные настройки">⚙️Настройки </a>
+            <a id="mainProperties" class="toggle" data-toggle="info" style="float: right" href="#info"
+               title="Основные настройки">⚙️Настройки </a>
             <a class="toggle" data-toggle="export" style="float: right" href="#export" title="Экспорт портфеля в CSV">🔄️
                 Экспорт </a><br>
             <div class="toggle-content" id="export">
@@ -70,12 +72,15 @@
                 </fieldset>
             </div>
             <div class="toggle-content" id="donate">
-                <iframe src="https://money.yandex.ru/quickpay/shop-widget?writer=seller&targets=%D0%BF%D0%BE%D0%BC%D0%BE%D1%87%D1%8C%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D1%83&targets-hint=&default-sum=&button-text=13&hint=&successURL=&quickpay=shop&account=4100136581627" width="100%" height="222" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
+                <iframe src="https://money.yandex.ru/quickpay/shop-widget?writer=seller&targets=%D0%BF%D0%BE%D0%BC%D0%BE%D1%87%D1%8C%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D1%83&targets-hint=&default-sum=&button-text=13&hint=&successURL=&quickpay=shop&account=4100136581627"
+                        width="100%" height="222" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
             </div>
             <div class="toggle-content" id="new">
                 <fieldset class="table">
                     <legend>Новости</legend>
                     <ul>
+                        <li>Новый функционал - отслеживание новых инструментов
+                        <li>Теперь в Карте цен можно отфильтрофать внебиржевые (актуально для премиум тарифа)
                         <li>Внимание! 🧧 Сервис alphavantage заменен на <strong>finnHub</strong>, если хотите получать
                             актуальные цены OTC, необходимо
                             <a href="https://finnhub.io/register" target="_blank"
@@ -143,7 +148,8 @@
 
                     <br>
                     <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_order_per_symbol">
-                    <label for="alert_order_per_symbol">Оповещать, если цена <strong>близка к исполнению заявки</strong> на
+                    <label for="alert_order_per_symbol">Оповещать, если цена <strong>близка к исполнению заявки</strong>
+                        на
                         ±<input class="textInput" type="number"
                                 title="Установить доходность, при достижении которой будет выведено уведомление"
                                 name="alert_order_value_per_symbol"
@@ -166,7 +172,9 @@
                         <input type="checkbox" value="0" name="alphavantage" id="alphavantage">
                         <label for="alphavantage">Использовать сервис
                             <a href="https://finnhub.io/register" target="_blank"
-                               title="Перейти на сайт и зарегистрировать ключ"><img src="icons/finnhub_big.png" style="vertical-align:bottom" height=18></a> для OTC 👑</label>
+                               title="Перейти на сайт и зарегистрировать ключ"><img src="icons/finnhub_big.png"
+                                                                                    style="vertical-align:bottom"
+                                                                                    height=18></a> для OTC 👑</label>
                         <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                              title="Для получения доходности за день и рыночной цены внебиржевых&#013;бумаг будет использован сторониий сервис finnhub&#013;Необходимо зарегистрироваться, получить ключ и ввести его в поле">
                         <input type="text" name="alphavantage_key" id="alphavantage_key"
@@ -252,6 +260,8 @@
             <label for="pulse">🔥 Пульс (beta)</label>
             <input type="radio" value="4" name="list_type" id="treemap">
             <label for="treemap">Карта цен</label>
+            <input type="radio" value="6" name="list_type" id="newtickers">
+            <label for="newtickers" title="Список новых бумаг, которые добавил брокер">Новые инструменты</label>
             <!--
             <input type="radio" value="5" name="list_type" id="analisis">
             <label for="analisis">Анализ</label><br>
@@ -293,10 +303,20 @@
                     <option value="Russian">Российские бумаги</option>
                     <option value="Foreign">Иностранные бумаги</option>
                 </select>
+                Внебиржевые <select id="onlyOTC">
+                <option value="">Все</option>
+                <option value="0">Исключить</option>
+            </select>
                 <button id="treemap_update" title="Обновить">🔁</button>
                 <div id="treemap_container">
                     <img src="css/loader.gif" alt="loading">
                 </div>
+            </div>
+            <div id="newtickers_table" style="display: none">
+                <button id="hideNewList" style="display: none" title="Если нажать, учет изменений начнется с текущего списка бумаг">Скрыть списки</button>
+                <span id="newtickers_container">
+                    <img src="css/loader.gif" alt="loading">
+                </span>
             </div>
         </fieldset>
     </div>

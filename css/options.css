@@ -548,6 +548,19 @@ span.pulseTicker:hover+span.pulseIcon{
 }
 .imgPulse:hover {
     transform: scale(10);
+
+}
+.scroll{
+    overflow: scroll;
+    min-height: 800px;
+}
+
+.item{
+    background: lightgreen;
+    margin: 3px;
+    padding: 4px;
+    text-align: center;
+    display: inline-block;
 }
 @keyframes heart-burst {
     from {background-position:left;}
@@ -562,4 +575,7 @@ span.pulseTicker:hover+span.pulseIcon{
     50% {
         opacity: 0;
     }
+}
+.note{
+    width: 100%;
 }

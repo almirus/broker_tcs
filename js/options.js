@@ -43,6 +43,7 @@ import {
     renderNews,
     renderProfile,
     renderPulse,
+    renderTickers,
     toCurrency,
     toPercent
 } from "./utils/displayUtils.js";
@@ -216,6 +217,9 @@ port.onMessage.addListener(function (msg) {
         case 'profile':
             renderProfile(msg);
             break;
+        case 'newTickers':
+            renderTickers(msg);
+            break;
         case 'treemap':
 
             document.getElementById('treemap_container').innerHTML = '';
@@ -224,7 +228,7 @@ port.onMessage.addListener(function (msg) {
                 let dataTree = anychart.data.tree(msg.list, 'as-table');
                 let chart = anychart.treeMap(dataTree);
 
-                chart.title("Карта будет пустой если рынки закрыты");
+                chart.title("Карта будет пустой, если рынки закрыты");
 
                 // sets chart settings
                 chart
@@ -276,7 +280,7 @@ function setNewsButton() {
     Array.from(document.getElementsByClassName("newsNav")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
-            document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";
+            document.getElementById('news_table').innerHTML = '<img src="css/loader.gif" alt="loading">';
             port.postMessage({method: "getNews", params: {nav_id: button.dataset.nav}});
         })
     })
@@ -312,7 +316,8 @@ function setTickerPulseButton() {
             document.getElementById('price_table').style.display = 'none';
             document.getElementById('news_table').style.display = 'block';
             document.getElementById('graphic_table').style.display = 'none';
-            document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";
+            document.getElementById('treemap_table').style.display = 'none';
+            document.getElementById('news_table').innerHTML = ' <img src="css/loader.gif" alt="loading">';
             port.postMessage({method: "getPulse", params: {nav_id: button.dataset.nav}});
         })
     })
@@ -322,7 +327,7 @@ function setPulseButton() {
     Array.from(document.querySelectorAll(".pulseNav, .pulseProfile")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             let button = e.target;
-            document.getElementById('news_table').innerHTML = "<h2>Загрузка</h2>";
+            document.getElementById('news_table').innerHTML = ' <img src="css/loader.gif" alt="loading">';
             port.postMessage({method: "getPulse", params: {nav_id: button.dataset.nav}});
         })
     })
@@ -556,8 +561,8 @@ function create_portfolio_table(divId, data) {
             let cached_element = listPrognosis && listPrognosis.filter(item => item?.ticker === element.symbol.ticker)[0];
             let feature_div = cached_element?.dividends ? cached_element.dividends[cached_element.dividends.length - 1] : undefined;
             let daysToDiv;
-            if (feature_div && Date.now() <= new Date(feature_div.lastBuyDate+'T23:59:59')) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24) + 1, 10);
-            let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя дата (${new Date(feature_div.lastBuyDate).toLocaleDateString()} включительно) покупки для получения дивидендов, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}${daysToDiv===0?'🚩':''}</a>` : '';
+            if (feature_div && Date.now() <= new Date(feature_div.lastBuyDate + 'T23:59:59')) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24) + 1, 10);
+            let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя дата (${new Date(feature_div.lastBuyDate).toLocaleDateString()} включительно) покупки для получения дивидендов, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}${daysToDiv === 0 ? '🚩' : ''}</a>` : '';
             let ls = '';
             if (element.symbol.longIsEnabled || element.symbol.shortIsEnabled) ls = `<span title="Long\Short">${(element.symbol.longIsEnabled ? 'L' : '') + '/' + (element.symbol.shortIsEnabled ? 'S' : '')}</span>`;
 
@@ -888,7 +893,7 @@ function create_alert_table(data_list) {
                 td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
                     //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                     (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
-                    (element.isOTC ? '<span class="icon" title="Внебирживой инструмент">👑</span>' : '') +
+                    (element.isOTC ? '<span class="icon" title="Внебиржевой инструмент">👑</span>' : '') +
                     (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '<span class="icon disabled" title="Не в избранном">⭐</span>') +
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
@@ -961,7 +966,7 @@ function create_alert_table(data_list) {
                 let alert_date = new Date(Date.parse(element.best_before));
                 if (element.orderId) {
                     td6.innerHTML = element.timeToExpire ? '<span title="заявка устанавливается до конца торгового дня, потом автоматически снимается">' + msToTime(element.timeToExpire) + '</span>'
-                        : (element.status === 'progress' ? (opacity_rate < 0 ? 'StopLoss' : 'TakeProfit') :
+                        : (element.status === 'progress' ? element.orderType :
                                 (element.status === 'New' ? 'Заявка' : '')
                         );
                 } else td6.innerHTML = element.best_before ? (alert_date.toLocaleDateString() + ' ' + alert_date.toLocaleTimeString())
@@ -1037,22 +1042,24 @@ document.getElementById('alert_list').addEventListener('change', function (e) {
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('orders_table').style.display = 'none';
     document.getElementById('alert_table').style.display = 'block';
-
+    document.getElementById('newtickers_table').style.display = 'none';
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
 
 });
 document.getElementById('add_alert_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('orders_table').style.display = 'none';
-
+    document.getElementById('newtickers_table').style.display = 'none';
     document.getElementById('price_table').style.display = 'block';
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
 });
 document.getElementById('add_notes_list').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
@@ -1062,16 +1069,19 @@ document.getElementById('add_notes_list').addEventListener('change', function (e
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
+    document.getElementById('newtickers_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
 });
 document.getElementById('graphic').addEventListener('change', function (e) {
     document.getElementById('alert_table').style.display = 'none';
     document.getElementById('orders_table').style.display = 'none';
-
+    document.getElementById('newtickers_table').style.display = 'none';
     document.getElementById('price_table').style.display = 'none';
     document.getElementById('graphic_table').style.display = 'block';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
     // получаем список бумаг в портфеле
     let string_array_of_ticker = [];
     Array.from(document.getElementsByClassName("ticker")).forEach(input => {
@@ -1119,6 +1129,8 @@ document.getElementById('news').addEventListener('change', function (e) {
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('newtickers_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
     port.postMessage({method: "getNews", params: {nav_id: ''}});
 });
 document.getElementById('pulse').addEventListener('change', function (e) {
@@ -1129,6 +1141,8 @@ document.getElementById('pulse').addEventListener('change', function (e) {
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('treemap_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('newtickers_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
     port.postMessage({method: "getPulse", params: {nav_id: 61}});
 });
 document.getElementById('treemap').addEventListener('change', function (e) {
@@ -1139,24 +1153,69 @@ document.getElementById('treemap').addEventListener('change', function (e) {
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('newtickers_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
     let country = document.getElementById('add_treemap_type').value;
-    port.postMessage({method: "getTreemap", params: country});
+    let isOTC = document.getElementById('onlyOTC').value;
+    port.postMessage({method: "getTreemap", country: country, isOTC: isOTC});
 });
 document.getElementById('treemap_update').addEventListener('click', function (e) {
     let country = document.getElementById('add_treemap_type').value;
+    let isOTC = document.getElementById('onlyOTC').value;
     document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
-    port.postMessage({method: "getTreemap", params: country});
+    port.postMessage({method: "getTreemap",  country: country, isOTC: isOTC});
+});
+document.getElementById('onlyOTC').addEventListener('change', function (e) {
+    let isOTC = e.target.value;
+    let country = document.getElementById('add_treemap_type').value;
+    document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
+    port.postMessage({method: "getTreemap", country: country, isOTC: isOTC});
 });
 document.getElementById('add_treemap_type').addEventListener('change', function (e) {
     document.getElementById("treemap_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
-    port.postMessage({method: "getTreemap", params: e.target.value});
+    let isOTC = document.getElementById('onlyOTC').value;
+    port.postMessage({method: "getTreemap", country: e.target.value, isOTC: isOTC});
 });
 
-
+document.getElementById('newtickers').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('price_table').style.display = 'none';
+    document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('newtickers_table').style.display = 'block';
+    document.getElementById('hideNewList').style.display = 'none';
+    document.getElementById("newtickers_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
+    document.getElementById('graphic_table').style.display = 'none';
+    document.getElementById('news_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'none';
+    port.postMessage({method: "getNewTickers"});
+});
+document.getElementById('operation_list').addEventListener('change', function (e) {
+    document.getElementById('alert_table').style.display = 'none';
+    document.getElementById('price_table').style.display = 'none';
+    document.getElementById('treemap_table').style.display = 'none';
+    document.getElementById('operation_table').style.display = 'block';
+    document.getElementById('hideNewList').style.display = 'none';
+    document.getElementById('graphic_table').style.display = 'none';
+    document.getElementById('news_table').style.display = 'none';
+    document.getElementById('notes_table').style.display = 'none';
+    port.postMessage({method: "getOperations"});
+});
+document.getElementById('hideNewList').addEventListener('click', function (e) {
+    document.getElementById("newtickers_container").innerHTML = ' <img src="css/loader.gif" alt="loading">';
+    port.postMessage({method: "cleanNewTickers"});
+});
 // подгрузка списка акций по названию
 document.getElementById('symbol_name').addEventListener('input', function (e) {
     if (e.target.value) {
         throttle(port.postMessage({method: "getListStock", params: e.target.value}), 500);
+    }
+});
+
+// подгрузка списка акций по названию
+document.getElementById('symbol_name_for_note').addEventListener('input', function (e) {
+    if (e.target.value) {
+        throttle(port.postMessage({method: "getListStockForNote", params: e.target.value}), 500);
     }
 });
 

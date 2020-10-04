@@ -44,6 +44,7 @@ export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';
 export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts?appName=invest_terminal&appVersion=1.0.0&sessionId=';
+export const SHELVES_URL = 'https://api-invest.tinkoff.ru/catalog/shelves?y=omg&deviceId=2cb59723b132726c&appVersion=4.13.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 
 //{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
@@ -81,6 +82,7 @@ export const OPTION_FAVORITE_LIST = 'add_favorite';
 export const TICKER_LIST = 'tickerList';
 export const ALERT_TICKER_LIST = 'alertTickerList';
 export const NOTES_LIST = 'notesList';
+export const NEW_TICKERS = 'newTickersList';
 export const OPTION_RIFINITIV='rifinitiv';
 export const OPTION_FINN_ENABLED='finnconsensus';
 export const OPTION_FINN_GETLAST='finnconsensus_1m';

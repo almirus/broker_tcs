@@ -303,6 +303,40 @@ export function renderProfile(profile) {
     });
 }
 
+export function renderTickers(object) {
+    let buffer = '<div class="scroll">';
+    let newTickers = object.newTickers;
+    let IPOs = object.IPOs[0];
+    if (newTickers.different?.length) {
+        buffer += '<h3>Новые тикеры</h3>';
+        buffer += newTickers.different.map(item => {
+            return `<span class="item" title="${item.showName}">${item.isOTC ? '👑' : ''}${item.ticker}</span>`
+        }).join('');
+    } else {
+        buffer += '<h3>Список новых тикеров пуст</h3>'
+    }
+    if (newTickers.isNotOTC?.length) {
+        buffer += '<h3>Внебиржевые, которые стали доступны для всех</h3>';
+        buffer += newTickers.isNotOTC.map(item => {
+            return `<span class="item" title="${item.showName}">${item.isOTC ? '👑' : ''}${item.ticker}</span>`
+        }).join('');
+    } else {
+        buffer += '<h3>Список внебирживых, которые стали доступны всем пуст</h3>'
+    }
+    if (IPOs.shelfSections.length) {
+        buffer += '<h3>Первичное размещение</h3>';
+        buffer += IPOs.shelfSections.map(item => {
+            return `<div title="подробности в приложении" class="newsAnnounce bordered" style="background-size: cover; background-image: url(${item.security?.logo.url})">
+            <h2 class="header white">${item.name}</h2>
+            <div class="announce white">${item.title}</div>
+            <div class="announce white">${item.security.asset.ticker}</div>`
+        }).join('');
+    }
+    buffer += '</div>';
+    document.getElementById('newtickers_container').innerHTML = buffer;
+    document.getElementById('hideNewList').style.display = 'block';
+}
+
 // Функция преобразующая число в локальную валюту
 export function toCurrency(value, currency = 'RUB') {
     return value.toLocaleString('ru-RU', {
