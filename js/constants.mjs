@@ -80,6 +80,7 @@ export const OPTION_ALPHAVANTAGE_KEY = 'alphavantage_key';
 export const OPTION_FAVORITE = 'favorite';
 export const OPTION_FAVORITE_LIST = 'add_favorite';
 export const TICKER_LIST = 'tickerList';
+export const NOTE_LIST = 'noteList';
 export const ALERT_TICKER_LIST = 'alertTickerList';
 export const NOTES_LIST = 'notesList';
 export const NEW_TICKERS = 'newTickersList';

@@ -24,6 +24,7 @@ import {
     LOGIN_URL,
     NEW_TICKERS,
     NEWS_URL,
+    NOTE_LIST,
     OPERATIONS_URL,
     OPTION_ALERT,
     OPTION_ALERT_ORDER_PER_SYMBOL,
@@ -72,7 +73,7 @@ import {
     USER_LIST_URL,
     USER_URL
 } from "/js/constants.mjs";
-import {giveLessDiffToTarget} from "./utils/sortUtils.js";
+import {giveLessDiffToTarget, hashCode} from "./utils/sortUtils.js";
 
 
 function redirect_to_page(url, open_new = false) {
@@ -523,6 +524,31 @@ function exportPortfolio(brokerAccountType = 'Tinkoff') {
             })
         })
     })
+}
+
+/**
+ * получаем список акций
+ * @return {object} данные для отображения на форме
+ */
+async function getListStockForNote(name) {
+    console.log('try to get list for note');
+    let session_id = MainProperties.getSession()
+    if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
+        let json = await findTicker(name, session_id);
+        let return_data = [];
+        await json.payload.values.forEach(item => {
+            return_data.push({
+                prices: item.prices,
+                symbol: {
+                    ticker: item.symbol.ticker,
+                    showName: item.symbol.showName,
+                    isOTC: item.symbol.isOTC
+                },
+                exchangeStatus: item.exchangeStatus
+            });
+        });
+        return return_data.slice(0, 3);
+    }
 }
 
 /**
@@ -1272,7 +1298,6 @@ function updateAlertPrices() {
                 }),
             ]).then(async ([favorite_list, orders, stops, subscriptions]) => {
                 portfolio.orders = orders.map(item => {
-                    // проверяем на близость к исполнению
                     return {
                         symbol: {
                             ticker: item.ticker,
@@ -1287,6 +1312,7 @@ function updateAlertPrices() {
                 let alert_data = [].concat(await MainProperties.getFavoriteListOption() ? favorite_list : [], orders, stops, subscriptions);
                 let i = 0;
                 const alertOrderOption = await MainProperties.getAlertOrderOption();
+                //console.info(alert_data);
                 //TODO сделать запрос к поиску
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
@@ -1306,10 +1332,10 @@ function updateAlertPrices() {
                             }).catch(e => {
                                 // сохраняем достигнутую доходность
                                 setOldRelative(item.ticker + '_order', alertOrderOption.alertOrder);
-                                chrome.notifications.create(OPTION_ALERT_ORDER_PER_SYMBOL+ '|' + item.ticker, {
+                                chrome.notifications.create(OPTION_ALERT_ORDER_PER_SYMBOL + '|' + item.ticker, {
                                     type: 'basic',
                                     iconUrl: '/icons/order.png',
-                                    title: `Заявка по ${item.ticker} близка к исполнению (примерно на ${(Math.abs(opacity_rate)*100).toFixed(2)}%)`,
+                                    title: `Заявка по ${item.ticker} близка к исполнению (примерно на ${(Math.abs(opacity_rate) * 100).toFixed(2)}%)`,
                                     message: 'Проверьте свой портфель',
                                     requireInteraction: true,
                                     buttons: [
@@ -1694,8 +1720,34 @@ async function getTreeMap(country = 'All', isOTC) {
         }, [])).concat(list));// список тикеров
     } else {
         console.log('Сервис поиска недоступен');
-        return (undefined)
+        return undefined
     }
+}
+
+/*
+    добавляет заметку по тикеру в хранилище
+ */
+function addNote(ticker, note, date) {
+    return new Promise(resolve => {
+        chrome.storage.sync.get([NOTE_LIST], notes => {
+            notes[NOTE_LIST][hashCode(ticker + note)] = {ticker: ticker, note: note, date: date};
+            chrome.storage.sync.set({[NOTE_LIST]: notes}, () => {
+                console.log('add new note, now is ', notes);
+                resolve(notes)
+            })
+        });
+    })
+}
+
+function deleteNote(id) {
+    chrome.storage.sync.get([NOTE_LIST], notes => {
+        notes.push({ticker: ticker, note: note, date: date});
+        chrome.storage.sync.set({[NOTE_LIST]: notes}, () => {
+            console.log('add new note');
+            port.postMessage({result: "noteList", params: {list: notes}});
+        })
+    });
+
 }
 
 // основной слушатель
@@ -1730,6 +1782,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getListStock(msg.params).then(function (list_symbols) {
                     console.log("send message listStock .....");
                     port.postMessage(list_symbols);
+                });
+                break;
+            case 'getListStockForNote':
+                getListStockForNote(msg.params).then(function (list_symbols) {
+                    console.log("send message listStockForNote .....");
+                    port.postMessage({result: "listStockForNote", stocks: list_symbols});
                 });
                 break;
             case 'getListStockForOrder':
@@ -1924,7 +1982,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 });
                 break;
             case 'getTreemap':
-                getTreeMap(msg.params).then(res => {
+                getTreeMap(msg.country, msg.isOTC).then(res => {
                     port.postMessage(Object.assign({},
                         {result: "treemap"},
                         {list: res}));
@@ -1977,6 +2035,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("logout .....");
                 });
                 break;
+            case 'addNote':
+                addNote(msg.params.ticker, msg.params.note, msg.params.date).then(res => {
+                    console.log("send update notes table .....");
+                    port.postMessage({result: "noteList", list: res});
+                })
+                break;
             default:
                 port.postMessage('unknown request');
         }
@@ -2027,7 +2091,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
     // нажали на кнопках в Уведомлении об изменении цены акций
     if (notificationId.includes(OPTION_ALERT_ORDER_PER_SYMBOL)) {
         chrome.notifications.clear(notificationId);
-        chrome.storage.sync.remove(ticker[1]+'_order');
+        chrome.storage.sync.remove(ticker[1] + '_order');
         // перейти в список
         if (btnIdx === 0) {
             redirect_to_page('https://www.tinkoff.ru/invest/orders/', true)
@@ -2241,7 +2305,7 @@ export class MainProperties {
     };
 
     static async getAlertOrderOption() {
-        if (!(this._alertOrder === undefined)&& !(this._alertOrderEnabled === undefined)) {
+        if (!(this._alertOrder === undefined) && !(this._alertOrderEnabled === undefined)) {
             //console.log('get cached sessionId');
             return {alertOrder: this._alertOrder, alertEnabled: this._alertOrderEnabled};
         }
@@ -2250,11 +2314,14 @@ export class MainProperties {
                 if (result[OPTION_ALERT_ORDER_PER_SYMBOL]) {
                     this._alertOrder = result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL];
                     this._alertOrderEnabled = result[OPTION_ALERT_ORDER_PER_SYMBOL];
-                    resolve({alertOrder:result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL], alertEnabled: result[OPTION_ALERT_ORDER_PER_SYMBOL]});
+                    resolve({
+                        alertOrder: result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL],
+                        alertEnabled: result[OPTION_ALERT_ORDER_PER_SYMBOL]
+                    });
                 } else {
                     this._alertOrder = 0;
                     this.alertEnabled = false;
-                    resolve({alertOrder:0, alertEnabled: false});
+                    resolve({alertOrder: 0, alertEnabled: false});
                 }
             })
         );

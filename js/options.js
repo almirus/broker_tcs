@@ -72,6 +72,9 @@ port.onMessage.addListener(function (msg) {
             create_orders_table(msg.stocks || msg.stocks_tcs.concat(msg.stocks_iis));
             //setAddButtonHandler();
             break;
+        case 'listStockForNote':
+            create_note_table(msg.stocks);
+            break;
         case 'listPortfolio':
             create_portfolio_table('portfolioTCS', msg.stocks_tcs);
             let iisStyle = 'none';
@@ -213,6 +216,9 @@ port.onMessage.addListener(function (msg) {
             setCommentToggleButton();
             setAnswerToggleButton();
             likeToggleButton();
+            break;
+        case 'noteList':
+            renderNotes(msg);
             break;
         case 'profile':
             renderProfile(msg);
@@ -401,6 +407,14 @@ function setAnswerToggleButton() {
 
 // назначаем динамически handler для отслеживания кнопки Добавить
 function setAddButtonHandler() {
+    Array.from(document.getElementsByClassName("addNote")).forEach(function (input) {
+        input.addEventListener('click', event => {
+            let ticker = event.target.dataset.ticker;
+            let note = document.getElementById('note_' + ticker).value;
+            let date = document.getElementById('date_' + ticker).value;
+            port.postMessage({method: "addNote", params: {ticker: ticker, note: note, date: date}});
+        });
+    });
     Array.from(document.getElementsByClassName("tickerPrice")).forEach(function (input) {
         input.addEventListener('input', event => {
             let ticker = event.target.dataset.ticker;
@@ -717,6 +731,98 @@ function create_portfolio_table(divId, data) {
         , {
             selector: 'td'
         });
+}
+
+// рендер таблицы заявок
+function renderNotes(data) {
+    let table = document.createElement('table');
+    table.className = 'priceTable';
+    let tr = document.createElement('tr');
+    let th1 = document.createElement('th');
+    th1.appendChild(document.createTextNode('название'));
+    let th2 = document.createElement('th');
+    th2.appendChild(document.createTextNode('заметка'));
+    let th3 = document.createElement('th');
+    th3.appendChild(document.createTextNode('дата'));
+    tr.appendChild(th1);
+    tr.appendChild(th2);
+    tr.appendChild(th3);
+    table.appendChild(tr);
+    if (data && data.length > 0) {
+        data.forEach(element => {
+            let tr = document.createElement('tr');
+            let td1 = document.createElement('td');
+            td1.className = 'maxWidth tickerCol';
+            td1.innerHTML = `${element.symbol.showName}<br><strong>${element.ticker}</strong>`;
+            let td2 = document.createElement('td');
+            td2.innerHTML = `<span id="note_${element.ticker}">${element.note}</span>`;
+            td2.className = 'tickerCol';
+            let td3 = document.createElement('td');
+            td3.innerHTML = `<span id="date_${element.ticker}">${element.date}</span>`;
+            td3.className = 'tickerCol';
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tr.appendChild(td7);
+            table.appendChild(tr);
+        })
+        document.getElementById('note_table').innerText = '';
+        document.getElementById('note_table').appendChild(table);
+    }
+}
+
+// рендер таблицы для заметок
+function create_note_table(data) {
+    let table = document.createElement('table');
+    table.className = 'priceTable';
+    let tr = document.createElement('tr');
+    let th1 = document.createElement('th');
+    th1.appendChild(document.createTextNode('название'));
+    let th2 = document.createElement('th');
+    th2.appendChild(document.createTextNode('последняя цена'));
+    let th3 = document.createElement('th');
+    th3.appendChild(document.createTextNode('заметка'));
+
+    let th7 = document.createElement('th');
+    tr.appendChild(th1);
+    tr.appendChild(th2);
+    tr.appendChild(th3);
+
+    tr.appendChild(th7);
+    table.appendChild(tr);
+    if (data && data.length > 0) {
+        data.forEach(function (element) {
+
+            let tr = document.createElement('tr');
+            let td1 = document.createElement('td');
+            td1.className = 'maxWidth tickerCol';
+            td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
+            let td2 = document.createElement('td');
+            td2.innerHTML = `<span id="last_${element.symbol.ticker}">${element.prices.last?.value}</span>${element.prices.last?.currency}`;
+            td2.className = 'tickerCol';
+            let td3 = document.createElement('td');
+            //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
+            td3.innerHTML = `
+            <input class="date" id="date_${element.symbol.ticker}" data-ticker="${element.symbol.ticker}" type="date" title="Дата когда будет выдано уведомление, можно оставить пустым">
+            <input class="note" id="note_${element.symbol.ticker}" data-ticker="${element.symbol.ticker}" type="text" placeholder="введите текс заметки" required>
+            `;
+
+            td3.className = 'tickerCol';
+            //let td4 = document.createElement('td');
+            let td7 = document.createElement('td');
+            td7.className = 'tickerCol';
+            td7.innerHTML = `<input type="button" class="addNote" data-showname="${element.symbol.showName}" data-ticker="${element.symbol.ticker}" value="Добавить">`;
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+
+            tr.appendChild(td7);
+            table.appendChild(tr);
+        })
+    }
+    document.getElementById('add_note_table').innerText = '';
+    document.getElementById('add_note_table').appendChild(table);
+    setAddButtonHandler();
 }
 
 // рендер таблицы с акциями для добавления

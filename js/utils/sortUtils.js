@@ -10,3 +10,7 @@ export function giveLessDiffToTarget(desireTicker) {
     if (diffToBuy + diffToSell === 200) return 0;
     return (diffToBuy < diffToSell) ? diffToBuy :diffToSell;
 }
+export function hashCode(str) {
+    return Array.from(str)
+        .reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0)
+}
