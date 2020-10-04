@@ -1313,6 +1313,7 @@ document.getElementById('operation_list').addEventListener('change', function (e
     document.getElementById('graphic_table').style.display = 'none';
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
+    document.getElementById('newtickers_table').style.display = 'none';
 });
 
 Array.from(document.getElementsByClassName('operation_table')).forEach(input => input.addEventListener('change', event => {
