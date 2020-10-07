@@ -15,6 +15,7 @@ import {
     DIVIDENDS_URL,
     EUR_RUB,
     FAVORITE_URL,
+    FINN_CONSTITUENTS,
     FINN_RECOMENDATION,
     FINN_SYMBOL_URL,
     HOST_URL,
@@ -781,6 +782,17 @@ function getComments(id) {
             })
         })
     })
+}
+
+async function getIndex(indexName) {
+    const option = await MainProperties.getAVOption();
+    try {
+        const response = await fetch(FINN_CONSTITUENTS.replace('${ticker}', indexName) + option.AVKey);
+        let json = await response.json();
+        return json.constituents;
+    } catch (e) {
+        console.error('Достигнуто ограничение finnhub', e);
+    }
 }
 
 function getFavorite() {
@@ -1631,7 +1643,7 @@ async function getIPO() {
     }
 }
 
-async function getTreeMap(country = 'All', isOTC) {
+async function getTreeMap(listName = 'All', isOTC) {
     let session_id = await MainProperties.getSession();
     let list;
     let search_obj = {
@@ -1639,22 +1651,26 @@ async function getTreeMap(country = 'All', isOTC) {
         end: 500,
         sortType: "ByPrice",
         orderType: "Asc",
-        country: country,
-        popular: true
+        country: listName
     };
     if (isOTC) {
         search_obj['filterOTC'] = isOTC === 1
     }
-    if (country === 'Mine') {
-        search_obj.country = 'All';
+    if (listName === 'Mine') {
+        search_obj['country'] = 'All';
+        search_obj['popular'] = true;
         let favorite = await getFavorite();
         // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
         list = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
-            return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
+            return item.symbol.symbolType === 'Stock'
         }).reduce((prev, curr) => {
             return [...prev, ...[curr.symbol.ticker]];
         }, []))];
         search_obj['tickers'] = list;
+    }
+    if (listName === '^GSPC' || listName === '^NDX' || listName === '^DJI') {
+        search_obj['country'] = 'All';
+        search_obj['tickers'] = await getIndex(listName);
     }
     // POST
     let response = await fetch(SEARCH_URL + session_id, {

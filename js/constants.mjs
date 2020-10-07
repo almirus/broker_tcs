@@ -39,6 +39,7 @@ export const SUBSCRIPTIONS_URL = 'https://api.tinkoff.ru/trading/subscriptions/p
 export const LIQUID_URL = 'https://api.tinkoff.ru/trading/portfolio/liquid_portfolio?sessionId=';
 export const RECALIBRATION_LINK = 'https://www.tinkoff.ru/invest/recommendations/recalibration/';
 export const FINN_RECOMENDATION ='https://finnhub.io/api/v1/stock/recommendation?symbol=${ticker}&token=';
+export const FINN_CONSTITUENTS ='https://finnhub.io/api/v1/index/constituents?symbol=${ticker}&token=';
 export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?cpswc=true&ccc=true&deviceId=2cb59723b132726c&appVersion=4.0.2&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';

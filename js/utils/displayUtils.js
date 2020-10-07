@@ -361,7 +361,7 @@ export function renderTickers(object) {
     } else {
         buffer += '<h3>Список внебирживых, которые стали доступны всем пуст</h3>'
     }
-    if (IPOs.shelfSections.length) {
+    if (IPOs?.shelfSections.length) {
         buffer += '<h3>Первичное размещение</h3>';
         buffer += IPOs.shelfSections.map(item => {
             return `<div title="подробности в приложении" class="newsAnnounce bordered" style="background-size: cover; background-image: url(${item.security?.logo.url})">
