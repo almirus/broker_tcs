@@ -354,11 +354,14 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                     //expected_yield.value = symbol.payload.relativeOTC;
                 }
                 if (needToConvert && current_amount?.currency !== 'RUB') {
-                    earning_today = earning_today * currenciesCourse[current_amount?.currency+'RUB']?.lastPrice;
-                    current_amount.value = current_amount.value * currenciesCourse[current_amount?.currency+'RUB']?.lastPrice;
+                    let currencyCourse = currenciesCourse[current_amount.currency+'RUB']?.lastPrice || 1
+
+                    earning_today = earning_today * currencyCourse;
+                    current_amount.value = current_amount.value * currencyCourse;
                     current_amount.currency = 'RUB';
-                    expected_yield.value = (expected_yield.value * currenciesCourse[current_amount?.currency+'RUB']?.lastPrice) || 0;
+                    expected_yield.value = expected_yield.value * currencyCourse;
                     expected_yield.currency = 'RUB';
+
                 }
                 return_data.push({
                     prices: symbol.payload.prices,
