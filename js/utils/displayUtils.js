@@ -352,8 +352,9 @@ export function renderListOperations(account, list, currencies, hideCommission, 
     <td>${item.amount}</td>
     <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong></td>
 </tr>`;
-        sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice : item.price;
+        sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice * 1 : item.price * 1;
     });
+
     buffer += `<td colspan='8' align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> расчитана по текущему курсу валют</td>`;
     buffer += "</table>";
     document.getElementById('operation_container').innerHTML = buffer;
