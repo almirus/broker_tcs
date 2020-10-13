@@ -551,7 +551,7 @@ span.pulseTicker:hover+span.pulseIcon{
 
 }
 .scroll{
-    overflow: scroll;
+    overflow-y: scroll;
     min-height: 800px;
 }
 

@@ -9,6 +9,7 @@ import {
     port,
     PROGNOSIS_LINK,
     RUS_OPERATION,
+    RUS_OPERATION_TYPE,
     SYMBOL_LINK
 } from "/js/constants.mjs";
 
@@ -295,21 +296,25 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
 export function renderProfile(profile) {
     Array.from(document.querySelectorAll('.profile[data-id="' + profile.profile.id + '_profile"]')).forEach(input => {
         input.innerHTML = `
-     <img src="/icons/yeld_ico.png" title="Доходность за год">${profile.profile.statistics.yearRelativeYield}%
-     <img src="/icons/amount_ico.png" title="Размер портфеля">${profile.profile.statistics.totalAmountRange.lower ? 'от ' + profile.profile.statistics.totalAmountRange.lower : 'до ' + profile.profile.statistics.totalAmountRange.upper} руб
+     <img src="/icons/yeld_ico.png" title="Доходность за год">${profile.profile.statistics?.yearRelativeYield}%
+     <img src="/icons/amount_ico.png" title="Размер портфеля">${profile.profile.statistics?.totalAmountRange.lower ? 'от ' + profile.profile.statistics?.totalAmountRange.lower : 'до ' + profile.profile.statistics?.totalAmountRange.upper} руб
      <img src="/icons/operation_count.png" title="Количество операций за месяц">
-     <span class="operationCount" data-id="${profile.profile.id}_instrument">${profile.profile.statistics.monthOperationsCount} шт</span>
+     <span class="operationCount" data-id="${profile.profile.id}_instrument">${profile.profile.statistics?.monthOperationsCount} шт</span>
     `;
     });
 }
 
-export function renderListOperations(account, list, hideCommission) {
+export function renderListOperations(account, list, currencies, hideCommission, operationType) {
     function filterDataForListOperations(account, items) {
         let result = [];
         let accountData = items.filter(item =>
             (item.accountType === account || account === 'All')
-            && (item.status === 'done' || item.status === 'progress')
-            && !(item.operationType === 'BrokCom') || hideCommission
+            && (!(item.operationType === 'BrokCom') || hideCommission)
+            && (
+                operationType === 'dividend' ?
+                    item.operationType === 'Dividend' || item.operationType === 'Coupon' :
+                    (item.status === operationType || operationType === 'All')
+            )
         );
 
         accountData.forEach(item => {
@@ -322,21 +327,34 @@ export function renderListOperations(account, list, hideCommission) {
                 price: (!(item.operationType.toLowerCase() === 'buy' && item.operationType.toLowerCase() === 'sell') ? item.payment : item.price) || ' ',
                 currency: item.currency || ' ',
                 amount: item.quantity || item.quantityRest || ' ',
-                description: item.description
+                description: item.description,
+                status: item.status
             })
         })
         return result;
     }
 
     let items = filterDataForListOperations(account, list);
-    let buffer = "<table><tr><th>ISIN</th><th>SYMBOL</th><th>COMMISSION</th><th>DATE</th><th>TYPE</th><th>PRICE</th><th>CURRENCY</th><th>AMOUNT</th><th>DESCRIPTION</th></tr>";
-
-    buffer += items.map(item => {
-        return `
-<tr>
-    <td>${item.isin}</td><td>${item.symbol}</td><td>${item.commission}</td><td>${item.date.toLocaleDateString()}</td><td>${item.type}</td><td>${item.price}</td><td>${item.currency}</td><td>${item.amount}</td><td>${item.description}</td>
+    let buffer = "<table><tr><th>ISIN</th><th>SYMBOL</th><th>COMMISSION</th><th>DATE</th><th>TYPE</th><th>PRICE</th><th>CURRENCY</th><th>PRICE_RUB</th><th>CURRENCY</th><th>AMOUNT</th><th>DESCRIPTION</th></tr>";
+    let sum = 0;
+    items.forEach(item => {
+        buffer += `
+<tr class="${item.type.toLowerCase() === 'sell' ? 'isOnlineOrderSell' : ''}${item.type.toLowerCase() === 'buy' ? 'isOnlineOrderBuy' : ''}">
+    <td>${item.isin}</td>
+    <td>${item.symbol}</td>
+    <td>${item.commission}</td>
+    <td>${item.date.toLocaleString()}</td>
+    <td>${item.type}</td>
+    <td>${item.price}</td>
+    <td>${item.currency}</td>
+    <td>${item.currency !== 'RUB' ? (item.price * currencies[item.currency + 'RUB'].lastPrice).toFixed(2) : ''}</td>
+    <td>${item.currency !== 'RUB' ? 'RUB' : ''}</td>
+    <td>${item.amount}</td>
+    <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong></td>
 </tr>`;
-    }).join('');
+        sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice : item.price;
+    });
+    buffer += `<td colspan='8' align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> расчитана по текущему курсу валют</td>`;
     buffer += "</table>";
     document.getElementById('operation_container').innerHTML = buffer;
 }

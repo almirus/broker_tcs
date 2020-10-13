@@ -200,7 +200,7 @@ port.onMessage.addListener(function (msg) {
             }, msg.list, msg.account, msg.currency, msg.collapse);
             break;
         case 'listOfOperations':
-            renderListOperations(msg.account, msg.list, msg.hideCommission);
+            renderListOperations(msg.account, msg.list, msg.currencies, msg.hideCommission, msg.operationType);
             break;
         case 'listLiquid':
             liquidList = msg.list;
@@ -854,7 +854,7 @@ function create_table(data) {
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
             td1.className = 'maxWidth';
-            td1.innerHTML = `${element.symbol.isOTC ? '<span title="Внебиржевой инструмент">👑</span>' : ''}${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
+            td1.innerHTML = `${element.symbol?.isOTC ? '<span title="Внебиржевой инструмент">👑</span>' : ''}${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
             td2.innerHTML = `<span id="last_${element.symbol.ticker}">${element.prices.last?.value}</span>${element.prices.last?.currency}`;
             td2.className = 'tickerCol';
@@ -1325,7 +1325,8 @@ Array.from(document.getElementsByClassName('operation_table')).forEach(input => 
             account: document.getElementById('operation_account').value || 'All',
             dateFrom: dateFrom,
             dateTo: dateTo,
-            hideCommission: document.getElementById('operation_commission').checked
+            hideCommission: document.getElementById('operation_commission').checked,
+            operationType: document.getElementById('operation_type').value
         })
     })
 );

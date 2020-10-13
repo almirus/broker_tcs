@@ -10,10 +10,10 @@ import {
     COMMENTS_URL,
     CONSENSUS_URL,
     CURRENCY_LIMIT_URL,
+    CURRENCY_LIST_URL,
     CURRENCY_PRICE_URL,
     CURRENCY_SYMBOL_URL,
     DIVIDENDS_URL,
-    EUR_RUB,
     FAVORITE_URL,
     FINN_CONSTITUENTS,
     FINN_RECOMENDATION,
@@ -309,11 +309,11 @@ function getPortfolio(sessionId) {
  * конвертируем и дополняем данные для портфолио
  * @param data
  * @param needToConvert
- * @param currencyCourse
+ * @param currenciesCourse
  * @param sessionId
  * @return {Promise<Array>}
  */
-async function convertPortfolio(data = [], needToConvert, currencyCourse, sessionId) {
+async function convertPortfolio(data = [], needToConvert, currenciesCourse, sessionId) {
     let return_data = [];
     for (const element of data) {
         let securityType = PLURAL_SECURITY_TYPE[element.securityType];
@@ -353,11 +353,11 @@ async function convertPortfolio(data = [], needToConvert, currencyCourse, sessio
 
                     //expected_yield.value = symbol.payload.relativeOTC;
                 }
-                if (needToConvert && current_amount?.currency === 'USD') {
-                    earning_today = earning_today * currencyCourse.payload.last.value;
-                    current_amount.value = current_amount.value * currencyCourse.payload.last.value;
+                if (needToConvert && current_amount?.currency !== 'RUB') {
+                    earning_today = earning_today * currenciesCourse[current_amount?.currency+'RUB']?.lastPrice;
+                    current_amount.value = current_amount.value * currenciesCourse[current_amount?.currency+'RUB']?.lastPrice;
                     current_amount.currency = 'RUB';
-                    expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
+                    expected_yield.value = (expected_yield.value * currenciesCourse[current_amount?.currency+'RUB']?.lastPrice) || 0;
                     expected_yield.currency = 'RUB';
                 }
                 return_data.push({
@@ -533,7 +533,7 @@ function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()
  */
 async function getListStockForNote(name) {
     console.log('try to get list for note');
-    let session_id = MainProperties.getSession()
+    let session_id = MainProperties.getSession();
     if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
         let json = await findTicker(name, session_id);
         let return_data = [];
@@ -562,37 +562,26 @@ function getListStock(name) {
         MainProperties.getSession().then(session_id => {
             if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
                 if (name && name.toUpperCase().includes('ВАЛЮТ')) {
-                    Promise.all([
-                        getPriceInfo(USD_RUB, undefined, session_id).then(usd => {
-                            let usdInfo = {};
-                            usdInfo.prices = usd.payload;
-                            usdInfo.exchangeStatus = usd.payload.exchangeStatus;
-                            usdInfo.symbol = {
-                                ticker: USD_RUB,
-                                showName: "Доллар США",
-                                lotSize: 1,
-                            };
-                            return usdInfo;
-                        }).catch(function (ex) {
-                            console.log('parsing failed', ex);
-                            reject(undefined);
-                        }),
-                        getPriceInfo(EUR_RUB, undefined, session_id).then(eur => {
-                            let eurInfo = {};
-                            eurInfo.prices = eur.payload;
-                            eurInfo.exchangeStatus = eur.payload.exchangeStatus;
-                            eurInfo.symbol = {
-                                ticker: EUR_RUB,
-                                showName: "Евро",
-                                lotSize: 1,
-                            };
-                            return eurInfo;
-                        }).catch(function (ex) {
-                            console.log('parsing failed', ex);
-                            reject(undefined);
-                        })]
-                    ).then(currency => {
-                        resolve(Object.assign({}, {result: "listStock"}, {stocks: currency}));
+                    getCurrencyCourse().then(list => {
+                        console.log(JSON.stringify(list));
+                        let result = [];
+                        Object.keys(list).forEach(key => {
+                                result.push({
+                                    symbol: {
+                                        ticker: key,
+                                        showName: list[key].showName,
+                                        lotSize: 1,
+                                    },
+                                    prices: {
+                                        last: {
+                                            value: list[key].lastPrice,
+                                            currency: 'RUB'
+                                        }
+                                    }
+                                });
+                            }
+                        );
+                        resolve(Object.assign({}, {result: "listStock"}, {stocks: result}));
                     })
                 } else
                     findTicker(name, session_id)
@@ -648,15 +637,15 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    getPriceInfo(USD_RUB, undefined, session_id).then(currency => {
+                    getCurrencyCourse().then(currencies=>{
                         MainProperties.getConvertToRUB().then(needConvert => {
                             console.log('get session option');
                             getPortfolio(session_id).then(allPortfolio => {
 
                                 console.log('list of portfolio');
                                 Promise.all([
-                                        convertPortfolio(allPortfolio.tcs.payload.data, needConvert, currency, session_id),
-                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currency, session_id),
+                                        convertPortfolio(allPortfolio.tcs.payload.data, needConvert, currencies, session_id),
+                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currencies, session_id),
 
                                     ]
                                 ).then(([tcs_data, iis_data]) => {
@@ -677,6 +666,37 @@ function getListStock(name) {
             }
         })
     })
+}
+
+async function getCurrencyCourse() {
+    let session_id = await MainProperties.getSession();
+    // POST
+    let response = await fetch(CURRENCY_LIST_URL + session_id, {
+            method: "POST",
+            body: JSON.stringify({
+                "country": "All",
+                "end": 30,
+                "orderType": "Asc",
+                "sortType": "ByBuyBackDate",
+                "start": 0
+            }),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }
+    );
+    let listOfCurrency = await response.json();
+    let result = {};
+    listOfCurrency.payload.values.forEach(item => {
+        Object.assign(result, {
+            [item.symbol.ticker]: {
+                showName: item.symbol.showName,
+                lastPrice: item.prices.last.value
+            }
+        }, {});
+    });
+    return result;
 }
 
 function findTicker(search, session_id) {
@@ -1919,19 +1939,23 @@ chrome.runtime.onConnect.addListener(function (port) {
                     });
                 break;
             case 'getOperations':
-                exportPortfolio(msg.dateFrom, msg.dateTo)
-                    .then(result => {
-                            port.postMessage(Object.assign({},
-                                {result: "listOfOperations"},
-                                {account: msg.account},
-                                {list: result},
-                                {hideCommission: msg.hideCommission})
-                            );
-                        }
-                    )
-                    .catch(e => {
-                        console.log(`cant send data for operations, because ${e}`)
-                    });
+                getCurrencyCourse().then(currencies => {
+                    exportPortfolio(msg.dateFrom, msg.dateTo)
+                        .then(result => {
+                                port.postMessage(Object.assign({},
+                                    {result: "listOfOperations"},
+                                    {account: msg.account},
+                                    {list: result},
+                                    {currencies: currencies},
+                                    {hideCommission: msg.hideCommission},
+                                    {operationType: msg.operationType})
+                                );
+                            }
+                        )
+                        .catch(e => {
+                            console.log(`cant send data for operations, because ${e}`)
+                        });
+                });
                 break;
             case 'exportPortfolio':
                 console.log('send data for Export');
