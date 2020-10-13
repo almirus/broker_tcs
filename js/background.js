@@ -70,7 +70,6 @@ import {
     SYMBOL_URL,
     TICKER_LIST,
     UNSUBSCRIBE,
-    USD_RUB,
     USER_LIST_URL,
     USER_URL
 } from "/js/constants.mjs";
@@ -354,7 +353,7 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                     //expected_yield.value = symbol.payload.relativeOTC;
                 }
                 if (needToConvert && current_amount?.currency !== 'RUB') {
-                    let currencyCourse = currenciesCourse[current_amount.currency+'RUB']?.lastPrice || 1
+                    let currencyCourse = currenciesCourse[current_amount.currency + 'RUB']?.lastPrice || 1
 
                     earning_today = earning_today * currencyCourse;
                     current_amount.value = current_amount.value * currencyCourse;
@@ -499,7 +498,7 @@ function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
  * @param brokerAccountType
  * @return {Promise<any>}
  */
-function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()).toJSON()) {
+function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()).toJSON(), ticker) {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             fetch(OPERATIONS_URL + session_id, {
@@ -507,7 +506,10 @@ function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()
                 body: JSON.stringify({
                     from: dateFrom,
                     to: dateTo,
-                    "overnightsDisabled": true
+                    "overnightsDisabled": true,
+                    ...(ticker && {
+                        ticker: ticker
+                    })
                 }),
                 headers: {
                     'Accept': 'application/json',
@@ -640,7 +642,7 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    getCurrencyCourse().then(currencies=>{
+                    getCurrencyCourse().then(currencies => {
                         MainProperties.getConvertToRUB().then(needConvert => {
                             console.log('get session option');
                             getPortfolio(session_id).then(allPortfolio => {
@@ -875,7 +877,7 @@ function getNews(nav_id) {
                 case /^[0-9]+$/.test(nav_id) || !nav_id:
                     url = NEWS_URL.replace('${navId}', nav_id) + session_id;
                     break;
-                case /^[A-Z0-9]+$/.test(nav_id):
+                case /^[A-Z@0-9]+$/.test(nav_id):
                     type = 'ticker';
                     url = PULSE_FOR_TICKER_URL.replace('${navId}', nav_id) + session_id;
                     break;
@@ -1943,7 +1945,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'getOperations':
                 getCurrencyCourse().then(currencies => {
-                    exportPortfolio(msg.dateFrom, msg.dateTo)
+                    exportPortfolio(msg.dateFrom, msg.dateTo, msg.ticker)
                         .then(result => {
                                 port.postMessage(Object.assign({},
                                     {result: "listOfOperations"},

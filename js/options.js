@@ -201,6 +201,7 @@ port.onMessage.addListener(function (msg) {
             break;
         case 'listOfOperations':
             renderListOperations(msg.account, msg.list, msg.currencies, msg.hideCommission, msg.operationType);
+            setTickerFilter();
             break;
         case 'listLiquid':
             liquidList = msg.list;
@@ -353,6 +354,23 @@ function setNewsToggleButton() {
     })
 }
 
+function setTickerFilter() {
+    Array.from(document.querySelectorAll(".tickerFilter")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            document.getElementById('operation_date_from').valueAsDate  = new Date('2015-03-01T00:00:00Z');
+            let button = e.target;
+            port.postMessage({
+                method: "getOperations",
+                account: document.getElementById('operation_account').value || 'All',
+                dateFrom: undefined,
+                dateTo: undefined,
+                hideCommission: document.getElementById('operation_commission').checked,
+                operationType: document.getElementById('operation_type').value,
+                ticker: button.innerText
+            })
+        })
+    })
+}
 function setTranslateButton() {
     Array.from(document.querySelectorAll(".translate")).forEach(function (input) {
         input.addEventListener('click', function (e) {
@@ -1314,6 +1332,21 @@ document.getElementById('operation_list').addEventListener('change', function (e
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
     document.getElementById('newtickers_table').style.display = 'none';
+    if (!document.getElementById('operation_date_from').value){
+        document.getElementById('operation_date_from').valueAsDate  = new Date();
+        let d = new Date();
+        d.setHours(0,0,0,0);
+        let dateFrom = d.toJSON();
+        let dateTo = undefined;
+        port.postMessage({
+            method: "getOperations",
+            account: document.getElementById('operation_account').value || 'All',
+            dateFrom: dateFrom,
+            dateTo: dateTo,
+            hideCommission: document.getElementById('operation_commission').checked,
+            operationType: document.getElementById('operation_type').value
+        })
+    }
 });
 
 Array.from(document.getElementsByClassName('operation_table')).forEach(input => input.addEventListener('change', event => {

@@ -579,3 +579,12 @@ span.pulseTicker:hover+span.pulseIcon{
 .note{
     width: 100%;
 }
+.tickerFilter{
+    cursor: pointer;
+    border-bottom: 1px dotted #000;
+    font-weight: bold;
+}
+
+.imgPulse:hover {
+    transform: scale(10);
+}

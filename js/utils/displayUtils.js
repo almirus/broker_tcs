@@ -341,7 +341,7 @@ export function renderListOperations(account, list, currencies, hideCommission, 
         buffer += `
 <tr class="${item.type.toLowerCase() === 'sell' ? 'isOnlineOrderSell' : ''}${item.type.toLowerCase() === 'buy' ? 'isOnlineOrderBuy' : ''}">
     <td>${item.isin}</td>
-    <td>${item.symbol}</td>
+    <td class="tickerFilter" title="Фильтровать по тикеру за все время">${item.symbol}</td>
     <td>${item.commission}</td>
     <td>${item.date.toLocaleString()}</td>
     <td>${item.type}</td>
