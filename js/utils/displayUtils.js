@@ -355,7 +355,7 @@ export function renderListOperations(account, list, currencies, hideCommission, 
         sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice * 1 : item.price * 1;
     });
 
-    buffer += `<td colspan='8' align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> расчитана по текущему курсу валют</td>`;
+    buffer += `<td colspan='8' align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> расчитана по <u>текущему курсу валют</u></td>`;
     buffer += "</table>";
     document.getElementById('operation_container').innerHTML = buffer;
 }

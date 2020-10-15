@@ -232,15 +232,12 @@ port.onMessage.addListener(function (msg) {
             renderTickers(msg);
             break;
         case 'treemap':
-
             document.getElementById('treemap_container').innerHTML = '';
             //console.log(msg.list);
             anychart.onDocumentReady(() => {
                 let dataTree = anychart.data.tree(msg.list, 'as-table');
                 let chart = anychart.treeMap(dataTree);
-
                 chart.title("Карта будет пустой, если рынки закрыты");
-
                 // sets chart settings
                 chart
                     .padding([10, 10, 10, 20])
@@ -248,18 +245,13 @@ port.onMessage.addListener(function (msg) {
                     .maxDepth(2)
                     .selectionMode('none')
                     .hintDepth(1)
-                    .hovered({fill: '#bdbdbd'});
-
                 // sets settings for labels
                 chart
                     .labels()
                     .useHtml(true)
-                    .fontColor('#212121')
-                    .fontSize(12)
                     .format(function () {
-                        return this.getData('product') + '<br>' + this.getData('relative') + '%';
+                        return `<span style="color: #000000;text-shadow: 3px 3px 15px #ffffff;">${this.getData('product')}<br>${this.getData('relative')}%</span>`;
                     });
-
                 // sets settings for headers
                 chart.headers().format(function () {
                     return this.getData('product');
@@ -270,7 +262,7 @@ port.onMessage.addListener(function (msg) {
                     .tooltip()
                     .useHtml(true)
                     .titleFormat(function () {
-                        return `${this.getData('product')} ${this.getData('relative')}%`;
+                        return `${this.getData('product')} ${this.getData('relative') ? this.getData('relative') + '%' : ''}`;
                     })
                     .format(function () {
                         return (
@@ -357,8 +349,9 @@ function setNewsToggleButton() {
 function setTickerFilter() {
     Array.from(document.querySelectorAll(".tickerFilter")).forEach(function (input) {
         input.addEventListener('click', function (e) {
-            document.getElementById('operation_date_from').valueAsDate  = new Date('2015-03-01T00:00:00Z');
+            //document.getElementById('operation_date_from').valueAsDate = new Date('2015-03-01T00:00:00Z');
             let button = e.target;
+            document.getElementById('filter_ticker').value = button.innerText;
             port.postMessage({
                 method: "getOperations",
                 account: document.getElementById('operation_account').value || 'All',
@@ -369,8 +362,9 @@ function setTickerFilter() {
                 ticker: button.innerText
             })
         })
-    })
+    });
 }
+
 function setTranslateButton() {
     Array.from(document.querySelectorAll(".translate")).forEach(function (input) {
         input.addEventListener('click', function (e) {
@@ -561,8 +555,10 @@ function create_portfolio_table(divId, data) {
     th8.style.width = '40px';
     th7.className = 'sorting';
 
-    let th9 = document.createElement('th');
-    th9.appendChild(document.createTextNode('заметки'));
+    /*
+        let th9 = document.createElement('th');
+        th9.appendChild(document.createTextNode('заметки'));
+    */
 
     tr.appendChild(th1);
     tr.appendChild(th8);
@@ -572,7 +568,7 @@ function create_portfolio_table(divId, data) {
     tr.appendChild(th5);
     tr.appendChild(th6);
     tr.appendChild(th7);
-    tr.appendChild(th9);
+    //tr.appendChild(th9);
 
     table.appendChild(tr);
 
@@ -1332,10 +1328,10 @@ document.getElementById('operation_list').addEventListener('change', function (e
     document.getElementById('news_table').style.display = 'none';
     document.getElementById('notes_table').style.display = 'none';
     document.getElementById('newtickers_table').style.display = 'none';
-    if (!document.getElementById('operation_date_from').value){
-        document.getElementById('operation_date_from').valueAsDate  = new Date();
+    if (!document.getElementById('operation_date_from').value) {
+        document.getElementById('operation_date_from').valueAsDate = new Date();
         let d = new Date();
-        d.setHours(0,0,0,0);
+        d.setHours(0, 0, 0, 0);
         let dateFrom = d.toJSON();
         let dateTo = undefined;
         port.postMessage({
@@ -1359,7 +1355,10 @@ Array.from(document.getElementsByClassName('operation_table')).forEach(input => 
             dateFrom: dateFrom,
             dateTo: dateTo,
             hideCommission: document.getElementById('operation_commission').checked,
-            operationType: document.getElementById('operation_type').value
+            operationType: document.getElementById('operation_type').value,
+            ...(document.getElementById('filter_ticker').value && {
+                ticker: document.getElementById('filter_ticker').value
+            })
         })
     })
 );
@@ -1661,6 +1660,17 @@ chrome.storage.sync.get([OPTION_FINN_GETLAST], function (result) {
     document.getElementById(OPTION_FINN_GETLAST).checked = result[OPTION_FINN_GETLAST] === true;
 });
 
+document.getElementById('filter_ticker').addEventListener('input', function (input) {
+    port.postMessage({
+        method: "getOperations",
+        account: document.getElementById('operation_account').value || 'All',
+        dateFrom: undefined,
+        dateTo: undefined,
+        hideCommission: document.getElementById('operation_commission').checked,
+        operationType: document.getElementById('operation_type').value,
+        ticker: (input.target.value || '').toUpperCase()
+    })
+})
 
 // запрашиваем права на выдачу уведомлений
 if (window.Notification && Notification.permission !== "granted") {

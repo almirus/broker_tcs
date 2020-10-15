@@ -1623,7 +1623,7 @@ async function getNewTickers(clean) {
             newList = newList[NEW_TICKERS];
         }
         console.log('get old list');
-        if (newList.length) {
+        if (newList?.length) {
             // ищем разницу между списками
             const different = newList.filter(o1 => !list.some(o2 => o1.ticker === o2.ticker));
             // ищем одинаковые но которые поменяли флаг isOTC
