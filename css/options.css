@@ -588,3 +588,9 @@ span.pulseTicker:hover+span.pulseIcon{
 .imgPulse:hover {
     transform: scale(10);
 }
+.scale div{
+    display: inline-block;
+    float: left;
+    text-align: center;
+    margin-left: 1px;
+}

@@ -232,7 +232,7 @@ port.onMessage.addListener(function (msg) {
             renderTickers(msg);
             break;
         case 'treemap':
-            document.getElementById('treemap_container').innerHTML = '';
+            document.getElementById('treemap_container').innerHTML = '<div class="scale" width="357" align="right" title="" style="float: right; margin-right: 0px;"><div class="step" style="background: rgb(246, 53, 56); width: 50px; padding-left: 6px; padding-right: 6px;">-3%</div><div class="step" style="background: rgb(191, 64, 69); width: 50px; padding-left: 6px; padding-right: 6px;">-2%</div><div class="step" style="background: rgb(139, 68, 78); width: 50px; padding-left: 6px; padding-right: 6px;">-1%</div><div class="step" style="background: rgb(65, 69, 84); width: 50px; padding-left: 6px; padding-right: 6px;">0%</div><div class="step" style="background: rgb(53, 118, 78); width: 50px; padding-left: 6px; padding-right: 6px;">+1%</div><div class="step" style="background: rgb(47, 158, 79); width: 50px; padding-left: 6px; padding-right: 6px;">+2%</div><div class="step" style="background: rgb(48, 204, 90); width: 50px; padding-left: 6px; padding-right: 6px;">+3%</div></div>';
             //console.log(msg.list);
             anychart.onDocumentReady(() => {
                 let dataTree = anychart.data.tree(msg.list, 'as-table');
@@ -250,7 +250,7 @@ port.onMessage.addListener(function (msg) {
                     .labels()
                     .useHtml(true)
                     .format(function () {
-                        return `<span style="color: #000000;text-shadow: 3px 3px 15px #ffffff;">${this.getData('product')}<br>${this.getData('relative')}%</span>`;
+                        return `<span style="color: #000000;    text-shadow: 0 1px 0 rgba(255,255,255,0.25)">${this.getData('product')}<br>${this.getData('relative')}%</span>`;
                     });
                 // sets settings for headers
                 chart.headers().format(function () {
@@ -320,6 +320,7 @@ function setTickerPulseButton() {
             document.getElementById('news_table').style.display = 'block';
             document.getElementById('graphic_table').style.display = 'none';
             document.getElementById('treemap_table').style.display = 'none';
+            document.getElementById('operation_table').style.display = 'none';
             document.getElementById('news_table').innerHTML = ' <img src="css/loader.gif" alt="loading">';
             port.postMessage({method: "getPulse", params: {nav_id: button.dataset.nav}});
         })
@@ -350,8 +351,6 @@ function setTickerFilter() {
     Array.from(document.querySelectorAll(".tickerFilter")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             //document.getElementById('operation_date_from').valueAsDate = new Date('2015-03-01T00:00:00Z');
-            let button = e.target;
-            document.getElementById('filter_ticker').value = button.innerText;
             port.postMessage({
                 method: "getOperations",
                 account: document.getElementById('operation_account').value || 'All',
@@ -359,7 +358,7 @@ function setTickerFilter() {
                 dateTo: undefined,
                 hideCommission: document.getElementById('operation_commission').checked,
                 operationType: document.getElementById('operation_type').value,
-                ticker: button.innerText
+                ticker: document.getElementById('ticker_name').value
             })
         })
     });
@@ -701,7 +700,7 @@ function create_portfolio_table(divId, data) {
 
             let td6 = document.createElement('td');
 
-            td6.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.currentAmount?.value.toLocaleString('ru-RU', {
+            td6.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.currentAmount?.value?.toLocaleString('ru-RU', {
                 style: 'currency',
                 currency: element.symbol.currentAmount.currency
             })}</div>`;
@@ -1329,7 +1328,7 @@ document.getElementById('operation_list').addEventListener('change', function (e
     document.getElementById('notes_table').style.display = 'none';
     document.getElementById('newtickers_table').style.display = 'none';
     if (!document.getElementById('operation_date_from').value) {
-        document.getElementById('operation_date_from').valueAsDate = new Date();
+        //document.getElementById('operation_date_from').valueAsDate = new Date();
         let d = new Date();
         d.setHours(0, 0, 0, 0);
         let dateFrom = d.toJSON();
@@ -1345,7 +1344,7 @@ document.getElementById('operation_list').addEventListener('change', function (e
     }
 });
 
-Array.from(document.getElementsByClassName('operation_table')).forEach(input => input.addEventListener('change', event => {
+/*Array.from(document.getElementsByClassName('operation_table')).forEach(input => input.addEventListener('change', event => {
         document.getElementById("operation_container").innerHTML = '<img src="css/loader.gif" alt="loading">';
         let dateFrom = document.getElementById('operation_date_from').value ? (new Date(document.getElementById('operation_date_from').value)).toJSON() : (new Date()).toJSON();
         let dateTo = document.getElementById('operation_date_to').value ? (new Date(document.getElementById('operation_date_to').value)).toJSON() : (new Date()).toJSON();
@@ -1356,12 +1355,12 @@ Array.from(document.getElementsByClassName('operation_table')).forEach(input => 
             dateTo: dateTo,
             hideCommission: document.getElementById('operation_commission').checked,
             operationType: document.getElementById('operation_type').value,
-            ...(document.getElementById('filter_ticker').value && {
-                ticker: document.getElementById('filter_ticker').value
+            ...(document.getElementById('ticker_name').value && {
+                ticker: document.getElementById('ticker_name').value
             })
         })
     })
-);
+);*/
 
 // подгрузка списка акций по названию
 document.getElementById('symbol_name').addEventListener('input', function (e) {
@@ -1659,8 +1658,8 @@ chrome.storage.sync.get([OPTION_FINN_GETLAST], function (result) {
     console.log('get last month option');
     document.getElementById(OPTION_FINN_GETLAST).checked = result[OPTION_FINN_GETLAST] === true;
 });
-
-document.getElementById('filter_ticker').addEventListener('input', function (input) {
+// клик по тикерам в операциях
+document.getElementById('filter_ticker').addEventListener('click', function (input) {
     port.postMessage({
         method: "getOperations",
         account: document.getElementById('operation_account').value || 'All',
@@ -1668,7 +1667,7 @@ document.getElementById('filter_ticker').addEventListener('input', function (inp
         dateTo: undefined,
         hideCommission: document.getElementById('operation_commission').checked,
         operationType: document.getElementById('operation_type').value,
-        ticker: (input.target.value || '').toUpperCase()
+        ticker: document.getElementById('ticker_name').value || ''
     })
 })
 

@@ -317,7 +317,7 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
     for (const element of data) {
         let securityType = PLURAL_SECURITY_TYPE[element.securityType];
         await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
-            let current_amount = element.currentAmount;
+            let current_amount = element.currentAmount || {};
             let expected_yield = element.expectedYield || {};
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
             if (!symbol.payload.symbol) {
@@ -353,13 +353,13 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                     //expected_yield.value = symbol.payload.relativeOTC;
                 }
                 if (needToConvert && current_amount?.currency !== 'RUB') {
-                    let currencyCourse = currenciesCourse[current_amount.currency + 'RUB']?.lastPrice || 1
+                    let currencyCourse = currenciesCourse[current_amount?.currency + 'RUB']?.lastPrice || 1
 
                     earning_today = earning_today * currencyCourse;
-                    current_amount.value = current_amount.value * currencyCourse;
-                    current_amount.currency = 'RUB';
-                    expected_yield.value = expected_yield.value * currencyCourse;
-                    expected_yield.currency = 'RUB';
+                    current_amount['value'] = current_amount?.value * currencyCourse;
+                    current_amount['currency'] = 'RUB';
+                    expected_yield['value'] = expected_yield?.value * currencyCourse;
+                    expected_yield['currency'] = 'RUB';
 
                 }
                 return_data.push({
@@ -508,7 +508,7 @@ function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()
                     to: dateTo,
                     "overnightsDisabled": true,
                     ...(ticker && {
-                        ticker: ticker
+                        ticker: ticker.toUpperCase()
                     })
                 }),
                 headers: {
@@ -1717,20 +1717,26 @@ async function getTreeMap(listName = 'All', isOTC) {
                 let fill;
                 item.earnings.relative *= 100;
                 //item.earnings.relative = Math.random()*100;
-                if (item.earnings.relative < -30) {
-                    fill = '#F5383D';
+                if (item.earnings.relative < -3) {
+                    fill = 'rgb(246, 53, 56)';
                 }
-                if (item.earnings.relative >= -30 && item.earnings.relative <= -1) {
-                    fill = '#C64045'
+                if (item.earnings.relative >= -3 && item.earnings.relative <= -2) {
+                    fill = 'rgb(191, 64, 69)'
                 }
-                if (item.earnings.relative > -1 && item.earnings.relative < 1) {
+                if (item.earnings.relative >= -2 && item.earnings.relative < -1) {
+                    fill = 'rgb(139, 68, 78)'
+                }
+                if (item.earnings.relative >= -1 && item.earnings.relative < 1) {
                     fill = '#414553'
                 }
-                if (item.earnings.relative >= 1 && item.earnings.relative <= 30) {
-                    fill = '#367D51'
+                if (item.earnings.relative >= 1 && item.earnings.relative < 2) {
+                    fill = 'rgb(53, 118, 78)'
                 }
-                if (item.earnings.relative > 30) {
-                    fill = '#33B15A'
+                if (item.earnings.relative >= 2 && item.earnings.relative <= 3) {
+                    fill = 'rgb(47, 158, 79)'
+                }
+                if (item.earnings.relative > 3) {
+                    fill = 'rgb(48, 204, 90)'
                 }
 
                 let obj = {
