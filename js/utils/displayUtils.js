@@ -313,7 +313,12 @@ export function renderListOperations(account, list, currencies, hideCommission, 
             && (
                 operationType === 'dividend' ?
                     item.operationType === 'Dividend' || item.operationType === 'Coupon' :
-                    (item.status === operationType || operationType === 'All')
+                    operationType === 'commission' ?
+                        //item.operationType === 'MarginCom' || item.operationType.indexOf('Tax') >-1 :
+                        (item.operationType !== 'Buy' && item.operationType !== 'BuyWithCard') && (item.payment < 0 || item.price < 0) :
+                        operationType === 'payinout' ?
+                            item.operationType === 'PayOut' || item.operationType === 'PayInn' || item.operationType === 'BuyWithCard' :
+                            (item.status === operationType || operationType === 'All')
             )
         );
 
@@ -350,12 +355,12 @@ export function renderListOperations(account, list, currencies, hideCommission, 
     <td>${item.currency !== 'RUB' ? (item.price * currencies[item.currency + 'RUB'].lastPrice).toFixed(2) : ''}</td>
     <td>${item.currency !== 'RUB' ? 'RUB' : ''}</td>
     <td>${item.amount}</td>
-    <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong></td>
+    <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong>${item.amount > 0 ? ', стоимость одного лота <strong>' + (item.price / item.amount).toFixed(2) + '</strong> ' + item.currency : ''}</td>
 </tr>`;
-        sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice * 1 : item.price * 1;
+        if (item.status !== 'decline') sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice * 1 : item.price * 1;
     });
 
-    buffer += `<td colspan='8' align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> расчитана по <u>текущему курсу валют</u></td>`;
+    buffer += `<td colspan='8' align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> успешных операций, расчитана по <u>текущему курсу валют</u></td>`;
     buffer += "</table>";
     document.getElementById('operation_container').innerHTML = buffer;
 }
@@ -383,10 +388,11 @@ export function renderTickers(object) {
     if (IPOs?.shelfSections.length) {
         buffer += '<h3>Первичное размещение</h3>';
         buffer += IPOs.shelfSections.map(item => {
-            return `<div title="подробности в приложении" class="newsAnnounce bordered" style="background-size: cover; background-image: url(${item.security?.logo.url})">
+            return `<div title="подробности в приложении" class="newsAnnounce bordered" style="background-size: cover; background-image: url(${item.security?.logo.url || item.picture})">
             <h2 class="header white">${item.name}</h2>
             <div class="announce white">${item.title}</div>
-            <div class="announce white">${item.security.asset.ticker}</div>`
+            <div class="announce white">${item.security?.asset.ticker || ('Корзина: ' + item.shortDescription)}</div>
+            </div>`
         }).join('');
     }
     buffer += '</div>';

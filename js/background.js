@@ -1271,7 +1271,7 @@ function getPrognosisList() {
                                 item['consensus'] = json.payload.consensus;
                                 const api = await MainProperties.getAVOption();
                                 const finn = await MainProperties.getFinnOption();
-                                if (finn.FinnEnabled && item.securityType)// только для портфеля запрашиваем рекомендации
+                                if (finn.FinnEnabled && item?.ticker && item.securityType === 'Stock')// только для портфеля запрашиваем рекомендации
                                     try {
                                         const response = await fetch(FINN_RECOMENDATION.replace('${ticker}', item.ticker) + api.AVKey);
                                         let array = await response.json();
@@ -1597,15 +1597,6 @@ async function getNewTickers(clean) {
         }
     });
     let listOfFound = await response.json();
-    let list = listOfFound.payload.values.reduce((result, item, index) => {
-        result.push({
-            ticker: item.symbol.ticker,
-            showName: item.symbol.showName,
-            isOTC: item.symbol.isOTC,
-            symbolType: item.symbol.symbolType,
-        });
-        return result;
-    }, []);
     if (listOfFound.status.toLocaleUpperCase() === 'OK') {
         async function getValue(name) {
             return new Promise(resolve => {
@@ -1615,6 +1606,15 @@ async function getNewTickers(clean) {
             });
         }
 
+        let list = listOfFound.payload.values.reduce((result, item, index) => {
+            result.push({
+                ticker: item.symbol.ticker,
+                showName: item.symbol.showName,
+                isOTC: item.symbol.isOTC,
+                symbolType: item.symbol.symbolType,
+            });
+            return result;
+        }, []);
         let newList = [];
         // сохраненение нового списка newList останется undefined
         if (!clean) {
@@ -1659,7 +1659,7 @@ async function getIPO() {
 
     if (shelves.status.toLocaleUpperCase() === 'OK') {
         return shelves.payload.shelves.filter(item => {
-            return item.shelfName && item.shelfName.toLocaleUpperCase() === 'РАЗМЕЩЕНИЯ'
+            return item.shelfName && (item.shelfName.toLocaleUpperCase() === 'РАЗМЕЩЕНИЯ' || item.shelfName.toLocaleUpperCase().indexOf('IPO') > 0)
         })
 
     } else {

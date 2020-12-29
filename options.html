@@ -79,6 +79,7 @@
                 <fieldset class="table">
                     <legend>Новости</legend>
                     <ul>
+                        <li>В операции добавлен фильтр по налогам, исправлена сумма Итого
                         <li>В операции добавлен фильтр по тикерам
                         <li>Исправлено конвертирование в рубли бумаг в порфеле, добавлены валюты в интерфейс Добавления уведомлений
                         <li>В карту цен добавлены индексы: S&P 500, Nasdaq 100, Dow Jones (исправлен фильтр для внебиржевых)
@@ -341,9 +342,11 @@
                 <option selected="selected" value="done">Только успешные</option>
                 <option value="dividend">Дивиденды и купоны</option>
                 <option value="progress">В процессе</option>
+                <option value="commission">Налоги и комиссии</option>
+                <option value="payinout">Ввод\вывод денег</option>
                 </select>
                 показывать комиссию отдельно <input type="checkbox" id="operation_commission" class="operation_table">
-                <input id="ticker_name" placeholder="фильтр, введите тикер"> <button id="filter_ticker">фильтровать</button><br>
+                <input id="ticker_name" placeholder="фильтр, введите тикер" type="search"> <button id="filter_ticker">фильтровать</button><br>
                 <span id="operation_container"></span>
             </div>
         </fieldset>

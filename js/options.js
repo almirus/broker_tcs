@@ -358,7 +358,7 @@ function setTickerFilter() {
                 dateTo: undefined,
                 hideCommission: document.getElementById('operation_commission').checked,
                 operationType: document.getElementById('operation_type').value,
-                ticker: document.getElementById('ticker_name').value
+                ticker: e.target.innerText
             })
         })
     });
@@ -1660,11 +1660,13 @@ chrome.storage.sync.get([OPTION_FINN_GETLAST], function (result) {
 });
 // клик по тикерам в операциях
 document.getElementById('filter_ticker').addEventListener('click', function (input) {
+    let dateFrom = document.getElementById('operation_date_from').value ? (new Date(document.getElementById('operation_date_from').value)).toJSON() : '2015-03-01T00:00:00Z';
+    let dateTo = document.getElementById('operation_date_to').value ? (new Date(document.getElementById('operation_date_to').value)).toJSON() : (new Date()).toJSON();
     port.postMessage({
         method: "getOperations",
         account: document.getElementById('operation_account').value || 'All',
-        dateFrom: undefined,
-        dateTo: undefined,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
         hideCommission: document.getElementById('operation_commission').checked,
         operationType: document.getElementById('operation_type').value,
         ticker: document.getElementById('ticker_name').value || ''
