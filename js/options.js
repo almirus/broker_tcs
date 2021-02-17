@@ -84,6 +84,7 @@ port.onMessage.addListener(function (msg) {
             if (msg.stocks_iis.length > 0) create_portfolio_table('portfolioIIS', msg.stocks_iis);
             document.getElementById('portfolioIIS').style = 'display:' + iisStyle;
             setTickerPulseButton();
+            setTickerFilter();
             break;
         case 'listAlerts':
             create_alert_table(msg.stocks);
@@ -351,6 +352,15 @@ function setTickerFilter() {
     Array.from(document.querySelectorAll(".tickerFilter")).forEach(function (input) {
         input.addEventListener('click', function (e) {
             //document.getElementById('operation_date_from').valueAsDate = new Date('2015-03-01T00:00:00Z');
+            document.getElementById('alert_table').style.display = 'none';
+            document.getElementById('price_table').style.display = 'none';
+            document.getElementById('treemap_table').style.display = 'none';
+            document.getElementById('operation_table').style.display = 'block';
+            document.getElementById('hideNewList').style.display = 'none';
+            document.getElementById('graphic_table').style.display = 'none';
+            document.getElementById('news_table').style.display = 'none';
+            document.getElementById('notes_table').style.display = 'none';
+            document.getElementById('newtickers_table').style.display = 'none';
             port.postMessage({
                 method: "getOperations",
                 account: document.getElementById('operation_account').value || 'All',
@@ -358,7 +368,7 @@ function setTickerFilter() {
                 dateTo: undefined,
                 hideCommission: document.getElementById('operation_commission').checked,
                 operationType: document.getElementById('operation_type').value,
-                ticker: e.target.innerText
+                ticker: e.target.dataset.ticker || e.target.innerText
             })
         })
     });
@@ -652,11 +662,11 @@ function create_portfolio_table(divId, data) {
             if (element.symbol.averagePositionPrice.value === undefined || element.symbol.averagePositionPrice.value === 0)
                 td3.innerHTML = `<div data-ticker="${element.symbol.ticker}">Ошибка у брокера</div>`;
             else
-                td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><a href="${events_url}" target="_blank" title="Средняя цена. Посмотреть транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
+                td3.innerHTML = `<div data-ticker="${element.symbol.ticker}"><span class="tickerFilter" data-ticker="${element.symbol.ticker}" title="Средняя цена. Посмотреть транзакции">${element.symbol.averagePositionPrice.value.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: element.symbol.averagePositionPrice.currency,
                     minimumFractionDigits: element.symbol.averagePositionPrice.value < 0.1 ? 4 : 2
-                })}</a>${prognosis_link}</div>`;
+                })}</span>${prognosis_link}</div>`;
 
             td3.appendChild(drawPremiumConsensus(cached_element?.premium_consensus));
             td3.appendChild(drawPremiumConsensusFinn(cached_element?.finn_consensus));

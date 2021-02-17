@@ -1077,7 +1077,7 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
     return new Promise((resolve, reject) => {
         // POST
         console.log('try to get symbolInfo for', tickerName);
-        fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
+        fetch((securityType.includes('currencies') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
             method: "POST",
             body: securityType.includes('notes') ? JSON.stringify({isin: tickerName}) : JSON.stringify({ticker: tickerName}),
             headers: {

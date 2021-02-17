@@ -97,8 +97,7 @@ export function renderNews(msg) {
      </h2><div class="logoContainer">${tickers}</div>  
      <div id="${news.item.id}_announce" data-id="${news.item.id}" class="announce ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${news.item.announce}</div>
      <div data-id="${news.item.id}" class="date ${is_vedomosti || !is_has_background ? 'black' : 'white'}">${itemType[news.type]} ${new Date(news.item.date).toLocaleDateString()}</div>
-</div><span class="newsBody ${is_vedomosti ? 'vedomosti' : ''}" id="${news.item.id}_body">${news.item.body}</span>
-${is_eng ? '<div data-id="' + news.item.id + '" class="translate" title="Перевести текст на русский">перевести</div>' : ''}`
+</div><span class="newsBody ${is_vedomosti ? 'vedomosti' : ''}" id="${news.item.id}_body">${news.item.body}</span>`
             }
             case 'day_number': {
                 return `
@@ -342,6 +341,7 @@ export function renderListOperations(account, list, currencies, hideCommission, 
     let items = filterDataForListOperations(account, list);
     let buffer = "<table><tr><th>ISIN</th><th>SYMBOL</th><th>COMMISSION</th><th>DATE</th><th>TYPE</th><th>PRICE</th><th>CURRENCY</th><th>PRICE_RUB</th><th>CURRENCY</th><th>AMOUNT</th><th>DESCRIPTION</th></tr>";
     let sum = 0;
+    let commission = 0;
     items.forEach(item => {
         buffer += `
 <tr class="${item.type.toLowerCase() === 'sell' ? 'isOnlineOrderSell' : ''}${item.type.toLowerCase() === 'buy' ? 'isOnlineOrderBuy' : ''}">
@@ -357,10 +357,13 @@ export function renderListOperations(account, list, currencies, hideCommission, 
     <td>${item.amount}</td>
     <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong>${item.amount > 0 ? ', стоимость одного лота <strong>' + (item.price / item.amount).toFixed(2) + '</strong> ' + item.currency : ''}</td>
 </tr>`;
-        if (item.status !== 'decline') sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice * 1 : item.price * 1;
+        if (item.status !== 'decline'){
+            commission += item.currency !== 'RUB' ? item.commission * currencies[item.currency + 'RUB'].lastPrice * 1 : item.commission * 1;
+            sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice * 1 : item.price * 1;
+        }
     });
-
-    buffer += `<td colspan='8' align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> успешных операций, расчитана по <u>текущему курсу валют</u></td>`;
+    buffer += `<td colspan='3' align="right"><strong>${commission.toFixed(2)}</strong></td><td colspan="4">комиссия в <strong>рублях</strong></td>`;
+    buffer += `<td align="right"><strong>${sum.toFixed(2)}</strong></td><td colspan="3">итоговая сумма в <strong>рублях</strong> успешных операций, расчитана по <u>текущему курсу валют</u></td>`;
     buffer += "</table>";
     document.getElementById('operation_container').innerHTML = buffer;
 }

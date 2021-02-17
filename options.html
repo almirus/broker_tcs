@@ -335,7 +335,8 @@
                 <option selected="selected" value="All">Все</option>
                 <option value="Tinkoff">ТКС</option>
                 <option value="TinkoffIis">ИИС</option>
-                </select> от <input type="date" id="operation_date_from" class="operation_table"> до <input type="date" id="operation_date_to" class="operation_table">
+                </select> <input id="ticker_name" placeholder="фильтр, введите тикер" type="search">
+                от <input type="date" id="operation_date_from" class="operation_table"> до <input type="date" id="operation_date_to" class="operation_table">
                 показывать операции <select  class="operation_table" id="operation_type">
                 <option value="All">Все</option>
                 <option value="decline">Только отмененные</option>
@@ -345,8 +346,10 @@
                 <option value="commission">Налоги и комиссии</option>
                 <option value="payinout">Ввод\вывод денег</option>
                 </select>
+
                 показывать комиссию отдельно <input type="checkbox" id="operation_commission" class="operation_table">
-                <input id="ticker_name" placeholder="фильтр, введите тикер" type="search"> <button id="filter_ticker">фильтровать</button><br>
+
+                <button id="filter_ticker">фильтровать</button><br>
                 <span id="operation_container"></span>
             </div>
         </fieldset>
