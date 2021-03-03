@@ -253,12 +253,21 @@ input[type="datetime-local"] {
 }
 .subscribePrice {
     margin: 5px;
-    padding-left: 5px;
     padding-right: 10px;
     color: white;
-    background-color: #42ba08;
+    background-color: #a2a2a2;
     border-radius: 15%;
     display: inline-block;
+}
+.red_border{
+    border-left: 3px solid #f55656;
+    min-height: 100%;
+    float: left;
+}
+.green_border{
+    border-left: 3px solid #1ae56a;
+    min-height: 100%;
+    float: left;
 }
 .subscribePrice:active {
     background-color: red;

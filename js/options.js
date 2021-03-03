@@ -1085,13 +1085,13 @@ function create_alert_table(data_list) {
                         New: 'Заявка'
                     };
                     if (element.orderId) td4.innerHTML = `
-                        <span class="subscribePrice">${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
+                        <span class="subscribePrice">&nbsp;${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
                         <strong title="${status[element.status] ? status[element.status] : element.orderType} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${((element.sell_price || element.buy_price) * element.quantity).toFixed(2)} счет ${element.brokerAccountType}</strong>`;
-                    else td4.innerHTML = element.subscriptPrice ? element.subscriptPrice.map(elem =>
-                        `<span class="subscribePrice">${elem.price}
-                            <span class="subscribePercent">${(100 - elem.price * 100 / element.online_average_price).toFixed(1)}%</span>
-                        </span><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>
-                         `).join('') : '';
+                    else td4.innerHTML = element.subscriptPrice?.map(elem =>
+                        `<div class="subscribePrice"><div class="${elem.price < element.online_average_price ? 'red_border' : 'green_border'}">&nbsp;</div>&nbsp;${elem.price}
+                            <span class="subscribePercent">&nbsp;${(100 - elem.price * 100 / element.online_average_price).toFixed(1)}%</span>
+                        </div><span data-index="${elem.subscriptionId}" title="Удалить уведомление" class="deleteTicker close"></span>
+                         `).join('');
                 }
 
                 let td6 = document.createElement('td');

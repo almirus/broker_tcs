@@ -1354,10 +1354,11 @@ function updateAlertPrices() {
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
                     await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
+                        let sorted_subscriptions = item.subscriptions?.sort((a, b) => a.price - b.price);
                         let opacity_rate = giveLessDiffToTarget({
                             online_buy_price: res.payload.buy?.value || res.payload.last?.value || 0,
                             online_sell_price: res.payload.sell?.value || res.payload.last?.value || 0,
-                            buy_price: item.buy_price || (item.subscriptions ? item.subscriptions[0].price : 0),
+                            buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[0].price : 0),
                             sell_price: item.sell_price || 0,
                         });
 
@@ -1405,7 +1406,7 @@ function updateAlertPrices() {
                             status: item.status,
                             isFavorite: res.payload.isFavorite,
                             isOTC: item.isOTC,
-                            subscriptPrice: item.subscriptions,
+                            subscriptPrice: sorted_subscriptions,
                             quantity: item.quantity,
                             quantityExecuted: item.quantityExecuted,
                             favoriteList: item.favoriteList,
