@@ -361,6 +361,7 @@ function setTickerFilter() {
             document.getElementById('news_table').style.display = 'none';
             document.getElementById('notes_table').style.display = 'none';
             document.getElementById('newtickers_table').style.display = 'none';
+            document.getElementById('operation_list').checked = true;
             port.postMessage({
                 method: "getOperations",
                 account: document.getElementById('operation_account').value || 'All',
