@@ -18,7 +18,7 @@ import {
     FINN_CONSTITUENTS,
     FINN_RECOMENDATION,
     FINN_SYMBOL_URL,
-    HOST_URL,
+    HOST_URL, IMOEX_LIST,
     INFO_URL,
     INTERVAL_TO_CHECK,
     LIQUID_URL,
@@ -1693,6 +1693,10 @@ async function getTreeMap(listName = 'All', isOTC) {
             return [...prev, ...[curr.symbol.ticker]];
         }, []))];
         search_obj['tickers'] = list;
+    }
+    if (listName==='IMOEX'){
+        search_obj['country'] = 'All';
+        search_obj['tickers'] = IMOEX_LIST;
     }
     if (listName === '^GSPC' || listName === '^NDX' || listName === '^DJI') {
         search_obj['country'] = 'All';
