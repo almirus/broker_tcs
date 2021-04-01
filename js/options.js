@@ -1343,7 +1343,9 @@ document.getElementById('operation_list').addEventListener('change', function (e
         let d = new Date();
         d.setHours(0, 0, 0, 0);
         let dateFrom = d.toJSON();
-        let dateTo = undefined;
+        let dateToTime = new Date();
+        dateToTime.setHours(23, 59, 59, 59);
+        let dateTo = dateToTime.toJSON();
         port.postMessage({
             method: "getOperations",
             account: document.getElementById('operation_account').value || 'All',
@@ -1669,10 +1671,28 @@ chrome.storage.sync.get([OPTION_FINN_GETLAST], function (result) {
     console.log('get last month option');
     document.getElementById(OPTION_FINN_GETLAST).checked = result[OPTION_FINN_GETLAST] === true;
 });
-// клик по тикерам в операциях
+// клик Сегодня в операциях
+document.getElementById('today').addEventListener('click', function (input) {
+    let dateFrom = new Date();
+    let dateToTime = new Date();
+    dateFrom.setHours(0,0,0,0);
+    dateToTime.setHours(23, 59, 59, 59);
+    port.postMessage({
+        method: "getOperations",
+        account: document.getElementById('operation_account').value || 'All',
+        dateFrom: dateFrom.toJSON(),
+        dateTo: dateToTime.toJSON(),
+        hideCommission: document.getElementById('operation_commission').checked,
+        operationType: document.getElementById('operation_type').value,
+        ticker: document.getElementById('ticker_name').value || ''
+    })
+})
+// клик Фильтр в операциях
 document.getElementById('filter_ticker').addEventListener('click', function (input) {
     let dateFrom = document.getElementById('operation_date_from').value ? (new Date(document.getElementById('operation_date_from').value)).toJSON() : '2015-03-01T00:00:00Z';
-    let dateTo = document.getElementById('operation_date_to').value ? (new Date(document.getElementById('operation_date_to').value)).toJSON() : (new Date()).toJSON();
+    let dateToTime = document.getElementById('operation_date_to').value ? new Date(document.getElementById('operation_date_to').value) : new Date();
+    dateToTime.setHours(23, 59, 59, 59);
+    let dateTo = dateToTime.toJSON();
     port.postMessage({
         method: "getOperations",
         account: document.getElementById('operation_account').value || 'All',
