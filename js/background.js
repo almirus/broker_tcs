@@ -15,6 +15,7 @@ import {
     CURRENCY_SYMBOL_URL,
     DIVIDENDS_URL,
     FAVORITE_URL,
+    FEATURES_URL,
     FINN_CONSTITUENTS,
     FINN_RECOMENDATION,
     FINN_SYMBOL_URL,
@@ -1043,31 +1044,75 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
     return new Promise((resolve, reject) => {
         console.log(`Get price for ${tickerName}`);
         if (tickerName) {
-            // POST
-            fetch((tickerName.includes('RUB') ? CURRENCY_PRICE_URL : PRICE_URL.replace('${securityType}', securityType)) + session_id, {
-                method: "POST",
-                body: JSON.stringify({ticker: tickerName}),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                }
-            }).then(response => response.json())
-                .then(res => {
-                    fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
-                        .then(extendInfo => {
-                            res.payload.isFavorite = extendInfo.payload.isFavorite;
-                            //res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
-                            //res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
-                            res.payload.subscriptions = extendInfo.payload.priceAlert;
-                            resolve(res);
-                        }).catch(e => {
-                        console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
-                        reject(res)
-                    });
-                }).catch(e => {
-                console.log(e);
-                reject(undefined);
-            })
+            if (securityType === 'futures') {
+                fetch((FEATURES_URL.replace('${ticker}', tickerName)) + session_id, {
+                    method: "GET",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                            .then(extendInfo => {
+                                /*
+                                online_buy_price: res.payload.buy?.value || res.payload.last?.value || 0,
+                                online_sell_price: res.payload.sell?.value || res.payload.last?.value || 0,
+                                buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[0].price : 0),
+                                sell_price: item.sell_price || 0,
+                                */
+                                res.payload = {
+                                    buy: {value: res.payload.priceInfo.last},
+                                    sell: {value: res.payload.priceInfo.last},
+                                    last: {
+                                        value: res.payload.priceInfo.last,
+                                        currency: res.payload.orderInfo.pointValue.currency
+                                    },
+                                    earnings: {
+                                        absolute: {
+                                            currency: res.payload.orderInfo.pointValue.currency,
+                                            value: res.payload.earningsInfo.absolute
+                                        },
+                                        relative: res.payload.earningsInfo.relative
+                                    },
+                                    isFavorite: extendInfo.payload.isFavorite,
+                                    subscriptions: extendInfo.payload.priceAlert
+                                };
+                                resolve(res);
+                            }).catch(e => {
+                            console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
+                            reject(res)
+                        });
+                    }).catch(e => {
+                    console.log(e);
+                    reject(undefined);
+                });
+            } else
+                // POST
+                fetch((PRICE_URL.replace('${securityType}', securityType)) + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({ticker: tickerName}),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                            .then(extendInfo => {
+                                res.payload.isFavorite = extendInfo.payload.isFavorite;
+                                //res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
+                                //res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
+                                res.payload.subscriptions = extendInfo.payload.priceAlert;
+                                resolve(res);
+                            }).catch(e => {
+                            console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
+                            reject(res)
+                        });
+                    }).catch(e => {
+                    console.log(e);
+                    reject(undefined);
+                })
         } else reject(undefined);
     })
 
@@ -1353,7 +1398,9 @@ function updateAlertPrices() {
                 //TODO сделать запрос к поиску
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
-                    await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
+
+                    await getPriceInfo(item.ticker, SYMBOL_URL_CONVERT[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
+
                         let sorted_subscriptions = item.subscriptions?.sort((a, b) => a.price - b.price);
                         let opacity_rate = giveLessDiffToTarget({
                             online_buy_price: res.payload.buy?.value || res.payload.last?.value || 0,
@@ -1694,7 +1741,7 @@ async function getTreeMap(listName = 'All', isOTC) {
         }, []))];
         search_obj['tickers'] = list;
     }
-    if (listName==='IMOEX'){
+    if (listName === 'IMOEX') {
         search_obj['country'] = 'All';
         search_obj['tickers'] = IMOEX_LIST;
     }

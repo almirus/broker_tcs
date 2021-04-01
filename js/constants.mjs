@@ -1,11 +1,11 @@
 'use strict';
-export const INFO_URL = 'https://api.tinkoff.ru/v1/session_status?appName=invest_terminal&appVersion=1.0.0&sessionid=';
+export const INFO_URL = 'https://api.tinkoff.ru/v1/session_status?appName=invest_terminal&appVersion=4.19.0&sessionid=';
 export const LOGIN_URL = 'https://www.tinkoff.ru/login/?redirectTo=/invest/broker_account/';
-export const SIGN_OUT_URL = 'https://api.tinkoff.ru/v1/sign_out?appName=invest_terminal&appVersion=1.0.0&sessionid=';
+export const SIGN_OUT_URL = 'https://api.tinkoff.ru/v1/sign_out?appName=invest_terminal&appVersion=4.19.0&sessionid=';
 export const HOST_URL = 'https://www.tinkoff.ru/';
 export const FAVORITE_URL = 'https://api.tinkoff.ru/trading/user/get_favorites?sessionId=';
 export const ADD_FAFORITE_URL = 'https://api.tinkoff.ru/trading/user/add_to_favorites?sessionId=';
-export const PORTFOLIO_URL = 'https://api.tinkoff.ru/trading/portfolio/purchased_securities?appName=invest_terminal&appVersion=1.0.0&sessionId=';
+export const PORTFOLIO_URL = 'https://api.tinkoff.ru/trading/portfolio/purchased_securities?appName=invest_terminal&appVersion=4.19.0&sessionId=';
 export const ALL_ACCOUNTS = 'https://api.tinkoff.ru/trading/portfolio/all_accounts?sessionId=';
 export const BUY_LINK = 'https://www.tinkoff.ru/invest/buy/';
 export const SELL_LINK = 'https://www.tinkoff.ru/invest/sell/';
@@ -16,15 +16,16 @@ export const DIVIDENDS_URL = 'https://api.tinkoff.ru/trading/stocks/dividends?se
 export const SYMBOL_LINK = 'https://www.tinkoff.ru/invest/${securityType}/';
 export const PING_URL = 'https://api.tinkoff.ru/v1/ping?sessionid=';
 export const PRICE_URL = 'https://api.tinkoff.ru/trading/${securityType}/price?sessionId=';
+export const FEATURES_URL = 'https://api.tinkoff.ru/trading/futures/get?ticker=${ticker}&y=omg&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const CURRENCY_PRICE_URL = 'https://api.tinkoff.ru/trading/currency/price?sessionId=';
 export const SYMBOL_URL = 'https://api.tinkoff.ru/trading/${securityType}/get?sessionId=';
 export const CURRENCY_SYMBOL_URL = 'https://api.tinkoff.ru/trading/currency/get?sessionId=';
-export const CURRENCY_LIST_URL = 'https://api.tinkoff.ru/trading/currency/list?y=omg&deviceId=2cb59723b132726c&appVersion=4.13.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PROGNOSIS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/instruments/${ticker}/forecasts?id_kind=ticker&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const CONSENSUS_URL = 'https://api-invest.tinkoff.ru/apa/analytics/forecast/consensus?isin=${isin}&y=omg&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId='
+export const CURRENCY_LIST_URL = 'https://api.tinkoff.ru/trading/currency/list?y=omg&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PROGNOSIS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/instruments/${ticker}/forecasts?id_kind=ticker&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const CONSENSUS_URL = 'https://api-invest.tinkoff.ru/apa/analytics/forecast/consensus?isin=${isin}&y=omg&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId='
 export const SET_ALERT_URL = 'https://api.tinkoff.ru/trading/subscriptions/price_alert?ticker=${ticker}&price=${price}&sessionId=';
 export const ORDERS_URL = 'https://api.tinkoff.ru/trading/user/orders?sessionId=';
-export const STOP_URL = 'https://api.tinkoff.ru/trading/user/stop_orders?appName=invest_terminal&appVersion=1.0.0&sessionId=';
+export const STOP_URL = 'https://api.tinkoff.ru/trading/user/stop_orders?appName=invest_terminal&appVersion=4.19.0&sessionId=';
 export const CANCEL_ORDER = 'https://api.tinkoff.ru/trading/order/cancel?orderId=${orderId}&brokerAccountType=${brokerAccountType}&sessionId=';
 export const CANCEL_STOP = 'https://api.tinkoff.ru/trading/order/cancel_stop?orderId=${orderId}&brokerAccountType=${brokerAccountType}&sessionId=';
 export const UNSUBSCRIBE = 'https://api.tinkoff.ru/trading/subscriptions/unsubscribe?subscriptId=${orderId}&sessionId=';
@@ -41,27 +42,27 @@ export const LIQUID_URL = 'https://api.tinkoff.ru/trading/portfolio/liquid_portf
 export const RECALIBRATION_LINK = 'https://www.tinkoff.ru/invest/recommendations/recalibration/';
 export const FINN_RECOMENDATION = 'https://finnhub.io/api/v1/stock/recommendation?symbol=${ticker}&token=';
 export const FINN_CONSTITUENTS = 'https://finnhub.io/api/v1/index/constituents?symbol=${ticker}&token=';
-export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?cpswc=true&ccc=true&deviceId=2cb59723b132726c&appVersion=4.0.2&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const SEARCH_URL = 'https://api.tinkoff.ru/trading/stocks/list?cpswc=true&ccc=true&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const USER_URL = 'https://api.tinkoff.ru/trading/user/info?sessionId=';
 export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/currency_limits?sessionId=';
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';
-export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts?appName=invest_terminal&appVersion=1.0.0&sessionId=';
-export const SHELVES_URL = 'https://api-invest.tinkoff.ru/catalog/shelves?y=omg&deviceId=2cb59723b132726c&appVersion=4.13.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts?appName=invest_terminal&appVersion=4.19.0&sessionId=';
+export const SHELVES_URL = 'https://api-invest.tinkoff.ru/catalog/shelves?y=omg&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 
 //{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
-export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${navId}&limit=30&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const COMMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${commentId}/comment?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PULSE_FOR_TICKER_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/instrument/${navId}?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PROFILE_ACTIVITY_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/post?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PROFILE_INSTRUMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/instrument?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const AVATAR_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/profile/avatar/${img}?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const IMAGE_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/post/image/${imgId}?size=small&appName=investing&appVersion=4.8.1&origin=mobile,ib5,loyalty,platform&platform=android&y=omg&deviceId=2cb59723b132726c&appVersion=4.8.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PULSE_POST_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${postId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PULSE_COMMENT_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/comment/${commentId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const PROFILE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${profileId}?size=small&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const USER_LIST_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/catalog?limit=30&deviceId=2cb59723b132726c&appVersion=4.0.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-export const USER_OPERATION_BY_TICKER_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${profileId}/operation/instrument/${ticker}/${classCode}?limit=50&deviceId=2cb59723b132726c&appVersion=4.0.1&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${navId}&limit=30&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const COMMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${commentId}/comment?limit=30&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PULSE_FOR_TICKER_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/instrument/${navId}?limit=30&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PROFILE_ACTIVITY_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/post?limit=30&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PROFILE_INSTRUMENTS_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${navId}/instrument?limit=30&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const AVATAR_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/profile/avatar/${img}?size=small&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const IMAGE_URL = 'https://api-invest-gw.tinkoff.ru/social/file/v1/cache/post/image/${imgId}?size=small&appName=investing&appVersion=4.19.0&origin=mobile,ib5,loyalty,platform&platform=android&y=omg&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PULSE_POST_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/${postId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PULSE_COMMENT_LIKE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/post/comment/${commentId}/like?size=small&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const PROFILE_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${profileId}?size=small&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const USER_LIST_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/catalog?limit=30&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
+export const USER_OPERATION_BY_TICKER_URL = 'https://api-invest-gw.tinkoff.ru/social/v1/profile/${profileId}/operation/instrument/${ticker}/${classCode}?limit=50&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
 export const YANDEX_TRANSLATE = 'https://translate.yandex.net/api/v1.5/tr.json/translate?key=trnsl.1.1.20190913T211312Z.13833f619c95d3aa.29ec76510845a30c5b01ab996a071b915eaf96a1';
 
 export const INTERVAL_TO_CHECK = 1;//min
@@ -76,7 +77,7 @@ export const OPTION_ALERT_TODAY_VALUE_PER_SYMBOL = 'alert_today_value_per_symbol
 export const OPTION_ALERT_ORDER_PER_SYMBOL = 'alert_order_per_symbol';
 export const OPTION_ALERT_ORDER_VALUE_PER_SYMBOL = 'alert_order_value_per_symbol';
 export const OPTION_CONVERT_TO_RUB = 'convert_to_rub';
-export const OPTION_SORT_BY_NEAREST = 'sort_by_nearest';
+export const OPTION_SORT_BY = 'sort_by';
 export const OPTION_ALPHAVANTAGE = 'alphavantage';
 export const OPTION_ALPHAVANTAGE_KEY = 'alphavantage_key';
 export const OPTION_FAVORITE = 'favorite';
@@ -114,7 +115,18 @@ export const PLURAL_SECURITY_TYPE = {
     Bond: 'bonds',
     Bonds: 'bonds',
     ETF: 'etfs',
-    Note: 'notes'
+    Note: 'notes',
+    Futures: 'futures'
+};
+export const SYMBOL_URL_CONVERT = {
+    Stock: 'stocks',
+    Share: 'stocks',
+    Currency: 'currency',
+    Bond: 'bonds',
+    Bonds: 'bonds',
+    ETF: 'etfs',
+    Note: 'notes',
+    Futures: 'futures'
 };
 export const RUS_OPERATION_TYPE = {
     done: 'успешна',
