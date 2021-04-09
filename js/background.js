@@ -11,15 +11,14 @@ import {
     CONSENSUS_URL,
     CURRENCY_LIMIT_URL,
     CURRENCY_LIST_URL,
-    CURRENCY_PRICE_URL,
-    CURRENCY_SYMBOL_URL,
     DIVIDENDS_URL,
     FAVORITE_URL,
     FEATURES_URL,
     FINN_CONSTITUENTS,
     FINN_RECOMENDATION,
     FINN_SYMBOL_URL,
-    HOST_URL, IMOEX_LIST,
+    HOST_URL,
+    IMOEX_LIST,
     INFO_URL,
     INTERVAL_TO_CHECK,
     LIQUID_URL,
@@ -69,6 +68,7 @@ import {
     SYMBOL_FUNDAMENTAL_URL,
     SYMBOL_LINK,
     SYMBOL_URL,
+    SYMBOL_URL_CONVERT,
     TICKER_LIST,
     UNSUBSCRIBE,
     USER_LIST_URL,
@@ -316,101 +316,170 @@ function getPortfolio(sessionId) {
 async function convertPortfolio(data = [], needToConvert, currenciesCourse, sessionId) {
     let return_data = [];
     for (const element of data) {
-        let securityType = PLURAL_SECURITY_TYPE[element.securityType];
+        let securityType = SYMBOL_URL_CONVERT[element.securityType];
         await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
             let current_amount = element.currentAmount || {};
             let expected_yield = element.expectedYield || {};
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
-            if (!symbol.payload.symbol) {
-                return_data.push({
-                    prices: undefined,
-                    earnings: undefined,
-                    contentMarker: undefined,
-                    symbol: {
-                        symbolType: 'Note',
-                        isOTC: false,
-                        securityType: securityType,
-                        ticker: element.ticker,
-                        isin: element.isin,
-                        status: element.status,
-                        showName: symbol.payload.showName,
-                        lotSize: element.currentBalance,
-                        currentAmount: element.currentAmount ? element.currentAmount : {
-                            value: symbol.payload.nominal * element.currentBalance,
-                            currency: symbol.payload.currency
+            switch (securityType) {
+                case 'notes':
+                    return_data.push({
+                        prices: undefined,
+                        earnings: undefined,
+                        contentMarker: undefined,
+                        symbol: {
+                            symbolType: 'Note',
+                            isOTC: false,
+                            securityType: securityType,
+                            ticker: element.ticker,
+                            isin: element.isin,
+                            status: element.status,
+                            showName: symbol.payload.showName,
+                            lotSize: element.currentBalance,
+                            currentAmount: element.currentAmount ? element.currentAmount : {
+                                value: symbol.payload.nominal * element.currentBalance,
+                                currency: symbol.payload.currency
+                            },
+                            averagePositionPrice: {
+                                value: symbol.payload.nominal,
+                                currency: symbol.payload.currency
+                            },
+                            timeToOpen: '',
                         },
-                        averagePositionPrice: {
-                            value: symbol.payload.nominal,
-                            currency: symbol.payload.currency
+                        exchangeStatus: ''
+                    });
+                    break;
+                case 'futures':
+                    console.log(symbol);
+                    console.log(element);
+
+                    return_data.push({
+                        expected_yield: {
+                            value: element.expectedYield.value,
+                            currency: element.expectedYield.currency
                         },
-                        timeToOpen: '',
-                    },
-                    exchangeStatus: ''
-                });
-            } else {
-                if (symbol.payload.symbol.isOTC) {
-                    earning_today = symbol.payload.earnings.absolute.value * element.currentBalance;
-
-                    //expected_yield.value = symbol.payload.relativeOTC;
-                }
-                if (needToConvert && current_amount?.currency !== 'RUB') {
-                    let currencyCourse = currenciesCourse[current_amount?.currency + 'RUB']?.lastPrice || 1
-
-                    earning_today = earning_today * currencyCourse;
-                    current_amount['value'] = current_amount?.value * currencyCourse;
-                    current_amount['currency'] = 'RUB';
-                    expected_yield['value'] = expected_yield?.value * currencyCourse;
-                    expected_yield['currency'] = 'RUB';
-
-                }
-                return_data.push({
-                    prices: symbol.payload.prices,
-                    earnings: symbol.payload.earnings,
-                    contentMarker: symbol.payload.contentMarker,
-                    holidayDescription: symbol.payload.holidayDescription,
-                    symbol: {
-                        dayLow: symbol.payload.symbol.dayLow,
-                        dayHigh: symbol.payload.symbol.dayHigh,
-                        "52WLow": symbol.payload.symbol["52WLow"],
-                        "52WHigh": symbol.payload.symbol["52WHigh"],
-                        dayOpen: symbol.payload.symbol.dayOpen,
-                        lastOTC: symbol.payload.lastOTC || '',
-                        absoluteOTC: symbol.payload.absoluteOTC || 0,
-                        relativeOTC: symbol.payload.relativeOTC || 0,
-                        consensus: symbol.payload.symbol.consensus,
-                        premium_consensus: symbol.payload.symbol.premium_consensus,
-                        finn_consensus: symbol.payload.symbol.finn_consensus,
-                        dividends: symbol.payload.symbol.dividends,
-                        symbolType: symbol.payload.symbol.symbolType,
-                        isOTC: symbol.payload.symbol.isOTC,
-                        sessionOpen: symbol.payload.symbol.sessionOpen,
-                        sessionClose: symbol.payload.symbol.sessionClose,
-                        premarketStartTime: symbol.payload.symbol.premarketStartTime,
-                        premarketEndTime: symbol.payload.symbol.premarketEndTime,
-                        marketEndTime: symbol.payload.symbol.marketEndTime,
-                        marketStartTime: symbol.payload.symbol.marketStartTime,
-                        securityType: securityType,
-                        ticker: element.ticker,
-                        longIsEnabled: symbol.payload.symbol.longIsEnabled,
-                        shortIsEnabled: symbol.payload.symbol.shortIsEnabled,
-                        isin: element.isin,
-                        status: element.status,
-                        showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
-                        lotSize: element.currentBalance,
-                        expectedYieldRelative: element.expectedYieldRelative,
-                        expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
-                        expectedYield: expected_yield,
-                        currentPrice: element.currentPrice,
-                        currentAmount: current_amount,
-                        earningToday: earning_today,
-                        averagePositionPrice: element.averagePositionPrice || {
-                            value: 0,
-                            currency: element.currentPrice?.currency
+                        prices: {
+                            buy: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.buy
+                            },
+                            close: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.close
+                            },
+                            last: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.last
+                            },
+                            sell: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.sell
+                            },
                         },
-                        timeToOpen: symbol.payload.symbol.timeToOpen,
-                    },
-                    exchangeStatus: symbol.payload.exchangeStatus
-                });
+                        earnings: {
+                            absolute: {
+                                value: element.expectedYieldPerDay.value,
+                                currency: element.currentAmount.currency,
+                            },
+                            relative: element.expectedYieldPerDayRelative/100,
+                        },
+                        contentMarker: undefined,
+                        symbol: {
+                            symbolType: 'Futures',
+                            isOTC: false,
+                            securityType: securityType,
+                            ticker: element.ticker,
+                            isin: element.isin,
+                            status: element.status,
+                            showName: symbol.payload.viewInfo.showName,
+                            longIsEnabled: symbol.payload.orderInfo.longIsEnabled,
+                            shortIsEnabled: symbol.payload.orderInfo.shortIsEnabled,
+                            lotSize: element.currentBalance,
+                            currentAmount: element.currentAmount ? element.currentAmount : {
+                                value: element.currentAmount.value * element.currentBalance,
+                                currency: element.currentAmount.currency
+                            },
+                            averagePositionPrice: {
+                                value: element.averagePositionPricePt,
+                                currency: element.currentAmount.currency
+                            },
+                            timeToOpen: '',
+                            earningToday: element.expectedYieldPerDay.value,
+                            expectedYieldRelative: element.expectedYieldRelative,
+                            expectedYieldPerDayRelative: element.expectedYieldPerDayRelative,
+                            expectedYield: {
+                                value: element.expectedYield.value,
+                                currency: element.expectedYield.currency
+                            },
+                        },
+                        exchangeStatus: symbol.payload.exchangeInfo.timeToOpen === 0 ? 'Open' : 'Close',
+                    });
+                    break;
+                case 'Stock':
+                default:
+                    if (symbol.payload.symbol.isOTC) {
+                        earning_today = symbol.payload.earnings.absolute.value * element.currentBalance;
+
+                        //expected_yield.value = symbol.payload.relativeOTC;
+                    }
+                    if (needToConvert && current_amount?.currency !== 'RUB') {
+                        let currencyCourse = currenciesCourse[current_amount?.currency + 'RUB']?.lastPrice || 1
+
+                        earning_today = earning_today * currencyCourse;
+                        current_amount['value'] = current_amount?.value * currencyCourse;
+                        current_amount['currency'] = 'RUB';
+                        expected_yield['value'] = expected_yield?.value * currencyCourse;
+                        expected_yield['currency'] = 'RUB';
+
+                    }
+                    return_data.push({
+                        prices: symbol.payload.prices,
+                        earnings: symbol.payload.earnings,
+                        contentMarker: symbol.payload.contentMarker,
+                        holidayDescription: symbol.payload.holidayDescription,
+                        symbol: {
+                            dayLow: symbol.payload.symbol.dayLow,
+                            dayHigh: symbol.payload.symbol.dayHigh,
+                            "52WLow": symbol.payload.symbol["52WLow"],
+                            "52WHigh": symbol.payload.symbol["52WHigh"],
+                            dayOpen: symbol.payload.symbol.dayOpen,
+                            lastOTC: symbol.payload.lastOTC || '',
+                            absoluteOTC: symbol.payload.absoluteOTC || 0,
+                            relativeOTC: symbol.payload.relativeOTC || 0,
+                            consensus: symbol.payload.symbol.consensus,
+                            premium_consensus: symbol.payload.symbol.premium_consensus,
+                            finn_consensus: symbol.payload.symbol.finn_consensus,
+                            dividends: symbol.payload.symbol.dividends,
+                            symbolType: symbol.payload.symbol.symbolType,
+                            isOTC: symbol.payload.symbol.isOTC,
+                            sessionOpen: symbol.payload.symbol.sessionOpen,
+                            sessionClose: symbol.payload.symbol.sessionClose,
+                            premarketStartTime: symbol.payload.symbol.premarketStartTime,
+                            premarketEndTime: symbol.payload.symbol.premarketEndTime,
+                            marketEndTime: symbol.payload.symbol.marketEndTime,
+                            marketStartTime: symbol.payload.symbol.marketStartTime,
+                            securityType: securityType,
+                            ticker: element.ticker,
+                            longIsEnabled: symbol.payload.symbol.longIsEnabled,
+                            shortIsEnabled: symbol.payload.symbol.shortIsEnabled,
+                            isin: element.isin,
+                            status: element.status,
+                            showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
+                            lotSize: element.currentBalance,
+                            expectedYieldRelative: element.expectedYieldRelative,
+                            expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
+                            expectedYield: expected_yield,
+                            currentPrice: element.currentPrice,
+                            currentAmount: current_amount,
+                            earningToday: earning_today,
+                            averagePositionPrice: element.averagePositionPrice || {
+                                value: 0,
+                                currency: element.currentPrice?.currency
+                            },
+                            timeToOpen: symbol.payload.symbol.timeToOpen,
+                        },
+                        exchangeStatus: symbol.payload.exchangeStatus
+                    });
             }
         })
     }
@@ -705,8 +774,10 @@ async function getCurrencyCourse() {
     return result;
 }
 
+//todo сделать поиск по всем типам бумаг из #SYMBOL_URL_CONVERT
 function findTicker(search, session_id) {
     return new Promise((resolve, reject) => {
+            let symbols_types = [...new Set(Object.values(SYMBOL_URL_CONVERT))];
             // POST
             fetch(SEARCH_URL + session_id, {
                 method: "POST",
@@ -1121,8 +1192,8 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
 function getSymbolInfo(tickerName, securityType, sessionId) {
     return new Promise((resolve, reject) => {
         // POST
-        console.log('try to get symbolInfo for', tickerName);
-        fetch((securityType.includes('currencies') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
+        console.log('try to get symbolInfo for', tickerName, securityType);
+        fetch(SYMBOL_URL.replace('${securityType}', securityType) + sessionId, {
             method: "POST",
             body: securityType.includes('notes') ? JSON.stringify({isin: tickerName}) : JSON.stringify({ticker: tickerName}),
             headers: {
@@ -1132,7 +1203,8 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
         }).then(response => response.json())
             .then(async res => {
                 if (res.status.toLocaleUpperCase() === 'OK' && !securityType.includes('notes')) {
-                    const response = await fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
+                    console.log('get fundamentals for ', tickerName);
+                    const response = await fetch(SYMBOL_FUNDAMENTAL_URL.replace('${securityType}', securityType) + sessionId, {
                         method: "POST",
                         body: JSON.stringify({
                             period: 'year',
@@ -1144,12 +1216,16 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                         }
                     });
                     let json = await response.json();
-                    res.payload.symbol.dayHigh = json.payload.dayHigh;
-                    res.payload.symbol.dayLow = json.payload.dayLow;
-                    res.payload.symbol.dayOpen = json.payload.dayOpen;
-                    res.payload.symbol["52WLow"] = json.payload["52WLow"];
-                    res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
-                    res.payload.symbol.dividends = [];
+                    if (json.status.toLocaleUpperCase() === 'OK') {
+                        res.payload.symbol.dayHigh = json.payload.dayHigh;
+                        res.payload.symbol.dayLow = json.payload.dayLow;
+                        res.payload.symbol.dayOpen = json.payload.dayOpen;
+                        res.payload.symbol["52WLow"] = json.payload["52WLow"];
+                        res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
+                        res.payload.symbol.dividends = [];
+                    } else {
+                        console.warn('cant get fundamentals for', tickerName, securityType)
+                    }
                 }
                 const option = await MainProperties.getAVOption();
                 if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {

@@ -23,7 +23,7 @@ import {
     OPTION_REDIRECT,
     OPTION_RIFINITIV,
     OPTION_SESSION,
-    OPTION_SORT_BY_NEAREST,
+    OPTION_SORT_BY,
     port,
     PROGNOSIS_LINK,
     RECALIBRATION_LINK,
@@ -152,7 +152,7 @@ port.onMessage.addListener(function (msg) {
             }
             */
             document.getElementById('approvedW8').innerText = msg.approvedW8;
-            document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝"<br>' : '';
+            document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝<br>' : '';
             let iis = (msg.accounts.filter(item => item.accountType === 'TinkoffIis' && item.hasOperations)).length > 0
                 ? '<input type="radio" value="0" checked="checked" name="broker_type" id="broker_portfolio_input">' +
                 '<label for="broker_portfolio_input">Портфель Тинькофф</label>' : '';
@@ -324,6 +324,18 @@ function setTickerPulseButton() {
             document.getElementById('operation_table').style.display = 'none';
             document.getElementById('news_table').innerHTML = ' <img src="css/loader.gif" alt="loading">';
             port.postMessage({method: "getPulse", params: {nav_id: button.dataset.nav}});
+        })
+    })
+}
+
+function setAlertSortButton() {
+    Array.from(document.querySelectorAll(".sorting")).forEach(function (input) {
+        input.addEventListener('click', function (e) {
+            let column = e.target.dataset.columnName;
+            tinysort(document.getElementById('alert_table').table.querySelector('tr'), {
+                selector: '.comparator',
+                order: order,
+            });
         })
     })
 }
@@ -614,6 +626,7 @@ function create_portfolio_table(divId, data) {
             let bond = element.symbol.symbolType === 'Bond' ? '<span title="Облигации">📒</span>' : '';
             let short = element.symbol.lotSize < 0 ? '<span title="Short">📉</span>' : '';
             let note = element.symbol.symbolType === 'Note' ? '<span title="Структурная нота">📚</span>' : '';
+            let futures = element.symbol.symbolType === 'Futures' ? '<span title="Фьючерс">💸</span>' : '';
             let liquid = liquidList.positions ? liquidList.positions.filter(liquid => liquid.ticker === element.symbol.ticker).length > 0 ? '<span title="Входит в список ликвидных бумаг">💼</span>' : '' : '';
             let country = '';
             //if (otc === '' && etf === '' && bond === '' && currency === '') country = element.prices.buy.currency === 'RUB' ? '🇷🇺' : '🇺🇸';
@@ -632,7 +645,8 @@ function create_portfolio_table(divId, data) {
                                 </span>` : '';
             td1.innerHTML = `<span class="pulseTicker" data-nav="${element.symbol.ticker}" title="Посмотреть пульс по инструменту ${element.symbol.showName}">${element.symbol.showName}</span><span class="pulseIcon">🔥</span>
             <br><img class="symbolStatus" alt="Статус биржи" 
-        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}"><span class="icon">${liquid}${otc}${etf}${currency}${bond}${note}</span>
+        title="Биржа открыта с ${session_open}\r\nБиржа закрыта с ${session_close}\r\n${remain_time}" src="${img_status}">
+        <span class="icon">${liquid}${otc}${etf}${currency}${bond}${note}${futures}</span>
         <a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}" target="_blank"><strong class="ticker ${element.symbol.status === 'process' ? 'statusProcess' : ''}">${element.symbol.ticker}</strong></a>`;
             if (element.symbol.dayLow) {
                 td1.appendChild(document.createElement("br"));
@@ -973,42 +987,72 @@ function create_alert_table(data_list) {
         table.className = 'alertPriceTable';
         let tr = document.createElement('tr');
         let th1 = document.createElement('th');
+        th1.innerHTML = 'тикер';
+        th1.className = 'sorting';
         //th1.appendChild(document.createTextNode('название'));
         let th2 = document.createElement('th');
         //th2.width = '110px';
         th2.innerHTML = 'цены брокера';
         th2.style = 'width:100px';
-
+        th2.className = 'sorting';
         let th3 = document.createElement('th');
         th3.appendChild(document.createTextNode('измн. за день'));
         th3.style = 'width:100px';
-
+        th3.className = 'sorting';
         let th4 = document.createElement('th');
         th4.appendChild(document.createTextNode('уведомления/заявки/takeProfit/stopLoss'));
 
         let th6 = document.createElement('th');
+        th6.className = 'sorting';
         th6.appendChild(document.createTextNode('заявка активна до'));
         let th7 = document.createElement('th');
-
+        th7.className = 'sorting';
         let th8 = document.createElement('th');
         th8.appendChild(document.createTextNode('прогноз'));
         th8.style = 'width:110px';
+        th8.className = 'sorting';
         th7.appendChild(document.createTextNode('до цели'));
+        th1.dataset.columnName = 'ticker';
         tr.appendChild(th1);
+        th2.dataset.columnName = 'last_price';
         tr.appendChild(th2);
+        th8.dataset.columnName = 'prognosis';
         tr.appendChild(th8);
+        th8.dataset.columnName = 'change';
         tr.appendChild(th3);
         tr.appendChild(th4);
-
+        th8.dataset.columnName = 'before';
         tr.appendChild(th6);
+        th8.dataset.columnName = 'opacity_rate';
         tr.appendChild(th7);
         table.appendChild(tr);
         let list_for_iteration = data_list;
-        chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
-            if (result[OPTION_SORT_BY_NEAREST] === true) list_for_iteration = list_for_iteration.sort((f, s) =>
-                (f.opacity_rate > s.opacity_rate) ? 1 : ((s.opacity_rate > f.opacity_rate) ? -1 : 0))
-            else list_for_iteration = list_for_iteration.sort((f, s) =>
-                (f.ticker > s.ticker) ? 1 : ((s.ticker > f.ticker) ? -1 : 0));
+        // каждому элементу в списке уведомлений выставляем из кеша прогноз, нужно для сортировки
+        list_for_iteration.forEach(element => {
+            element['prognosis'] = listPrognosis?.filter(item => item?.ticker === element.ticker)[0];
+        })
+        chrome.storage.sync.get([OPTION_SORT_BY], function (result) {
+            switch (result[OPTION_SORT_BY]) {
+                case 'ticker':
+                    list_for_iteration = list_for_iteration?.sort((a, b) => a.ticker.localeCompare(b.ticker))
+                    break;
+                case 'last_price':
+                    list_for_iteration = list_for_iteration?.sort((a, b) => a.online_average_price - b.online_average_price)
+                    break;
+                case 'prognosis':
+                    list_for_iteration = list_for_iteration?.sort((a, b) => a.prognosis?.consensus?.price_change_rel - b.prognosis?.consensus?.price_change_rel)
+                    break;
+                case 'change':
+                    list_for_iteration = list_for_iteration?.sort((a, b) => a.earnings?.relative - b.earnings?.relative)
+                    break;
+                case 'before':
+                    list_for_iteration = list_for_iteration?.sort((a, b) => a.best_before.localeCompare(b.element.best_before))
+                    break;
+                case 'opacity_rate':
+                default :
+                    list_for_iteration = list_for_iteration?.sort((a, b) => a.opacity_rate - b.opacity_rate);
+            }
+
             list_for_iteration.forEach(function (element) {
                 let opacity_rate = element.opacity_rate;
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
@@ -1019,7 +1063,7 @@ function create_alert_table(data_list) {
                     element.online_sell_price = '';
                     element.earnings = undefined;
                 } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
-                let cached_element = listPrognosis && listPrognosis.filter(item => item?.ticker === element.ticker)[0];
+                let cached_element = element.prognosis;
 
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
@@ -1140,6 +1184,7 @@ function create_alert_table(data_list) {
             document.getElementById('alert_table').appendChild(table);
             setDeleteButtonHandler();
             setTickerPulseButton();
+            setAlertSortButton();
         })
     } else {
         table = document.createElement('h5');
@@ -1557,18 +1602,6 @@ document.getElementById(OPTION_CONVERT_TO_RUB).addEventListener('change', functi
 chrome.storage.sync.get([OPTION_CONVERT_TO_RUB], function (result) {
     console.log('get convert_to_rub option');
     document.getElementById(OPTION_CONVERT_TO_RUB).checked = result[OPTION_CONVERT_TO_RUB] === true;
-});
-
-// сохраняем применение Сортировки
-document.getElementById(OPTION_SORT_BY_NEAREST).addEventListener('change', function (e) {
-    chrome.storage.sync.set({[OPTION_SORT_BY_NEAREST]: e.target.checked}, function () {
-        console.log('sort_bt_nearest option set to ' + e.target.checked);
-    })
-});
-// подгружаем настройки
-chrome.storage.sync.get([OPTION_SORT_BY_NEAREST], function (result) {
-    console.log('get sort_by_nearest option');
-    document.getElementById(OPTION_SORT_BY_NEAREST).checked = result[OPTION_SORT_BY_NEAREST] === true;
 });
 
 // сохраняем применение Использовать Alpantage

@@ -343,6 +343,7 @@ export function renderListOperations(account, list, currencies, hideCommission, 
     let sum = 0;
     let commission = 0;
     items.forEach(item => {
+        item.price = item.type.toLowerCase() === 'buy' && item.price > 0 ? item.price * -1 : item.price * 1;
         buffer += `
 <tr class="${item.type.toLowerCase() === 'sell' ? 'isOnlineOrderSell' : ''}${item.type.toLowerCase() === 'buy' ? 'isOnlineOrderBuy' : ''}">
     <td>${item.isin}</td>
@@ -357,7 +358,7 @@ export function renderListOperations(account, list, currencies, hideCommission, 
     <td>${item.amount}</td>
     <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong>${item.amount > 0 ? ', стоимость одного лота <strong>' + (item.price / item.amount).toFixed(2) + '</strong> ' + item.currency : ''}</td>
 </tr>`;
-        if (item.status !== 'decline'){
+        if (item.status !== 'decline') {
             commission += item.currency !== 'RUB' ? item.commission * currencies[item.currency + 'RUB'].lastPrice * 1 : item.commission * 1;
             sum += item.currency !== 'RUB' ? item.price * currencies[item.currency + 'RUB'].lastPrice * 1 : item.price * 1;
         }
