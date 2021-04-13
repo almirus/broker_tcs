@@ -350,9 +350,6 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                     });
                     break;
                 case 'futures':
-                    console.log(symbol);
-                    console.log(element);
-
                     return_data.push({
                         expected_yield: {
                             value: element.expectedYield.value,

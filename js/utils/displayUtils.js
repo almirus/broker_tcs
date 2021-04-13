@@ -309,12 +309,12 @@ export function renderListOperations(account, list, currencies, hideCommission, 
         let accountData = items.filter(item =>
             (item.accountType === account || account === 'All')
             && (!(item.operationType === 'BrokCom') || hideCommission)
-            && (
+            && (operationType === 'features' ? item.operationType === 'WriteOffVarMargin' || item.operationType === 'AccruingVarMargin' :
                 operationType === 'dividend' ?
                     item.operationType === 'Dividend' || item.operationType === 'Coupon' :
                     operationType === 'commission' ?
                         //item.operationType === 'MarginCom' || item.operationType.indexOf('Tax') >-1 :
-                        (item.operationType !== 'Buy' && item.operationType !== 'BuyWithCard') && (item.payment < 0 || item.price < 0) :
+                        (item.operationType !== 'PayOut' && item.operationType !== 'Buy' && item.operationType !== 'BuyWithCard' && item.operationType !== 'WriteOffVarMargin') && (item.payment < 0 || item.price < 0) :
                         operationType === 'payinout' ?
                             item.operationType === 'PayOut' || item.operationType === 'PayInn' || item.operationType === 'BuyWithCard' :
                             (item.status === operationType || operationType === 'All')

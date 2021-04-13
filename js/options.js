@@ -655,7 +655,7 @@ function create_portfolio_table(divId, data) {
 
             let td2 = document.createElement('td');
             if (element.prices) {
-                td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices && Object.keys(element.prices).length ? element.prices.last?.value : 'нет'}
+                td2.innerHTML = `<div data-last-ticker="${element.symbol.ticker}" class="onlineAverage" title="${element.symbol.isOTC ? 'Для внебиржевых бумаг выводит средняя цена между ценой покупки и продажи, обновляется брокером раз в час' : 'Последняя цена'}">${element.prices && Object.keys(element.prices).length ? element.prices?.last?.value : 'нет'}
                                 ${element.symbol.isOTC && element.symbol.lastOTC ? `<span class="lastOTC" title="Цена получена со стороннего сервиса. Может не совпадать с ценой брокера, но наиболее близкая к рыночной, обновляется каждую минуту">${element.symbol.lastOTC}<sup>*</sup></span>` : ''}
                                 </div>` +
                     (element.prices && element.prices.buy ? `<div data-buy-ticker="${element.symbol.ticker}" title="Цена покупки">
@@ -840,7 +840,7 @@ function create_note_table(data) {
             td1.className = 'maxWidth tickerCol';
             td1.innerHTML = `${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
-            td2.innerHTML = `<span id="last_${element.symbol.ticker}">${element.prices.last?.value}</span>${element.prices.last?.currency}`;
+            td2.innerHTML = `<span id="last_${element.symbol.ticker}">${element.prices?.last?.value}</span>${element.prices.last?.currency}`;
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
@@ -894,7 +894,7 @@ function create_table(data) {
             td1.className = 'maxWidth';
             td1.innerHTML = `${element.symbol?.isOTC ? '<span title="Внебиржевой инструмент">👑</span>' : ''}${element.symbol.showName}<br><strong>${element.symbol.ticker}</strong>`;
             let td2 = document.createElement('td');
-            td2.innerHTML = `<span id="last_${element.symbol.ticker}">${element.prices.last?.value}</span>${element.prices.last?.currency}`;
+            td2.innerHTML = `<span id="last_${element.symbol.ticker}">${element.prices?.last?.value}</span>${element.prices?.last?.currency}`;
             td2.className = 'tickerCol';
             let td3 = document.createElement('td');
             //td3.innerHTML = element.prices.buy.value + element.prices.buy.currency + '<br>' + '<input class="tickerPrice buy" type="number" >';
