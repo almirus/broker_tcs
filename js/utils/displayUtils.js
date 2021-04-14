@@ -563,8 +563,27 @@ export function drawDayProgress(element) {
     })}) - ${element.symbol.dayHigh}(${maxPercent.toLocaleString('ru-RU', {
         style: 'percent',
         maximumSignificantDigits: 2
-    })}) \n
-                    52-недельный диапазон ${element.symbol["52WLow"]} - ${element.symbol["52WHigh"]}`;
+    })})`;
+    let ctx = canvas.getContext('2d');
+    ctx.fillStyle = progress_style;
+    ctx.fillRect(0, 2, 100, 2);
+    ctx.fillStyle = progress_style;
+    ctx.fillRect(dayOpenPercent, 0, dayLastPercent, 6);
+    return canvas;
+}
+
+export function draw52Progress(element) {
+    let last = element.symbol.lastOTC || element.prices.last?.value;
+    let progress_style = last >= (element.symbol["52WLow"] + element.symbol["52WHigh"]) / 2 ? 'green' : 'red';
+    let min = element.symbol["52WLow"];
+    let max = element.symbol["52WHigh"];
+    let dayOpenPercent = (element.symbol.dayLow - min) * 100 / (max - min);
+    let dayLastPercent = (element.symbol.dayHigh - min) * 100 / (max - min);
+
+    let canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 6;
+    canvas.title = `52-недельный диапазон ${min} - ${max}`;
     let ctx = canvas.getContext('2d');
     ctx.fillStyle = progress_style;
     ctx.fillRect(0, 2, 100, 2);

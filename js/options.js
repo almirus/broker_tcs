@@ -34,6 +34,7 @@ import {
 import {exportCSVFile} from "./utils/csvExporter.js";
 import {
     drawDayProgress,
+    draw52Progress,
     drawPremiumConsensus,
     drawPremiumConsensusFinn,
     fillCashData,
@@ -651,6 +652,8 @@ function create_portfolio_table(divId, data) {
             if (element.symbol.dayLow) {
                 td1.appendChild(document.createElement("br"));
                 td1.appendChild(drawDayProgress(element));
+                td1.appendChild(document.createElement("br"));
+                td1.appendChild(draw52Progress(element));
             }
 
             let td2 = document.createElement('td');
