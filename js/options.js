@@ -33,8 +33,8 @@ import {
 } from "/js/constants.mjs";
 import {exportCSVFile} from "./utils/csvExporter.js";
 import {
-    drawDayProgress,
     draw52Progress,
+    drawDayProgress,
     drawPremiumConsensus,
     drawPremiumConsensusFinn,
     fillCashData,
@@ -1074,6 +1074,7 @@ function create_alert_table(data_list) {
                 td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
                     //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                     (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
+                    (element.timeToExpire===0 ? '<span class="icon" title="TakeProfit/StopLoss активно до срабатывания">♾️</span>' : '') +
                     (element.isOTC ? '<span class="icon" title="Внебиржевой инструмент">👑</span>' : '') +
                     (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '<span class="icon disabled" title="Не в избранном">⭐</span>') +
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
@@ -1134,7 +1135,7 @@ function create_alert_table(data_list) {
                     };
                     if (element.orderId) td4.innerHTML = `
                         <span class="subscribePrice">&nbsp;${element.sell_price || element.buy_price}</span><span data-index="${element.orderId}" data-status="${element.status}" title="Удалить заявку" class="deleteTicker close"></span> 
-                        <strong title="${status[element.status] ? status[element.status] : element.orderType} ${element.ticker} по цене ${element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${((element.sell_price || element.buy_price) * element.quantity).toFixed(2)} счет ${element.brokerAccountType}</strong>`;
+                        <strong title="${status[element.status] ? status[element.status] : element.orderType} ${element.ticker} по цене ${element.price || element.sell_price || element.buy_price} в количестве ${element.quantity}">&nbsp;${element.quantity} шт по цене ${element.price || element.sell_price || element.buy_price} ${element.quantityExecuted > 0 ? '(исполнено ' + element.quantityExecuted + ' шт)' : ''} на сумму ${((element.sell_price || element.buy_price) * element.quantity).toFixed(2)} счет ${element.brokerAccountType}</strong>`;
                     else td4.innerHTML = element.subscriptPrice?.map(elem =>
                         `<div class="subscribePrice"><div class="${elem.price < element.online_average_price ? 'red_border' : 'green_border'}">&nbsp;</div>&nbsp;${elem.price}
                             <span class="subscribePercent">&nbsp;${(100 - elem.price * 100 / element.online_average_price).toFixed(1)}%</span>
@@ -1711,7 +1712,7 @@ chrome.storage.sync.get([OPTION_FINN_GETLAST], function (result) {
 document.getElementById('today').addEventListener('click', function (input) {
     let dateFrom = new Date();
     let dateToTime = new Date();
-    dateFrom.setHours(0,0,0,0);
+    dateFrom.setHours(0, 0, 0, 0);
     dateToTime.setHours(23, 59, 59, 59);
     port.postMessage({
         method: "getOperations",
