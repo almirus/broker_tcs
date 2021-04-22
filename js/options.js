@@ -1053,10 +1053,10 @@ function create_alert_table(data_list) {
                     break;
                 case 'opacity_rate':
                 default :
-                    list_for_iteration = list_for_iteration?.sort((a, b) => a.opacity_rate - b.opacity_rate);
+                    list_for_iteration = list_for_iteration?.sort((a, b) => Math.abs(a.opacity_rate) - Math.abs(b.opacity_rate));
             }
 
-            list_for_iteration.forEach(function (element) {
+            list_for_iteration.forEach(element => {
                 let opacity_rate = element.opacity_rate;
                 // обнуляем онлайн цены полученные из Storage, если нет списка с ценами для рендера (раньше они хранились и обновлялись там)
                 if (!data_list) {
@@ -1073,10 +1073,10 @@ function create_alert_table(data_list) {
                 td1.className = 'maxWidth';
                 td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
                     //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
-                    (element.timeToExpire ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : '') +
-                    (element.timeToExpire===0 ? '<span class="icon" title="TakeProfit/StopLoss активно до срабатывания">♾️</span>' : '') +
+                    (element.orderType === 'Limit' ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : (element.timeToExpire === 0 ? '<span class="icon" title="TakeProfit/StopLoss активно до срабатывания">♾️</span>' : '')) +
                     (element.isOTC ? '<span class="icon" title="Внебиржевой инструмент">👑</span>' : '') +
                     (element.isFavorite ? `<span class="icon" title="Было добавлено в избранное в мобильном приложение">⭐</span>` : '<span class="icon disabled" title="Не в избранном">⭐</span>') +
+
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
                 let prognosis_style = cached_element && cached_element.consensus && cached_element.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';

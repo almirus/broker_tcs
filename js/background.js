@@ -1301,6 +1301,8 @@ function getOrders(session_id) {
                         active: true,
                         timeToExpire: element.timeToExpire,
                         orderId: element.orderId,
+                        orderType: element.orderType,
+                        isOTC: element.isOTC,
                         status: element.status,
                         quantityExecuted: element.quantityExecuted,
                         brokerAccountType: element.brokerAccountType
@@ -1474,13 +1476,13 @@ function updateAlertPrices() {
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
 
-                    await getPriceInfo(item.ticker, SYMBOL_URL_CONVERT[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
+                    await getPriceInfo(item.ticker, SYMBOL_URL_CONVERT[(item.symbolType || item.securityType || 'Stock')], session_id).then(priceInfo => {
 
                         let sorted_subscriptions = item.subscriptions?.sort((a, b) => a.price - b.price);
                         let opacity_rate = giveLessDiffToTarget({
-                            online_buy_price: res.payload.buy?.value || res.payload.last?.value || 0,
-                            online_sell_price: res.payload.sell?.value || res.payload.last?.value || 0,
-                            buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[0].price : 0),
+                            online_buy_price: priceInfo.payload.buy?.value || priceInfo.payload.last?.value || 0,
+                            online_sell_price: priceInfo.payload.sell?.value || priceInfo.payload.last?.value || 0,
+                            buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[sorted_subscriptions.length-1]?.price : 0),
                             sell_price: item.sell_price || 0,
                         });
 
@@ -1515,19 +1517,19 @@ function updateAlertPrices() {
                             sell_price: item.sell_price,
                             best_before: item.best_before,
                             active: item.active,
-                            earnings: res.payload.earnings,
-                            exchangeStatus: res.payload.exchangeStatus,
-                            currency: !res.payload.last ? 'USD' : res.payload.last.currency,
-                            online_average_price: !res.payload.last ? 0 : res.payload.last.value,
-                            online_buy_price: res.payload.buy?.value,
-                            online_sell_price: res.payload.sell?.value || res.payload.last?.value || 0,
+                            earnings: priceInfo.payload.earnings,
+                            exchangeStatus: priceInfo.payload.exchangeStatus,
+                            currency: !priceInfo.payload.last ? 'USD' : priceInfo.payload.last.currency,
+                            online_average_price: !priceInfo.payload.last ? 0 : priceInfo.payload.last.value,
+                            online_buy_price: priceInfo.payload.buy?.value,
+                            online_sell_price: priceInfo.payload.sell?.value || priceInfo.payload.last?.value || 0,
                             price: item.price,
                             orderId: item.orderId,
                             opacity_rate: opacity_rate,
                             operationType: item.operationType,
                             timeToExpire: item.timeToExpire,
                             status: item.status,
-                            isFavorite: res.payload.isFavorite,
+                            isFavorite: priceInfo.payload.isFavorite,
                             isOTC: item.isOTC,
                             subscriptPrice: sorted_subscriptions,
                             quantity: item.quantity,
