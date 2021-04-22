@@ -57,6 +57,7 @@ import {
     PULSE_COMMENT_LIKE_URL,
     PULSE_FOR_TICKER_URL,
     PULSE_POST_LIKE_URL,
+    SEARCH_SECURITY_TYPE,
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
@@ -378,7 +379,7 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                                 value: element.expectedYieldPerDay.value,
                                 currency: element.currentAmount.currency,
                             },
-                            relative: element.expectedYieldPerDayRelative/100,
+                            relative: element.expectedYieldPerDayRelative / 100,
                         },
                         contentMarker: undefined,
                         symbol: {
@@ -662,12 +663,29 @@ function getListStock(name) {
                             let return_data = [];
                             json.payload.values.forEach(item => {
                                 return_data.push({
-                                    prices: item.prices,
+                                    prices: item.prices || {
+                                        buy: {
+                                            currency: item.orderInfo.pointValue.currency,
+                                            value: item.priceInfo.buy
+                                        },
+                                        close: {
+                                            currency: item.orderInfo.pointValue.currency,
+                                            value: item.priceInfo.close
+                                        },
+                                        last: {
+                                            currency: item.orderInfo.pointValue.currency,
+                                            value: item.priceInfo.last
+                                        },
+                                        sell: {
+                                            currency: item.orderInfo.pointValue.currency,
+                                            value: item.priceInfo.sell
+                                        },
+                                    },
                                     symbol: {
-                                        ticker: item.symbol.ticker,
-                                        showName: item.symbol.showName,
-                                        lotSize: item.symbol.lotSize,
-                                        isOTC: item.symbol.isOTC
+                                        ticker: item.symbol?.ticker || item.isin || item.instrumentInfo.ticker,
+                                        showName: item.symbol?.showName || item.showName || item.viewInfo.showName,
+                                        lotSize: item.symbol?.lotSize,
+                                        isOTC: item.symbol?.isOTC
                                     },
                                     exchangeStatus: item.exchangeStatus
                                 });
@@ -771,35 +789,41 @@ async function getCurrencyCourse() {
     return result;
 }
 
-//todo сделать поиск по всем типам бумаг из #SYMBOL_URL_CONVERT
 function findTicker(search, session_id) {
     return new Promise((resolve, reject) => {
-            let symbols_types = [...new Set(Object.values(SYMBOL_URL_CONVERT))];
-            // POST
-            fetch(SEARCH_URL + session_id, {
-                method: "POST",
-                body: JSON.stringify({
-                    start: 0,
-                    end: 10,
-                    sortType: "ByName",
-                    orderType: "Asc",
-                    country: "All",
-                    //otcType:["Tradable","Market"],
-                    filter: search
-                }),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                }
-            }).then(response => response.json())
-                .then(listOfFound => {
-                    if (listOfFound.status.toLocaleUpperCase() === 'OK') {
-                        resolve(listOfFound);
-                    } else {
-                        console.log('Сервис поиска недоступен');
-                        reject(undefined)
+            // Запускаем несколько поисков по всем типам бумаг
+            Promise.all(SEARCH_SECURITY_TYPE.map(url =>
+                // POST
+                fetch(SEARCH_URL.replace('${securityType}', url) + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        start: 0,
+                        end: 10,
+                        sortType: "ByName",
+                        orderType: "Asc",
+                        country: "All",
+                        //otcType:["Tradable","Market"],
+                        filter: search
+                    }),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
                     }
-                }).catch(e => {
+                }).then(resp => resp.json())
+            )).then(listOfFound => {
+                if (listOfFound.length > 0) {
+                    let result = {payload: {values: []}};
+                    //в цикле по сгруппированным по типам найденных бумаг
+                    listOfFound.map(listOfTicker => {
+                        // объединяем все массивы
+                        result.payload.values = result.payload.values.concat(listOfTicker.payload.values)
+                    })
+                    resolve(result);
+                } else {
+                    console.log('Сервис поиска недоступен');
+                    reject(undefined)
+                }
+            }).catch(e => {
                 console.log(e);
                 reject(undefined);
             })
@@ -1482,7 +1506,7 @@ function updateAlertPrices() {
                         let opacity_rate = giveLessDiffToTarget({
                             online_buy_price: priceInfo.payload.buy?.value || priceInfo.payload.last?.value || 0,
                             online_sell_price: priceInfo.payload.sell?.value || priceInfo.payload.last?.value || 0,
-                            buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[sorted_subscriptions.length-1]?.price : 0),
+                            buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[sorted_subscriptions.length - 1]?.price : 0),
                             sell_price: item.sell_price || 0,
                         });
 
