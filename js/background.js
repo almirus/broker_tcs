@@ -662,33 +662,34 @@ function getListStock(name) {
                             console.log('found list');
                             let return_data = [];
                             json.payload.values.forEach(item => {
-                                return_data.push({
-                                    prices: item.prices || {
-                                        buy: {
-                                            currency: item.orderInfo.pointValue.currency,
-                                            value: item.priceInfo.buy
+                                if (item.symbol?.otcType !== 'Extended')
+                                    return_data.push({
+                                        prices: item.prices || {
+                                            buy: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.buy
+                                            },
+                                            close: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.close
+                                            },
+                                            last: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.last
+                                            },
+                                            sell: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.sell
+                                            },
                                         },
-                                        close: {
-                                            currency: item.orderInfo.pointValue.currency,
-                                            value: item.priceInfo.close
+                                        symbol: {
+                                            ticker: item.symbol?.ticker || item.isin || item.instrumentInfo.ticker,
+                                            showName: item.symbol?.showName || item.showName || item.viewInfo.showName,
+                                            lotSize: item.symbol?.lotSize,
+                                            isOTC: item.symbol?.isOTC
                                         },
-                                        last: {
-                                            currency: item.orderInfo.pointValue.currency,
-                                            value: item.priceInfo.last
-                                        },
-                                        sell: {
-                                            currency: item.orderInfo.pointValue.currency,
-                                            value: item.priceInfo.sell
-                                        },
-                                    },
-                                    symbol: {
-                                        ticker: item.symbol?.ticker || item.isin || item.instrumentInfo.ticker,
-                                        showName: item.symbol?.showName || item.showName || item.viewInfo.showName,
-                                        lotSize: item.symbol?.lotSize,
-                                        isOTC: item.symbol?.isOTC
-                                    },
-                                    exchangeStatus: item.exchangeStatus
-                                });
+                                        exchangeStatus: item.exchangeStatus
+                                    });
                             });
                             resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                         }).catch(function (ex) {
@@ -1738,7 +1739,7 @@ async function getNewTickers(clean) {
         sortType: "ByPrice",
         orderType: "Asc",
     };
-    let response = await fetch(SEARCH_URL + session_id, {
+    let response = await fetch(SEARCH_URL.replace('${securityType}', 'stocks') + session_id, {
         method: "POST",
         body: JSON.stringify(search_obj),
         headers: {
@@ -1835,7 +1836,7 @@ async function getTreeMap(listName = 'All', isOTC) {
         search_obj['country'] = 'All';
         search_obj['popular'] = true;
         let favorite = await getFavorite();
-        // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
+        // сворачиваем все портфолио до списка акций
         list = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
             return item.symbol.symbolType === 'Stock'
         }).reduce((prev, curr) => {
@@ -1852,7 +1853,7 @@ async function getTreeMap(listName = 'All', isOTC) {
         search_obj['tickers'] = await getIndex(listName);
     }
     // POST
-    let response = await fetch(SEARCH_URL + session_id, {
+    let response = await fetch(SEARCH_URL.replace('${securityType}', 'stocks') + session_id, {
         method: "POST",
         body: JSON.stringify(search_obj),
         headers: {
