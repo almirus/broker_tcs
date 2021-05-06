@@ -19,7 +19,7 @@ import {
     OPTION_FAVORITE,
     OPTION_FAVORITE_LIST,
     OPTION_FINN_ENABLED,
-    OPTION_FINN_GETLAST,
+    OPTION_FINN_GETLAST, OPTION_MINUS_CURRENT_POS,
     OPTION_REDIRECT,
     OPTION_RIFINITIV,
     OPTION_SESSION,
@@ -724,7 +724,7 @@ function create_portfolio_table(divId, data) {
             }
             let td5 = document.createElement('td');
 
-            td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize} ${element.blocked ? '<div>🔒' + element.blocked + '</div>' : ''}</div>`;
+            td5.innerHTML = `<div data-ticker="${element.symbol.ticker}">${element.symbol.lotSize} ${element.symbol.blocked ? '<span title="Заблокировано">(🔒' + element.symbol.blocked + ')</span>' : ''}</div>`;
 
             let td6 = document.createElement('td');
 
@@ -1007,7 +1007,7 @@ function create_alert_table(data_list) {
 
         let th6 = document.createElement('th');
         th6.className = 'sorting';
-        th6.appendChild(document.createTextNode('заявка активна до'));
+        th6.appendChild(document.createTextNode('активно до'));
         let th7 = document.createElement('th');
         th7.className = 'sorting';
         let th8 = document.createElement('th');
@@ -1708,6 +1708,19 @@ chrome.storage.sync.get([OPTION_FINN_GETLAST], function (result) {
     console.log('get last month option');
     document.getElementById(OPTION_FINN_GETLAST).checked = result[OPTION_FINN_GETLAST] === true;
 });
+
+// сохраняем применение Виртуальная операция
+document.getElementById(OPTION_MINUS_CURRENT_POS).addEventListener('change', function (e) {
+    chrome.storage.sync.set({[OPTION_MINUS_CURRENT_POS]: e.target.checked}, function () {
+        console.log('add virtual operation option set to ' + e.target.checked);
+    })
+});
+// подгружаем настройки
+chrome.storage.sync.get([OPTION_MINUS_CURRENT_POS], function (result) {
+    console.log('get virtual operation  option');
+    document.getElementById(OPTION_MINUS_CURRENT_POS).checked = result[OPTION_MINUS_CURRENT_POS] === true;
+});
+
 // клик Сегодня в операциях
 document.getElementById('today').addEventListener('click', function (input) {
     let dateFrom = new Date();

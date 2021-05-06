@@ -90,6 +90,7 @@ export const NEW_TICKERS = 'newTickersList';
 export const OPTION_RIFINITIV = 'rifinitiv';
 export const OPTION_FINN_ENABLED = 'finnconsensus';
 export const OPTION_FINN_GETLAST = 'finnconsensus_1m';
+export const OPTION_MINUS_CURRENT_POS = 'minus_current_pos';
 //up to 5 API requests per minute and 500 requests per day
 export const ALPHAVANTAGE_KEY = 'M3JMJM8U22EIIO2Y';
 export const AV_SYMBOL_URL = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=';

@@ -332,7 +332,8 @@ export function renderListOperations(account, list, currencies, hideCommission, 
                 currency: item.currency || ' ',
                 amount: item.quantity || item.quantityRest || ' ',
                 description: item.description,
-                status: item.status
+                status: item.status,
+                accountType: item.accountType,
             })
         })
         return result;
@@ -356,7 +357,7 @@ export function renderListOperations(account, list, currencies, hideCommission, 
     <td>${item.currency !== 'RUB' ? (item.price * currencies[item.currency + 'RUB'].lastPrice).toFixed(2) : ''}</td>
     <td>${item.currency !== 'RUB' ? 'RUB' : ''}</td>
     <td>${item.amount}</td>
-    <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong>${item.amount > 0 ? ', стоимость одного лота <strong>' + (item.price / item.amount).toFixed(2) + '</strong> ' + item.currency : ''}</td>
+    <td>${item.description}<strong> ${RUS_OPERATION_TYPE[item.status]}</strong> на счет ${item.accountType} ${item.amount > 0 ? ', стоимость одного лота <strong>' + (item.price / item.amount).toFixed(2) + '</strong> ' + item.currency : ''}</td>
 </tr>`;
         if (item.status !== 'decline') {
             commission += item.currency !== 'RUB' ? item.commission * currencies[item.currency + 'RUB'].lastPrice * 1 : item.commission * 1;

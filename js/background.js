@@ -41,6 +41,7 @@ import {
     OPTION_FAVORITE_LIST,
     OPTION_FINN_ENABLED,
     OPTION_FINN_GETLAST,
+    OPTION_MINUS_CURRENT_POS,
     OPTION_REDIRECT,
     OPTION_RIFINITIV,
     OPTION_SESSION,
@@ -464,6 +465,7 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                             status: element.status,
                             showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
                             lotSize: element.currentBalance,
+                            blocked: element.blocked,
                             expectedYieldRelative: element.expectedYieldRelative,
                             expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
                             expectedYield: expected_yield,
@@ -598,6 +600,36 @@ function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()
             })
         })
     })
+}
+
+async function getVirtualOperation(ticker) {
+    let result = [];
+    let option = await MainProperties.getMinusCurrentPosOption();
+    console.warn(option);
+    if (option && ticker) {
+        let session_id = await MainProperties.getSession();
+        let response = await fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', ticker) + session_id);
+        let info = await response.json();
+        Object.keys(info.payload).forEach(key => {
+            if (key.indexOf('position') > -1) {
+                result.push({
+                    accountType: key.replace("position", ""),
+                    isin: info.payload[key].isin || ' ',
+                    ticker: info.payload[key].ticker || ' ',
+                    commission: 0,
+                    date: (new Date()).toJSON(),
+                    operationType: info.payload[key].currentBalance > 0 ? 'Sell' : 'Buy',
+                    price: info.payload[key].currentAmount?.value,
+                    payment: info.payload[key].currentAmount?.value,
+                    currency: info.payload[key].currentAmount?.currency || ' ',
+                    quantity: info.payload[key].currentBalance,
+                    description: 'Виртуальная операция',
+                    status: 'done'
+                })
+            }
+        });
+    }
+    return result;
 }
 
 /**
@@ -2106,18 +2138,19 @@ chrome.runtime.onConnect.addListener(function (port) {
                 break;
             case 'getOperations':
                 getCurrencyCourse().then(currencies => {
-                    exportPortfolio(msg.dateFrom, msg.dateTo, msg.ticker)
-                        .then(result => {
-                                port.postMessage(Object.assign({},
-                                    {result: "listOfOperations"},
-                                    {account: msg.account},
-                                    {list: result},
-                                    {currencies: currencies},
-                                    {hideCommission: msg.hideCommission},
-                                    {operationType: msg.operationType})
-                                );
-                            }
-                        )
+                    Promise.all([getVirtualOperation(msg.ticker), exportPortfolio(msg.dateFrom, msg.dateTo, msg.ticker)])
+                        .then(([virtualOperation, realOperation]) => {
+                            console.info(virtualOperation);
+                            console.info(realOperation);
+                            port.postMessage(Object.assign({},
+                                {result: "listOfOperations"},
+                                {account: msg.account},
+                                {list: virtualOperation.concat(realOperation)},
+                                {currencies: currencies},
+                                {hideCommission: msg.hideCommission},
+                                {operationType: msg.operationType})
+                            );
+                        })
                         .catch(e => {
                             console.log(`cant send data for operations, because ${e}`)
                         });
@@ -2563,6 +2596,20 @@ export class MainProperties {
         );
 
     };
+
+    static async getMinusCurrentPosOption() {
+        if (!(this._minusCurrentPosOption === undefined)) {
+            //console.log('get cached sessionId');
+            return this._minusCurrentPosOption
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_MINUS_CURRENT_POS], result => {
+                this._minusCurrentPosOption = result[OPTION_MINUS_CURRENT_POS];
+                resolve(result[OPTION_MINUS_CURRENT_POS]);
+            })
+        );
+
+    };
 }
 
 // вызывается при изменении storage
@@ -2582,6 +2629,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             if (key === OPTION_FAVORITE_LIST) MainProperties._favoriteListOption = storageChange.newValue;
             if (key === OPTION_ALERT_ORDER_VALUE_PER_SYMBOL) MainProperties._alertOrder = storageChange.newValue;
             if (key === OPTION_ALERT_ORDER_PER_SYMBOL) MainProperties._alertOrderEnabled = storageChange.newValue;
+            if (key === OPTION_MINUS_CURRENT_POS) MainProperties._minusCurrentPosOption = storageChange.newValue;
             // при установке галочек в опциях запрашиваем вновь прогноз, который будет измененм в зависомости от опций
             if (key === OPTION_RIFINITIV) {
                 MainProperties._RifEnabled = storageChange.newValue;
