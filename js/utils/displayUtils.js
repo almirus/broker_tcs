@@ -493,8 +493,9 @@ export function drawPremiumConsensus(data) {
     canvas.width = 100;
     canvas.height = 12;
     let ctx = canvas.getContext('2d');
-    if (data?.absolute?.buy) {
-        canvas.title = `Консенсус прогноз от 👑Refinitiv\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков\n
+    if (data?.absolute) {
+        let date = new Date(data.createdAt);
+        canvas.title = `Консенсус прогноз от 👑Refinitiv (${date.toLocaleDateString()})\n"${RUS_OPERATION[data.recommendationLabel]}" на основе ${data.analystsCount} прогнозов аналитиков\n
         Покупать ${data.absolute.buy}, держать ${data.absolute.hold}, продавать ${data.absolute.sell}`;
         ctx.fillStyle = 'green';
         ctx.fillRect(0, 2, data.absolute.buy * 100 / data.analystsCount, 7);

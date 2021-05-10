@@ -1067,11 +1067,15 @@ function create_alert_table(data_list) {
                     element.earnings = undefined;
                 } else element.online_buy_price = element.online_buy_price || element.online_average_price; // для внебиржевых нет цены покупки и продажи
                 let cached_element = element.prognosis;
-
+                let feature_div = cached_element?.dividends ? cached_element.dividends[cached_element.dividends.length - 1] : undefined;
+                let daysToDiv;
+                if (feature_div && Date.now() <= new Date(feature_div.lastBuyDate + 'T23:59:59')) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24) + 1, 10);
+                let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}/dividends/" title="Последняя дата (${new Date(feature_div.lastBuyDate).toLocaleDateString()} включительно) покупки для получения дивидендов, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}${daysToDiv === 0 ? '🚩' : ''}</a>` : '';
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
                 td1.className = 'maxWidth';
                 td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
+                    div+
                     //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                     (element.orderType === 'Limit' ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : (element.timeToExpire === 0 ? '<span class="icon" title="TakeProfit/StopLoss активно до срабатывания">♾️</span>' : '')) +
                     (element.isOTC ? '<span class="icon" title="Внебиржевой инструмент">👑</span>' : '') +
@@ -1079,8 +1083,9 @@ function create_alert_table(data_list) {
 
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
+                console.warn(cached_element);
                 let prognosis_style = cached_element && cached_element.consensus && cached_element.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-                let prognosis_link = cached_element && cached_element.consensus ? `<a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}', cached_element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
+                let prognosis_link = cached_element && cached_element.consensus ? `<a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}',  element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
                                 ${cached_element.consensus.consensus.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: cached_element.consensus.currency,
