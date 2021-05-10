@@ -19,7 +19,8 @@ import {
     OPTION_FAVORITE,
     OPTION_FAVORITE_LIST,
     OPTION_FINN_ENABLED,
-    OPTION_FINN_GETLAST, OPTION_MINUS_CURRENT_POS,
+    OPTION_FINN_GETLAST,
+    OPTION_MINUS_CURRENT_POS,
     OPTION_REDIRECT,
     OPTION_RIFINITIV,
     OPTION_SESSION,
@@ -595,7 +596,7 @@ function create_portfolio_table(divId, data) {
 
     table.appendChild(tr);
 
-    data.forEach(function (element, i) {
+    data.forEach(element => {
             if (element.holidayDescription) holidays.add(element.holidayDescription);
             let tr = document.createElement('tr');
             let td1 = document.createElement('td');
@@ -618,6 +619,11 @@ function create_portfolio_table(divId, data) {
             let daysToDiv;
             if (feature_div && Date.now() <= new Date(feature_div.lastBuyDate + 'T23:59:59')) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24) + 1, 10);
             let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.symbol.securityType)}${element.symbol.ticker}/dividends/" title="Последняя дата (${new Date(feature_div.lastBuyDate).toLocaleDateString()} включительно) покупки для получения дивидендов, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}${daysToDiv === 0 ? '🚩' : ''}</a>` : '';
+
+            let notes = element.notes && (element.notes.length > 0) ? '<span title="' + element.notes.map(elem => {
+                return elem.text
+            }).join('\n') + '">📝</span>' : '';
+
             let ls = '';
             if (element.symbol.longIsEnabled || element.symbol.shortIsEnabled) ls = `<span title="Long\Short">${(element.symbol.longIsEnabled ? 'L' : '') + '/' + (element.symbol.shortIsEnabled ? 'S' : '')}</span>`;
 
@@ -753,7 +759,7 @@ function create_portfolio_table(divId, data) {
             }
             let td8 = document.createElement('td');
             //td8.style.whiteSpace = 'nowrap';
-            td8.innerHTML = `${short} ${warning} ${div}${ls}`;
+            td8.innerHTML = `${notes}${short}${warning}${div}${ls}`;
             tr.appendChild(td1);
             tr.appendChild(td8);
             tr.appendChild(td2);
@@ -1071,11 +1077,14 @@ function create_alert_table(data_list) {
                 let daysToDiv;
                 if (feature_div && Date.now() <= new Date(feature_div.lastBuyDate + 'T23:59:59')) daysToDiv = parseInt((new Date(feature_div.lastBuyDate) - Date.now()) / (1000 * 60 * 60 * 24) + 1, 10);
                 let div = feature_div && feature_div.yield ? `<a target="_blank" href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}/dividends/" title="Последняя дата (${new Date(feature_div.lastBuyDate).toLocaleDateString()} включительно) покупки для получения дивидендов, доход на одну акцию ${feature_div.yield.value}%">D${daysToDiv < 32 ? daysToDiv : ''}${daysToDiv === 0 ? '🚩' : ''}</a>` : '';
+                let notes = element.notes && (element.notes.length > 0) ? '<span title="' + element.notes.map(elem => {
+                    return elem.text
+                }).join('\n') + '">📝</span>' : '';
                 let tr = document.createElement('tr');
                 let td1 = document.createElement('td');
                 td1.className = 'maxWidth';
                 td1.innerHTML = `<span class="pulseTicker" data-nav="${element.ticker}" title="Посмотреть пульс по инструменту">${element.showName}</span><span class="pulseIcon">🔥</span><br>` +
-                    div+
+                    div + notes +
                     //(element.orderId && !element.timeToExpire && !(element.status === 'New') ? '<span class="icon" title="takeProfit/stopLoss. Действует до срабатывания">🔔</span>' : '') +
                     (element.orderType === 'Limit' ? '<span class="icon" title="Лимитная завка. Автоматически снимается после закрытия биржи">🕑</span>' : (element.timeToExpire === 0 ? '<span class="icon" title="TakeProfit/StopLoss активно до срабатывания">♾️</span>' : '')) +
                     (element.isOTC ? '<span class="icon" title="Внебиржевой инструмент">👑</span>' : '') +
@@ -1083,9 +1092,9 @@ function create_alert_table(data_list) {
 
                     `<a title="Открыть на странице брокера"  href="${SYMBOL_LINK.replace('${securityType}', element.securityType)}${element.ticker}" target="_blank">
                         <strong>${element.ticker}</strong></a>`;
-                console.warn(cached_element);
+
                 let prognosis_style = cached_element && cached_element.consensus && cached_element.consensus.recommendation === 'Покупать' ? 'onlineBuy' : 'onlineSell';
-                let prognosis_link = cached_element && cached_element.consensus ? `<a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}',  element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
+                let prognosis_link = cached_element && cached_element.consensus ? `<a class="${prognosis_style}" href="${PROGNOSIS_LINK.replace('${symbol}', cached_element.ticker).replace('${securityType}', element.securityType)}" target="_blank" title="Сводная рекомендация: ${cached_element.consensus.recommendation}">
                                 ${cached_element.consensus.consensus.toLocaleString('ru-RU', {
                     style: 'currency',
                     currency: cached_element.consensus.currency,

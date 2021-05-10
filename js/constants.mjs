@@ -48,7 +48,8 @@ export const CURRENCY_LIMIT_URL = 'https://api.tinkoff.ru/trading/portfolio/curr
 export const CHECK_VERSION_URL = 'https://api.tinkoff.ru/trading/other/version?sessionId=';
 export const ACCOUNTS_URL = 'https://api.tinkoff.ru/trading/user/broker_accounts?appName=invest_terminal&appVersion=4.19.0&sessionId=';
 export const SHELVES_URL = 'https://api-invest.tinkoff.ru/catalog/shelves?y=omg&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';
-
+export const NOTE_PUT_URL ='https://api-invest-gw.tinkoff.ru/social/note/v1/instrument/note/${noteId}?y=omg&deviceId=2cb59723b132726c&appVersion=4.20.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId='
+export const NOTE_URL ='https://api-invest-gw.tinkoff.ru/social/note/v1/instrument/${ticker}/note?y=omg&deviceId=2cb59723b132726c&appVersion=4.20.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId='
 //{start: "2018-02-01", end: "2019-01-10", group: "M", currency: "RUR", timezone: "+03:00"}
 export const SUMMARY_URL = 'https://api.tinkoff.ru/trading/portfolio/portfolio_summary?sessionId=';
 export const NEWS_URL = 'https://api-invest.tinkoff.ru/smartfeed-public/v1/feed/api/main?nav_id=${navId}&limit=30&deviceId=2cb59723b132726c&appVersion=4.19.0&platform=android&appName=investing&origin=mobile%2Cib5%2Cloyalty%2Cplatform&sessionId=';

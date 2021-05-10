@@ -26,6 +26,7 @@ import {
     NEW_TICKERS,
     NEWS_URL,
     NOTE_LIST,
+    NOTE_URL,
     OPERATIONS_URL,
     OPTION_ALERT,
     OPTION_ALERT_ORDER_PER_SYMBOL,
@@ -319,6 +320,7 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
     let return_data = [];
     for (const element of data) {
         let securityType = SYMBOL_URL_CONVERT[element.securityType];
+        let notes = await getTickerNote(element.ticker);
         await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
             let current_amount = element.currentAmount || {};
             let expected_yield = element.expectedYield || {};
@@ -353,6 +355,7 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                     break;
                 case 'futures':
                     return_data.push({
+                        notes: notes,
                         expected_yield: {
                             value: element.expectedYield.value,
                             currency: element.expectedYield.currency
@@ -432,6 +435,7 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
 
                     }
                     return_data.push({
+                        notes: notes,
                         prices: symbol.payload.prices,
                         earnings: symbol.payload.earnings,
                         contentMarker: symbol.payload.contentMarker,
@@ -1532,7 +1536,7 @@ function updateAlertPrices() {
                 //TODO сделать запрос к поиску
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
-
+                    let notes = await getTickerNote(item.ticker);
                     await getPriceInfo(item.ticker, SYMBOL_URL_CONVERT[(item.symbolType || item.securityType || 'Stock')], session_id).then(priceInfo => {
 
                         let sorted_subscriptions = item.subscriptions?.sort((a, b) => a.price - b.price);
@@ -1567,6 +1571,7 @@ function updateAlertPrices() {
 
                         }
                         alert_data[i] = {
+                            notes: notes,
                             ticker: item.ticker,
                             securityType: PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')],
                             showName: item.showName,
@@ -1790,8 +1795,9 @@ async function getNewTickers(clean) {
         }
 
         let list = listOfFound.payload.values.reduce((result, item, index) => {
-            result.push({
+            if (item.price) result.push({
                 ticker: item.symbol.ticker,
+                isin: item.symbol.isin,
                 showName: item.symbol.showName,
                 isOTC: item.symbol.isOTC,
                 symbolType: item.symbol.symbolType,
@@ -1808,9 +1814,9 @@ async function getNewTickers(clean) {
         console.log('get old list');
         if (newList?.length) {
             // ищем разницу между списками
-            const different = newList.filter(o1 => !list.some(o2 => o1.ticker === o2.ticker));
+            const different = newList.filter(o1 => !list.some(o2 => o1.isin === o2.isin));
             // ищем одинаковые но которые поменяли флаг isOTC
-            let isNotOTC = newList.filter(o1 => list.some(o2 => o1.ticker === o2.ticker && o1.isOTC !== o2.isOTC));
+            let isNotOTC = newList.filter(o1 => list.some(o2 => o1.isin === o2.isin && o1.isOTC !== o2.isOTC));
             // брокер возвращает дубли, удаляем
             isNotOTC = isNotOTC.filter(item => {
                 return !item.isOTC
@@ -1956,6 +1962,28 @@ async function getTreeMap(listName = 'All', isOTC) {
     } else {
         console.log('Сервис поиска недоступен');
         return undefined
+    }
+}
+
+async function getTickerNote(ticker) {
+    let session_id = await MainProperties.getSession();
+    try {
+        let response = await fetch(NOTE_URL.replace('${ticker}', ticker) + session_id, {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        });
+        if (response.status === 200) {
+            let notes = await response.json();
+            return notes.payload.items;
+        } else {
+            return []
+        }
+    } catch (er) {
+        console.error(er);
+        return [];
     }
 }
 
