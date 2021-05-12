@@ -963,14 +963,15 @@ function getFavorite() {
                         .concat(json.payload.currencies)
                         .concat(json.payload.etf)
                         .concat(json.payload.isgs)
+                        .concat(json.payload.futures)
                         .forEach(item => {
                             return_data.push({
                                 symbol: {
-                                    showName: item.symbol.showName,
-                                    isin: item.symbol.isin,
-                                    ticker: item.symbol.ticker,
-                                    symbolType: item.symbol.symbolType,
-                                    isOTC: item.symbol.isOTC
+                                    showName: item?.symbol?.showName || item.viewInfo.showName,
+                                    isin: item?.symbol?.isin || '',
+                                    ticker: item?.symbol?.ticker || item.instrumentInfo.ticker,
+                                    symbolType: item?.symbol?.symbolType || '',
+                                    isOTC: item?.symbol?.isOTC
                                 }
                             });
                         });
@@ -2246,7 +2247,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                         // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
                         // пульс доступен только для акций, поэтому фильтруем
                         news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
-                            return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
+                            return  item.symbol.symbolType !== 'Note' && !item.symbol.isOTC
                         }).reduce((prev, curr) => {
                             return [...prev, ...[curr.symbol.ticker]];
                         }, []))];
