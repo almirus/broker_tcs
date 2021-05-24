@@ -43,7 +43,7 @@ import {
     getExportAccountHtml,
     msToTime,
     renderListOperations,
-    renderNews,
+    renderNews, renderNote,
     renderProfile,
     renderPulse,
     renderTickers,
@@ -224,6 +224,9 @@ port.onMessage.addListener(function (msg) {
             setCommentToggleButton();
             setAnswerToggleButton();
             likeToggleButton();
+            break;
+        case 'note':
+            renderNote(msg);
             break;
         case 'noteList':
             renderNotes(msg);

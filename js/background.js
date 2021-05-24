@@ -1008,7 +1008,7 @@ function getNews(nav_id) {
                 case /^[0-9]+$/.test(nav_id) || !nav_id:
                     url = NEWS_URL.replace('${navId}', nav_id) + session_id;
                     break;
-                case /^[A-Z@0-9]+$/.test(nav_id):
+                case /^[a-zA-Z@0-9]+$/.test(nav_id):
                     type = 'ticker';
                     url = PULSE_FOR_TICKER_URL.replace('${navId}', nav_id) + session_id;
                     break;
@@ -1968,8 +1968,12 @@ async function getTreeMap(listName = 'All', isOTC) {
 
 async function getTickerNote(ticker) {
     let session_id = await MainProperties.getSession();
+    const controller = new AbortController()
+    // 1 second timeout:
+    setTimeout(() => controller.abort(), 1000)
     try {
         let response = await fetch(NOTE_URL.replace('${ticker}', ticker) + session_id, {
+            signal: controller.signal,
             method: "GET",
             headers: {
                 'Accept': 'application/json',
@@ -2245,9 +2249,9 @@ chrome.runtime.onConnect.addListener(function (port) {
                         let favorite = [];
                         if (await MainProperties.getFavoriteOption()) favorite = await getFavorite();
                         // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
-                        // пульс доступен только для акций, поэтому фильтруем
+                        // пульс доступен для всех типов кроме структурных нот и внебиржевых, поэтому фильтруем
                         news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
-                            return  item.symbol.symbolType !== 'Note' && !item.symbol.isOTC
+                            return item.symbol.symbolType !== 'Note' && !item.symbol.isOTC
                         }).reduce((prev, curr) => {
                             return [...prev, ...[curr.symbol.ticker]];
                         }, []))];
@@ -2259,13 +2263,22 @@ chrome.runtime.onConnect.addListener(function (port) {
                                 {result: "pulse"},
                                 {news: news}));
                             console.log("send puls list .....");
+                            getTickerNote(msg.params.nav_id).then(notes => {
+                                    port.postMessage(Object.assign({},
+                                        {ticker: msg.params.nav_id},
+                                        {result: "note"},
+                                        {notes: notes})
+                                    );
+                                    console.log("send note for ", msg.params.nav_id);
+                                }
+                            );
+                            getPriceInfo()
                         });
                     })();
-
-
                 });
                 break;
-            case 'getTreemap':
+            case
+            'getTreemap':
                 getTreeMap(msg.country, msg.isOTC).then(res => {
                     port.postMessage(Object.assign({},
                         {result: "treemap"},
@@ -2273,7 +2286,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send treemap .....");
                 });
                 break;
-            case 'getNewTickers':
+            case
+            'getNewTickers':
                 Promise.all([getNewTickers(), getIPO()]).then(([newTickers, IPOs]) => {
                     port.postMessage(Object.assign({},
                         {result: "newTickers"},
@@ -2282,7 +2296,8 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send list of new tickers.....");
                 });
                 break;
-            case 'cleanNewTickers':
+            case
+            'cleanNewTickers':
                 Promise.all([getNewTickers(true), getIPO()]).then(([newTickers, IPOs]) => {
                     port.postMessage(Object.assign({},
                         {result: "newTickers"},
@@ -2291,22 +2306,26 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send list of new tickers.....");
                 });
                 break;
-            case 'postComment':
+            case
+            'postComment':
                 postComment(msg.params.postId, msg.params.text).then(res => {
                     console.log("post comment .....");
                 });
                 break;
-            case 'setLikeComment':
+            case
+            'setLikeComment':
                 likeComment(msg.params.commentId, msg.params.like).then(res => {
                     console.log("like comment .....");
                 });
                 break;
-            case 'setLikePost':
+            case
+            'setLikePost':
                 likePost(msg.params.commentId, msg.params.like).then(res => {
                     console.log("like post .....");
                 });
                 break;
-            case 'getProfile':
+            case
+            'getProfile':
                 getProfile(msg.params.profileId).then(res => {
                     port.postMessage(Object.assign({},
                         {result: "profile"},
@@ -2314,12 +2333,14 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send profile .....");
                 });
                 break;
-            case 'logout':
+            case
+            'logout':
                 logout().then(res => {
                     console.log("logout .....");
                 });
                 break;
-            case 'addNote':
+            case
+            'addNote':
                 addNote(msg.params.ticker, msg.params.note, msg.params.date).then(res => {
                     console.log("send update notes table .....");
                     port.postMessage({result: "noteList", list: res});
@@ -2328,8 +2349,10 @@ chrome.runtime.onConnect.addListener(function (port) {
             default:
                 port.postMessage('unknown request');
         }
-    });
-});
+    })
+    ;
+})
+;
 // листнер на клик по уведомлению
 chrome.notifications.onClicked.addListener(function (notificationId) {
     let ticker = notificationId.split("|");

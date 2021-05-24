@@ -112,6 +112,17 @@ export function renderNews(msg) {
     document.getElementById('news_table').innerHTML = buffer;
 }
 
+export function renderNote(msg) {
+    let DOMs = document.getElementsByClassName(`ticker${msg.ticker}Note`);
+    if (msg.notes.length > 0 && DOMs.length > 0) {
+        Array.from(DOMs).forEach(item => {
+            item.innerHTML = msg.notes.map(elem => {
+                return elem.text
+            }).join(' ')
+        });
+    }
+}
+
 export function renderPulse(msg) {
     let buffer = `<div class="nav"><ul class="navigation"><li class="pulseNav" data-nav="61">🔥 Пульс</li>
 <li class="pulseNav ${(msg.news.profile.id + '_profile') === msg.news.nav_id ? 'current' : ''}" data-nav="${msg.news.profile.id}_profile">Мои посты</li>
@@ -125,7 +136,7 @@ export function renderPulse(msg) {
         let ticket = msg.news.items[0].instruments.find(item => item.ticker === msg.news.nav_id);
         if (ticket) buffer += `
 <div class="forecast bordered" style="background-color: #b0b3b6" id="ticker_${msg.news.nav_id}">
-        <h2 class="header">${ticket.briefName}</h2>
+        <h2 class="header">${ticket.briefName} (${ticket.type})</h2>
         <div class="logo" style="background-size: cover;background-position: 50% 50%; background-image: url(https://static.tinkoff.ru/brands/traiding/${ticket.image?.replace('.', 'x160.')});"></div>
         <div class="recommendation">
         <span class="${ticket.relativeDailyYield > 0 ? 'onlineBuy' : 'onlineSell'}">
@@ -140,6 +151,7 @@ export function renderPulse(msg) {
         })}
         <span data-id="${news.id}" class="translate answerLink">написать</span>
         </div>
+        <div class="ticker${ticket.ticker}Note recommendation"></div>
 </div>`
     }
     buffer += msg.news.items.map(news => {
@@ -177,7 +189,7 @@ ${new Date(news.item.date).toLocaleDateString()} ${new Date(news.item.date).toLo
             case 'profile':
             case 'instrument': { // по отдельной бумаге, тип не заполняется
                 let likes = `<div class="heart ${news.isLiked ? 'isLiked' : ''}" data-id="${news.id}"></div><div id="${news.id}_heart_count" class="heartCount">${(news.likesCount > 0 ? news.likesCount : '')}</div>`;
-                let text = news.text;
+                let text = news.text.replace(/\n/g, "<br />");
                 let comments_obj = news.commentsCount > 0 ? news.comments.items : [];
                 let tickers = news.instruments.slice(0, 15).map(item => {
                     return `<a title="Открыть страницу акции" href="${SYMBOL_LINK.replace('${securityType}', PLURAL_SECURITY_TYPE[capitalize(item.type)]) + item.ticker}" target="_blank">
