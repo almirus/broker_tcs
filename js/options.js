@@ -43,7 +43,8 @@ import {
     getExportAccountHtml,
     msToTime,
     renderListOperations,
-    renderNews, renderNote,
+    renderNews,
+    renderNote,
     renderProfile,
     renderPulse,
     renderTickers,
@@ -125,6 +126,7 @@ port.onMessage.addListener(function (msg) {
             document.getElementById('earnedTodayPercent').innerText = toPercent(msg.expectedYieldPerDayRelative);
 
             document.getElementById('allAccounts').innerHTML = getAllAccountsHtmlInfo(msg.accounts);
+            console.log(msg.accounts);
             document.getElementById('exportOperations').innerHTML = getExportAccountHtml(msg.accounts);
             // клик по выгрузке портфеля
             setTimeout(() => Array.from(document.getElementsByClassName('exportLink')).forEach(item => {
@@ -216,7 +218,7 @@ port.onMessage.addListener(function (msg) {
             renderNews(msg);
             setNewsButton();
             setNewsToggleButton();
-            setTranslateButton();
+            //setTranslateButton();
             break;
         case 'pulse':
             renderPulse(msg);
@@ -239,7 +241,6 @@ port.onMessage.addListener(function (msg) {
             break;
         case 'treemap':
             document.getElementById('treemap_container').innerHTML = '<div class="scale" width="357" align="right" title="" style="float: right; margin-right: 0px;"><div class="step" style="background: rgb(246, 53, 56); width: 50px; padding-left: 6px; padding-right: 6px;">-3%</div><div class="step" style="background: rgb(191, 64, 69); width: 50px; padding-left: 6px; padding-right: 6px;">-2%</div><div class="step" style="background: rgb(139, 68, 78); width: 50px; padding-left: 6px; padding-right: 6px;">-1%</div><div class="step" style="background: rgb(65, 69, 84); width: 50px; padding-left: 6px; padding-right: 6px;">0%</div><div class="step" style="background: rgb(53, 118, 78); width: 50px; padding-left: 6px; padding-right: 6px;">+1%</div><div class="step" style="background: rgb(47, 158, 79); width: 50px; padding-left: 6px; padding-right: 6px;">+2%</div><div class="step" style="background: rgb(48, 204, 90); width: 50px; padding-left: 6px; padding-right: 6px;">+3%</div></div>';
-            //console.log(msg.list);
             anychart.onDocumentReady(() => {
                 let dataTree = anychart.data.tree(msg.list, 'as-table');
                 let chart = anychart.treeMap(dataTree);
@@ -615,8 +616,11 @@ function create_portfolio_table(divId, data) {
             let remain_time = '';
             if (element.exchangeStatus === 'Close') {
                 img_status = '/icons/closed.png';
-                remain_time = "Время до открытия " + msToTime(element.symbol.timeToOpen);
+                remain_time = (element.instrumentStatusDesc ? element.instrumentStatusDesc+'\r\n' : '') + "Время до открытия " + msToTime(element.symbol.timeToOpen);
             } else if (element.exchangeStatus === 'Open') img_status = '/icons/open.png';
+            if (element.instrumentStatusComment==='exchangeStatus_suspend') {
+                img_status = '/icons/suspend.png';
+            }
             let cached_element = listPrognosis && listPrognosis.filter(item => item?.ticker === element.symbol.ticker)[0];
             let feature_div = cached_element?.dividends ? cached_element.dividends[cached_element.dividends.length - 1] : undefined;
             let daysToDiv;

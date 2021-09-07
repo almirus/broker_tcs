@@ -169,13 +169,14 @@ function getAllSum() {
                 }
                 let accounts = {};
                 json.payload.accounts.forEach(item => {
-                    accounts[item.brokerAccountType] = {};
-                    accounts[item.brokerAccountType].totalAmountPortfolio = item.totalAmount.value;
-                    accounts[item.brokerAccountType].expectedYield = item.expectedYield.value;
-                    accounts[item.brokerAccountType].expectedYieldRelative = item.expectedYieldRelative / 100;
-                    accounts[item.brokerAccountType].expectedYieldPerDay = item.expectedYieldPerDay.value;
-                    accounts[item.brokerAccountType].expectedYieldPerDayRelative = item.expectedYieldPerDayRelative / 100;
-                    accounts[item.brokerAccountType].marginAttributes = item.marginAttributes;
+                    accounts[item.brokerAccountId] = {};
+                    accounts[item.brokerAccountId].name = item.name;
+                    accounts[item.brokerAccountId].totalAmountPortfolio = item.totalAmount.value;
+                    accounts[item.brokerAccountId].expectedYield = item.expectedYield.value;
+                    accounts[item.brokerAccountId].expectedYieldRelative = item.expectedYieldRelative / 100;
+                    accounts[item.brokerAccountId].expectedYieldPerDay = item.expectedYieldPerDay.value;
+                    accounts[item.brokerAccountId].expectedYieldPerDayRelative = item.expectedYieldPerDayRelative / 100;
+                    accounts[item.brokerAccountId].marginAttributes = item.marginAttributes;
                 });
                 resolve({
                     accounts: accounts,
@@ -482,7 +483,9 @@ async function convertPortfolio(data = [], needToConvert, currenciesCourse, sess
                             },
                             timeToOpen: symbol.payload.symbol.timeToOpen,
                         },
-                        exchangeStatus: symbol.payload.exchangeStatus
+                        exchangeStatus: symbol.payload.exchangeStatus,
+                        instrumentStatusDesc: symbol.payload.instrumentStatusDesc,
+                        instrumentStatusComment: symbol.payload.instrumentStatusComment
                     });
             }
         })
