@@ -16,7 +16,8 @@
             <legend>Портфель</legend>
             <div id="accounts"></div>
             <div id="portfolioTCS">
-                <h2>Обновление...Слишком долго? Нажмите <a href="options.html">здесь</a></h2>
+                <h2>Обновление... Слишком долго? Нажмите <a href="options.html">здесь</a></h2>
+                <h2>Все равно не грузится, напишите о баге <a href="https://github.com/almirus/broker_tcs/issues">сюда</a></h2>
             </div>
             <div id="portfolioIIS">
             </div>
@@ -52,7 +53,13 @@
                 <span id="allAccounts" class="toggle-content"></span>
             </div>
             <span style="float: left;" class="holidays" id="holidays"></span>
-            <a class="toggle" data-toggle="info" style="float: right" href="#info" title="Основные настройки">⚙️Настройки </a>
+            <!--
+            <a class="toggle" data-toggle="donate" style="float: right" href="#donate" title="Помочь автору плагина">🍺
+                На пиво</a>
+                -->
+            <a class="toggle" data-toggle="new" style="float: right" href="#new" title="Новости">🆕New </a>
+            <a id="mainProperties" class="toggle" data-toggle="info" style="float: right" href="#info"
+               title="Основные настройки">⚙️Настройки </a>
             <a class="toggle" data-toggle="export" style="float: right" href="#export" title="Экспорт портфеля в CSV">🔄️
                 Экспорт </a><br>
             <div class="toggle-content" id="export">
@@ -65,6 +72,40 @@
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Если установлена галочка будут выгружены только позиции, которые на данный момент в портфеле">
                     <div id="exportOperations"></div>
+                </fieldset>
+            </div>
+
+            <div class="toggle-content" id="new">
+                <fieldset class="table">
+                    <legend>Новости</legend>
+                    <ul>
+                        <li>Из настроек убран косметический фильтр
+                        <li>🐞 Из-за бага на стороне брокера не подтягиваются операции️
+                        <li>Добавлен вывод заметок (добавляется в мобильном приложении)️
+                        <li>В фильтр операций добавлена поддержка фьючерсов️
+                        <li>Базовая поддержка Фьючерсов 🤸‍♂️
+                        <li>В операции добавлен фильтр по налогам, исправлена сумма Итого
+                        <li>В операции добавлен фильтр по тикерам
+                        <li>Исправлено конвертирование в рубли бумаг в порфеле, добавлены валюты в интерфейс Добавления уведомлений
+                        <li>В карту цен добавлены индексы: S&P 500, Nasdaq 100, Dow Jones (исправлен фильтр для внебиржевых)
+                        <li>Теперь можно просматривать операции по счетам
+                        <li>Новый функционал (beta) - отслеживание новых инструментов (учет ведется по сопоставлению ранее созданного списка с текущим)
+                        <li>Теперь в Карте цен можно отфильтровать внебиржевые (актуально для премиум тарифа)
+                        <li>Внимание! 🧧 Сервис alphavantage заменен на <strong>finnHub</strong>, если хотите получать
+                            актуальные цены OTC, необходимо
+                            <a href="https://finnhub.io/register" target="_blank"
+                               title="Перейти на сайт и зарегистрировать ключ">зарегистрироваться</a> и поменять ключ!
+                        <li>Можно ставить оповещение на возможное срабатывание в ближайшее время заявки (заранее)
+                        <li>Мелкие исправления, теперь рядом с внебирживыми выводится 👑
+                        <li>Новый 💎<a
+                                href="https://chrome.google.com/webstore/detail/tinkoffticker/dpflhleimmbhmcihedanghbdeoinpiig?hl=ru"
+                                target="_blank">плагин</a>
+                        <li>Пульс отображает картинки
+                        <li>Добавлено отображение праздников (если биржа закрыта)
+                        <li>В список для отслеживания можно добавить список избранного
+                        <li>Добавлены прогнозы под каждым тикером
+                        <li>Добавлена карта цен
+                    </ul>
                 </fieldset>
             </div>
             <div class="toggle-content" id="info">
@@ -81,12 +122,14 @@
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="В фоне периодически будет пинговаться сервер и не давать завершить сессию в личном кабинете&#013;Если выключено, никаких уведомлений не будет&#013;Учтите, что это может быть небезопасно, если доступ к браузеру имеют 3е лица">
                     <br>
+                    <!--
                     <input type="checkbox" value="0" name="cosmetic" id="cosmetic">
 
                     <label for="cosmetic">Применить косметические фильтры на странице брокера</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Уменьшает размеры элементов чтобы на экране в личном кабинете поместилось больше информации">
                     <br>
+                    -->
                     <input type="checkbox" value="0" name="alert_redirect" id="alert_redirect">
                     <label for="alert_redirect">При достижении цены открывать страницу покупки/продажи</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
@@ -116,48 +159,54 @@
                          title="Выдает уведомление, если стоимость любой позиции в портфеле поменялась в течении дня на указанную величину. Нужно учитывать, что брокер считает доходность по цене последней сделки&#013;Нажмите цифру чтобы изменить">
 
                     <br>
+                    <input type="checkbox" value="0" name="alert_today_per_symbol" id="alert_order_per_symbol">
+                    <label for="alert_order_per_symbol">Оповещать, если цена <strong>близка к исполнению заявки</strong>
+                        на
+                        ±<input class="textInput" type="number"
+                                title="Установить доходность, при достижении которой будет выведено уведомление"
+                                name="alert_order_value_per_symbol"
+                                id="alert_order_value_per_symbol" maxlength="3"
+                                min="0">%</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Выдает уведомление, если цена приблизилась к исполнению заявки на указанные % &#013;Нажмите цифру чтобы изменить">
+
+                    <br>
                     <input type="checkbox" value="0" name="convert_to_rub" id="convert_to_rub">
                     <label for="convert_to_rub">Показывать итоговые суммы в рублях</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Итоговые суммы будут приведены в рублях на основе биржевого курс брокера&#013;Обновление произойдет в течении минуты">
                     <br>
                     <input type="checkbox" value="0" name="favorite" id="favorite">
-                    <label for="favorite">Отображать в Пульс бумаги из избранного</label>
+                    <label for="favorite">Отображать в меню Пульса бумаги из избранного</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="В Пульс к бумагам из портфеля и заявок будет добавлен список из Избранного">
-                    <div id="alphavantage_option" style="display: none">
+                    <div id="alphavantage_option">
                         <input type="checkbox" value="0" name="alphavantage" id="alphavantage">
                         <label for="alphavantage">Использовать сервис
-                            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
-                                 x="0px" y="0px" width="15px" height="8px"
-                                 viewBox="0 0 15 8" enable-background="new 0 0 15 8" xml:space="preserve">
-<image width="15" height="8" x="0" y="0" href="
-data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAIEAYAAAB2Q3mxAAAABGdBTUEAALGPC/xhBQAAACBjSFJN
-AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0T///////8JWPfcAAAA
-CXBIWXMAAA7DAAAOwwHHb6hkAAAAB3RJTUUH4wcZADseBYjV0gAAArpJREFUKM9lkl1IU3EYxn/n
-bM5tfkyHGLMlZTZaWEhCIUSNPugDq1kKKcnOLiITUll+EV5EF4ldGBRRENWpZFhYWUhCerGoC3GF
-VF6MEpRW4k3NZTo1d04Xf6mL3uvned7ned5XYmWUUqVUKQV8+PABIUKEKtwYMWJs9KKhoT1OECVK
-9Fo/ZsyYl8fVQXVQHeTv+CZ9k75JkJqlZqkZ0NHR13uQkZHdN1hiiaWBcvkvI5988oEhhhgq9JJC
-CikXLIKw4ZEw0NKGEyfOXT/IJZdcUIqVYqX432IpIAWkADDHHHPGPixYsLQMkEoqqXUuDBgwmDRZ
-8SpexQvEiRM3NAlg4zASEpL2igQJEoeLhOyHQmGorZwFFliwJXHhwgVKmVKmlAHppJMOZJFF1j6j
-0DnqEY11R8gmm+zEJxkbNmyAHTt2T7sAHm8nSZLklT6spGEdeSaInStCmy+Kqk/2UEABBSASAbPM
-MmsfFQ21ukXVbw6KBp5amGGGGZCJESNmPyEqaK0ghwg/R6p+rlqdYznd1zDa4ptaZ3DbP8cPNDq2
-hHso1m8x3tMr8A1tTDDBhKuETDLJBNJII015u3LbgGjmclwYTRQQIUIEZDLIIKP2gUjiluTK337N
-33F2PLo/7LjvXCdXJ8/pzheDv56v2mYe2n3J9Hru9rKh64yofnkYEyZMDVdFopImYajOJhbfbddr
-9Bq9ZmQT00wzDeqYOqaOgSyA9U0rN6i+U9pde+/IcFCu/71Hq4zNoqGjvdwrr0m+03dGD02c90Ry
-PV9M4hRdeeL5TpSIRE8+Cp3vT8T33gxKQSkoBTmlhtSQGvr3hEYWWWSxMyAIvXmKy9/vb8X//tjJ
-jWtHv5pZ4BuOug49xjjGZKrj7ei32DIwT5L5h9exYsW6tUgE2LFd6Fx048CBY6qKMGHC/Dd/AMhX
-Eoko1F+mAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE5LTA3LTI1VDA3OjU5OjMwLTA3OjAwBXmGAgAA
-ACV0RVh0ZGF0ZTptb2RpZnkAMjAxOS0wNy0yNVQwNzo1OTozMC0wNzowMHQkPr4AAAAYdEVYdFNv
-ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII="/>
-</svg>
-                            <a href="https://www.alphavantage.co/support/#api-key" target="_blank"
-                               title="Перейти на сайт и зарегистрировать ключ">alphavantage</a> для OTC</label>
+                            <a href="https://finnhub.io/register" target="_blank"
+                               title="Перейти на сайт и зарегистрировать ключ"><img src="icons/finnhub_big.png"
+                                                                                    style="vertical-align:bottom"
+                                                                                    height=18></a> для OTC 👑</label>
                         <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                             title="Для получения доходности за день и рыночной цены внебиржевых&#013;бумаг будет использован сторониий сервис alphavantage&#013;Необходимо зарегистрироваться, получить ключ и ввести его в поле">
+                             title="Для получения доходности за день и рыночной цены внебиржевых&#013;бумаг будет использован сторонний сервис finnhub&#013;Необходимо зарегистрироваться, получить ключ и ввести его в поле">
                         <input type="text" name="alphavantage_key" id="alphavantage_key"
-                               placeholder="Введите ключ alphavantage" maxlength="20">
+                               placeholder="Введите ключ finnhub" maxlength="20">
                     </div>
+                    <input type="checkbox" value="0" name="finnconsensus" id="finnconsensus">
+                    <label for="finnconsensus">Выводить прогноз для зарубежных инструментов от FinnHUB</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Работает только для зарубежных бумаг и только для портфеля">
+                    <input type="checkbox" value="0" name="finnconsensus_1m" id="finnconsensus_1m">
+                    <label for="finnconsensus_1m">Выводить только самый свежий имеющийся</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Если выбрано, будет выведен самый свежий прогноз, иначе среднее арифметическое из 6 последних">
+                    <br>
+                    <input type="checkbox" value="0" name="rifinitiv" id="rifinitiv">
+                    <label for="rifinitiv">Выводить прогноз от Rifinitiv</label>
+                    <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
+                         title="Не будет работать если нет премиум тарифа">
+                    <br>
+                    <!--
                     <div id="tradingview_option">
                         <input type="checkbox" value="0" name="tradingview" id="tradingview">
                         <label for="tradingview">Использовать сервис
@@ -171,12 +220,14 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII="/>
                              title="Будут использованы виджеты сервиса tradingview, например, для построения графиков">
 
                     </div>
+                    -->
                     <input type="checkbox" name="sort_by_nearest" id="sort_by_nearest">
                     <label id="label_sort_by_nearest" for="sort_by_nearest">Сортировать таблицу с уведомлениями по
                         "близости" к цели</label>
                     <br>
                     <input type="checkbox" name="add_favorite" id="add_favorite">
-                    <label id="label_add_favorite" for="add_favorite">Добавлять в таблицу для отслеживания Избранные инструменты</label>
+                    <label id="label_add_favorite" for="add_favorite">Добавлять в таблицу для отслеживания Избранные
+                        инструменты</label>
                     <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
                          title="Осторожно, список может быть очень большим, что приведет к тормозам">
                 </fieldset>
@@ -200,11 +251,9 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII="/>
         <fieldset class="table">
             <legend>Уведомления/Новости</legend>
             <input type="radio" value="0" checked="checked" name="list_type" id="alert_list">
-            <label for="alert_list">Список отслеживаемых/Заявки</label>
-            <!--
-            <img class="help" src="icons/faq_help_question_icon_16.png" alt="помощь"
-                 title="Цветной строкой отмечены онлайн заявки (покупка/продажа/takeProfit/stopLoss)&#013;Уведомления срабатывают и на мобильном">
-                 -->
+            <label for="alert_list">Список</label>
+            <input type="radio" value="7" name="list_type" id="operation_list">
+            <label for="operation_list">Операции</label>
             <input type="radio" value="3" name="list_type" id="graphic">
             <label for="graphic">График</label>
             <!--
@@ -213,13 +262,28 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII="/>
                  -->
             <input type="radio" value="1" name="list_type" id="add_alert_list">
             <label for="add_alert_list">Добавить для отслеживания</label>
+            <input type="radio" value="5" name="list_type" id="add_notes_list" style="display: none">
+            <label for="add_notes_list" style="display: none">Добавить заметки</label>
             <input type="radio" value="2" name="list_type" id="news">
             <label for="news">Новости</label>
             <input type="radio" value="3" name="list_type" id="pulse">
             <label for="pulse">🔥 Пульс (beta)</label>
             <input type="radio" value="4" name="list_type" id="treemap">
-            <label for="treemap">Карта цен</label><br>
-            <div id="alert_table"></div>
+            <label for="treemap">Карта цен</label>
+            <input type="radio" value="6" name="list_type" id="newtickers">
+            <label for="newtickers" title="Список новых бумаг, которые добавил брокер">Новые инструменты (beta)</label>
+            <!--
+            <input type="radio" value="5" name="list_type" id="analisis">
+            <label for="analisis">Анализ</label><br>
+            -->
+            <div id="notes_table" style="display: none">
+                <label for="add_list_type">Добавить заметку к инструменту</label>
+                <input id="symbol_name_for_note" name="symbol_name_for_note" style="width:300px"
+                       placeholder="Введите название акции или введите 'Валюта'"><br>
+                <div id="add_note_table"></div>
+                <div id="note_table"></div>
+            </div>
+            <div id="alert_table"><img src="css/loader.gif" alt="loading"></div>
             <div id="price_table" style="display: none">
                 <label for="add_list_type">Добавить бумаги из</label>
                 <select id="add_list_type">
@@ -229,7 +293,7 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII="/>
                     <option value="3">из избранного</option>
                 </select>
                 <input id="symbol_name" name="symbol_name" style="width:300px"
-                       placeholder="Введите название акции или введите 'Валюта'">
+                       placeholder="Введите название инструмента">
                 <div id="table"></div>
             </div>
             <div id="orders_table" style="display: none">
@@ -245,17 +309,58 @@ ZnR3YXJlAHBhaW50Lm5ldCA0LjEuNv1OCegAAAAASUVORK5CYII="/>
                 <!-- TradingView Widget END -->
             </div>
             <div id="news_table" style="display: none">
+                <img src="css/loader.gif" alt="loading">
             </div>
             <div id="treemap_table" style="display: none">
-                Выберите рынок
+                Выберите биржу или индекс
                 <select id="add_treemap_type">
+                    <option value="Mine">Мой список (портфель+избранное)</option>
                     <option value="All" selected>Все</option>
-                    <option value="Russian">Российский рынок</option>
-                    <option value="Foreign">Иностранный рынок</option>
+                    <option value="Russian">Российские бумаги</option>
+                    <option value="IMOEX">Индекс МосБиржи</option>
+                    <option value="Foreign">Иностранные бумаги</option>
+                    <option value="^GSPC">S&P 500</option>
+                    <option value="^NDX">Nasdaq 100</option>
+                    <option value="^DJI">Dow Jones</option>
                 </select>
+                Внебиржевые <select id="onlyOTC">
+                <option value="">Все</option>
+                <option value="0">Исключить</option>
+            </select>
+                <button id="treemap_update" title="Обновить">🔁</button>
                 <div id="treemap_container">
                     <img src="css/loader.gif" alt="loading">
                 </div>
+            </div>
+            <div id="newtickers_table" style="display: none">
+                <div id="newtickers_container">
+                    <img src="css/loader.gif" alt="loading">
+                </div>
+                <button id="hideNewList" style="display: none" title="Если нажать, учет изменений начнется с текущего списка бумаг">Скрыть списки</button>
+            </div>
+            <div id="operation_table" style="display: none">
+                Счет <select class="operation_table" id="operation_account">
+                <option selected="selected" value="All">Все</option>
+                <option value="Tinkoff">ТКС</option>
+                <option value="TinkoffIis">ИИС</option>
+                </select> <input id="ticker_name" placeholder="тикер" type="search" maxlength="16" size="5">
+                <button id="today">за сегодня</button>
+                от <input type="date" id="operation_date_from" class="operation_table"> до <input type="date" id="operation_date_to" class="operation_table">
+                показывать операции <select  class="operation_table" id="operation_type">
+                <option value="All">Все</option>
+                <option value="decline">Только отмененные</option>
+                <option selected="selected" value="done">Только успешные</option>
+                <option value="dividend">Дивиденды и купоны</option>
+                <option value="progress">В процессе</option>
+                <option value="commission">Налоги и комиссии</option>
+                <option value="payinout">Ввод\вывод денег</option>
+                <option value="features">Фьючерсы</option>
+                </select>
+
+                <!--показывать комиссию отдельно--> <input type="checkbox" id="operation_commission" class="operation_table" hidden>
+                в Итого учесть бумаги в портфеле <input type="checkbox" id="minus_current_pos" class="operation_table" title="Позволяет прикинуть доход, если продать\купить имеющиеся бумаги прямо сейчас">
+                <button id="filter_ticker">фильтровать</button><br>
+                <span id="operation_container"></span>
             </div>
         </fieldset>
     </div>

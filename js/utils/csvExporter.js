@@ -55,7 +55,7 @@ function filterData(items, account = 'Tinkoff', currency, collapse) {
                 type: (item.operationType.toLowerCase() === 'buywithcard' ? 'buy' : item.operationType) || ' ',
                 price: (!(item.operationType.toLowerCase() === 'buy' && item.operationType.toLowerCase() === 'sell') ? item.payment : item.price) || ' ',
                 currency: item.currency || ' ',
-                amount: item.quantity || ' ',
+                amount: item.quantity || item.quantityRest || ' ',
                 description: item.description
             })
         })

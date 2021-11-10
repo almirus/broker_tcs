@@ -171,7 +171,7 @@ p.info {
 .symbolStatus {
     margin-bottom: -0.35em;
     padding-right: 2px;
-    vertical-align: middle;
+    vertical-align: top;
 }
 .statusProcess{
     color: #756f7e;
@@ -253,15 +253,35 @@ input[type="datetime-local"] {
 }
 .subscribePrice {
     margin: 5px;
-    padding-left: 5px;
     padding-right: 10px;
     color: white;
-    background-color: #42ba08;
+    background-color: #a2a2a2;
     border-radius: 15%;
     display: inline-block;
 }
+.red_border{
+    border-left: 3px solid #f55656;
+    min-height: 100%;
+    float: left;
+}
+.green_border{
+    border-left: 3px solid #1ae56a;
+    min-height: 100%;
+    float: left;
+}
 .subscribePrice:active {
     background-color: red;
+}
+.subscribePercent{
+    opacity: 0;
+    display: flex;
+    height: 0;
+    transition: all .2s ease-in-out;
+}
+.subscribePrice:hover .subscribePercent {
+    opacity: 1;
+    height: 15px;
+    transition: all .2s ease-in-out;
 }
 .close {
     position: absolute;
@@ -319,7 +339,7 @@ ul.navigation {
 .newsBody{
     display: none;
 }
-.newsBody div,img{
+.newsBody img{
     max-width: 100% !important;
     height: auto !important;
     margin: 0 !important;
@@ -529,8 +549,57 @@ span.pulseTicker:hover+span.pulseIcon{
 .is_animating {
     animation: heart-burst .8s steps(28) 1;
 }
+.imgPulse{
+    max-height: 60px;
+}
+.imgPulse {
+    transition: 0.3s;
+}
+.imgPulse:hover {
+    transform: scale(10);
 
+}
+.scroll{
+    overflow-y: scroll;
+    min-height: 800px;
+}
+
+.item{
+    background: lightgreen;
+    margin: 3px;
+    padding: 4px;
+    text-align: center;
+    display: inline-block;
+}
 @keyframes heart-burst {
     from {background-position:left;}
     to { background-position:right;}
+}
+
+.blink_me {
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+.note{
+    width: 100%;
+}
+.tickerFilter{
+    cursor: pointer;
+    border-bottom: 1px dotted #000;
+    font-weight: bold;
+}
+
+.imgPulse:hover {
+    transform: scale(10);
+}
+.scale div{
+    display: inline-block;
+    float: left;
+    text-align: center;
+    margin-left: 1px;
 }

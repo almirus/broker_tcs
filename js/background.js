@@ -3,7 +3,6 @@
 import {
     ALERT_TICKER_LIST,
     ALL_ACCOUNTS,
-    AV_SYMBOL_URL,
     BUY_LINK,
     CANCEL_ORDER,
     CANCEL_STOP,
@@ -11,19 +10,27 @@ import {
     COMMENTS_URL,
     CONSENSUS_URL,
     CURRENCY_LIMIT_URL,
-    CURRENCY_PRICE_URL,
-    CURRENCY_SYMBOL_URL,
+    CURRENCY_LIST_URL,
     DIVIDENDS_URL,
-    EUR_RUB,
     FAVORITE_URL,
+    FEATURES_URL,
+    FINN_CONSTITUENTS,
+    FINN_RECOMENDATION,
+    FINN_SYMBOL_URL,
     HOST_URL,
+    IMOEX_LIST,
     INFO_URL,
     INTERVAL_TO_CHECK,
     LIQUID_URL,
     LOGIN_URL,
+    NEW_TICKERS,
     NEWS_URL,
+    NOTE_LIST,
+    NOTE_URL,
     OPERATIONS_URL,
     OPTION_ALERT,
+    OPTION_ALERT_ORDER_PER_SYMBOL,
+    OPTION_ALERT_ORDER_VALUE_PER_SYMBOL,
     OPTION_ALERT_TODAY,
     OPTION_ALERT_TODAY_PER_SYMBOL,
     OPTION_ALERT_TODAY_VALUE,
@@ -33,11 +40,16 @@ import {
     OPTION_CONVERT_TO_RUB,
     OPTION_FAVORITE,
     OPTION_FAVORITE_LIST,
+    OPTION_FINN_ENABLED,
+    OPTION_FINN_GETLAST,
+    OPTION_MINUS_CURRENT_POS,
     OPTION_REDIRECT,
+    OPTION_RIFINITIV,
     OPTION_SESSION,
     ORDERS_URL,
     PING_URL,
     PLURAL_SECURITY_TYPE,
+    port,
     PORTFOLIO_URL,
     PRICE_URL,
     PROFILE_ACTIVITY_URL,
@@ -47,9 +59,11 @@ import {
     PULSE_COMMENT_LIKE_URL,
     PULSE_FOR_TICKER_URL,
     PULSE_POST_LIKE_URL,
+    SEARCH_SECURITY_TYPE,
     SEARCH_URL,
     SELL_LINK,
     SET_ALERT_URL,
+    SHELVES_URL,
     SIGN_OUT_URL,
     STOP_URL,
     SUBSCRIPTIONS_URL,
@@ -57,12 +71,14 @@ import {
     SYMBOL_FUNDAMENTAL_URL,
     SYMBOL_LINK,
     SYMBOL_URL,
+    SYMBOL_URL_CONVERT,
     TICKER_LIST,
     UNSUBSCRIBE,
-    USD_RUB,
     USER_LIST_URL,
     USER_URL
 } from "/js/constants.mjs";
+import {giveLessDiffToTarget, hashCode} from "./utils/sortUtils.js";
+
 
 function redirect_to_page(url, open_new = false) {
     chrome.tabs.query({url: HOST_URL + '*'}, function (tabs) {
@@ -153,13 +169,14 @@ function getAllSum() {
                 }
                 let accounts = {};
                 json.payload.accounts.forEach(item => {
-                    accounts[item.brokerAccountType] = {};
-                    accounts[item.brokerAccountType].totalAmountPortfolio = item.totalAmount.value;
-                    accounts[item.brokerAccountType].expectedYield = item.expectedYield.value;
-                    accounts[item.brokerAccountType].expectedYieldRelative = item.expectedYieldRelative / 100;
-                    accounts[item.brokerAccountType].expectedYieldPerDay = item.expectedYieldPerDay.value;
-                    accounts[item.brokerAccountType].expectedYieldPerDayRelative = item.expectedYieldPerDayRelative / 100;
-                    accounts[item.brokerAccountType].marginAttributes = item.marginAttributes;
+                    accounts[item.brokerAccountId] = {};
+                    accounts[item.brokerAccountId].name = item.name;
+                    accounts[item.brokerAccountId].totalAmountPortfolio = item.totalAmount.value;
+                    accounts[item.brokerAccountId].expectedYield = item.expectedYield.value;
+                    accounts[item.brokerAccountId].expectedYieldRelative = item.expectedYieldRelative / 100;
+                    accounts[item.brokerAccountId].expectedYieldPerDay = item.expectedYieldPerDay.value;
+                    accounts[item.brokerAccountId].expectedYieldPerDayRelative = item.expectedYieldPerDayRelative / 100;
+                    accounts[item.brokerAccountId].marginAttributes = item.marginAttributes;
                 });
                 resolve({
                     accounts: accounts,
@@ -267,14 +284,19 @@ function getPortfolio(sessionId) {
                 .then(json => {
                     console.log('list of favorite');
                     let return_data = [];
-                    json.payload.stocks.forEach(item => {
-                        return_data.push({
-                            isin: item.symbol.isin,
-                            ticker: item.symbol.ticker,
-                            showName: item.symbol.showName,
-                            lotSize: item.symbol.lotSize,
+                    [].concat(json.payload.stocks)
+                        .concat(json.payload.bonds)
+                        .concat(json.payload.currencies)
+                        .concat(json.payload.etf)
+                        .concat(json.payload.isgs)
+                        .forEach(item => {
+                            return_data.push({
+                                isin: item.symbol.isin,
+                                ticker: item.symbol.ticker,
+                                showName: item.symbol.showName,
+                                lotSize: item.symbol.lotSize,
+                            });
                         });
-                    });
                     return return_data;
                 })
 
@@ -291,103 +313,180 @@ function getPortfolio(sessionId) {
  * конвертируем и дополняем данные для портфолио
  * @param data
  * @param needToConvert
- * @param currencyCourse
+ * @param currenciesCourse
  * @param sessionId
  * @return {Promise<Array>}
  */
-async function convertPortfolio(data = [], needToConvert, currencyCourse, sessionId) {
+async function convertPortfolio(data = [], needToConvert, currenciesCourse, sessionId) {
     let return_data = [];
     for (const element of data) {
-        let securityType = PLURAL_SECURITY_TYPE[element.securityType];
+        let securityType = SYMBOL_URL_CONVERT[element.securityType];
+        let notes = await getTickerNote(element.ticker);
         await getSymbolInfo(element.ticker, securityType, sessionId).then(symbol => {
-            let current_amount = element.currentAmount;
+            let current_amount = element.currentAmount || {};
             let expected_yield = element.expectedYield || {};
             let earning_today = symbol.payload.earnings ? symbol.payload.earnings.absolute.value * element.currentBalance : 0;
-            if (!symbol.payload.symbol) {
-                return_data.push({
-                    prices: undefined,
-                    earnings: undefined,
-                    contentMarker: undefined,
-                    symbol: {
-                        symbolType: 'Note',
-                        isOTC: false,
-                        securityType: securityType,
-                        ticker: element.ticker,
-                        isin: element.isin,
-                        status: element.status,
-                        showName: symbol.payload.showName,
-                        lotSize: element.currentBalance,
-                        currentAmount: element.currentAmount ? element.currentAmount : {
-                            value: symbol.payload.nominal * element.currentBalance,
-                            currency: symbol.payload.currency
+            switch (securityType) {
+                case 'notes':
+                    return_data.push({
+                        prices: undefined,
+                        earnings: undefined,
+                        contentMarker: undefined,
+                        symbol: {
+                            symbolType: 'Note',
+                            isOTC: false,
+                            securityType: securityType,
+                            ticker: element.ticker,
+                            isin: element.isin,
+                            status: element.status,
+                            showName: symbol.payload.showName,
+                            lotSize: element.currentBalance,
+                            currentAmount: element.currentAmount ? element.currentAmount : {
+                                value: symbol.payload.nominal * element.currentBalance,
+                                currency: symbol.payload.currency
+                            },
+                            averagePositionPrice: {
+                                value: symbol.payload.nominal,
+                                currency: symbol.payload.currency
+                            },
+                            timeToOpen: '',
                         },
-                        averagePositionPrice: {
-                            value: symbol.payload.nominal,
-                            currency: symbol.payload.currency
+                        exchangeStatus: ''
+                    });
+                    break;
+                case 'futures':
+                    return_data.push({
+                        notes: notes,
+                        expected_yield: {
+                            value: element.expectedYield.value,
+                            currency: element.expectedYield.currency
                         },
-                        timeToOpen: '',
-                    },
-                    exchangeStatus: ''
-                });
-            } else {
-                if (symbol.payload.symbol.isOTC) {
-                    earning_today = symbol.payload.absoluteOTC * element.currentBalance;
-                    //expected_yield.value = symbol.payload.relativeOTC;
-                }
-                if (needToConvert && current_amount?.currency === 'USD') {
-                    earning_today = earning_today * currencyCourse.payload.last.value;
-                    current_amount.value = current_amount.value * currencyCourse.payload.last.value;
-                    current_amount.currency = 'RUB';
-                    expected_yield.value = (expected_yield.value * currencyCourse.payload.last.value) || 0;
-                    expected_yield.currency = 'RUB';
-                }
-                return_data.push({
-                    prices: symbol.payload.prices,
-                    earnings: symbol.payload.earnings,
-                    contentMarker: symbol.payload.contentMarker,
-                    instrumentStatusDesc: symbol.payload.instrumentStatusDesc,
-                    symbol: {
-                        dayLow: symbol.payload.symbol.dayLow,
-                        dayHigh: symbol.payload.symbol.dayHigh,
-                        "52WLow": symbol.payload.symbol["52WLow"],
-                        "52WHigh": symbol.payload.symbol["52WHigh"],
-                        dayOpen: symbol.payload.symbol.dayOpen,
-                        lastOTC: symbol.payload.lastOTC || '',
-                        absoluteOTC: symbol.payload.absoluteOTC || 0,
-                        relativeOTC: symbol.payload.relativeOTC || 0,
-                        consensus: symbol.payload.symbol.consensus,
-                        premium_consensus: symbol.payload.symbol.premium_consensus,
-                        dividends: symbol.payload.symbol.dividends,
-                        symbolType: symbol.payload.symbol.symbolType,
-                        isOTC: symbol.payload.symbol.isOTC,
-                        sessionOpen: symbol.payload.symbol.sessionOpen,
-                        sessionClose: symbol.payload.symbol.sessionClose,
-                        premarketStartTime: symbol.payload.symbol.premarketStartTime,
-                        premarketEndTime: symbol.payload.symbol.premarketEndTime,
-                        marketEndTime: symbol.payload.symbol.marketEndTime,
-                        marketStartTime: symbol.payload.symbol.marketStartTime,
-                        securityType: securityType,
-                        ticker: element.ticker,
-                        longIsEnabled: symbol.payload.symbol.longIsEnabled,
-                        shortIsEnabled: symbol.payload.symbol.shortIsEnabled,
-                        isin: element.isin,
-                        status: element.status,
-                        showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
-                        lotSize: element.currentBalance,
-                        expectedYieldRelative: element.expectedYieldRelative,
-                        expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
-                        expectedYield: expected_yield,
-                        currentPrice: element.currentPrice,
-                        currentAmount: current_amount,
-                        earningToday: earning_today,
-                        averagePositionPrice: element.averagePositionPrice || {
-                            value: 0,
-                            currency: element.currentPrice?.currency
+                        prices: {
+                            buy: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.buy
+                            },
+                            close: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.close
+                            },
+                            last: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.last
+                            },
+                            sell: {
+                                currency: element.currentAmount.currency,
+                                value: symbol.payload.priceInfo.sell
+                            },
                         },
-                        timeToOpen: symbol.payload.symbol.timeToOpen,
-                    },
-                    exchangeStatus: symbol.payload.exchangeStatus
-                });
+                        earnings: {
+                            absolute: {
+                                value: element.expectedYieldPerDay.value,
+                                currency: element.currentAmount.currency,
+                            },
+                            relative: element.expectedYieldPerDayRelative / 100,
+                        },
+                        contentMarker: undefined,
+                        symbol: {
+                            symbolType: 'Futures',
+                            isOTC: false,
+                            securityType: securityType,
+                            ticker: element.ticker,
+                            isin: element.isin,
+                            status: element.status,
+                            showName: symbol.payload.viewInfo.showName,
+                            longIsEnabled: symbol.payload.orderInfo.longIsEnabled,
+                            shortIsEnabled: symbol.payload.orderInfo.shortIsEnabled,
+                            lotSize: element.currentBalance,
+                            currentAmount: element.currentAmount ? element.currentAmount : {
+                                value: element.currentAmount.value * element.currentBalance,
+                                currency: element.currentAmount.currency
+                            },
+                            averagePositionPrice: {
+                                value: element.averagePositionPricePt,
+                                currency: element.currentAmount.currency
+                            },
+                            timeToOpen: '',
+                            earningToday: element.expectedYieldPerDay.value,
+                            expectedYieldRelative: element.expectedYieldRelative,
+                            expectedYieldPerDayRelative: element.expectedYieldPerDayRelative,
+                            expectedYield: {
+                                value: element.expectedYield.value,
+                                currency: element.expectedYield.currency
+                            },
+                        },
+                        exchangeStatus: symbol.payload.exchangeInfo.timeToOpen === 0 ? 'Open' : 'Close',
+                    });
+                    break;
+                case 'Stock':
+                default:
+                    if (symbol.payload.symbol.isOTC) {
+                        earning_today = symbol.payload.earnings.absolute.value * element.currentBalance;
+
+                        //expected_yield.value = symbol.payload.relativeOTC;
+                    }
+                    if (needToConvert && current_amount?.currency !== 'RUB') {
+                        let currencyCourse = currenciesCourse[current_amount?.currency + 'RUB']?.lastPrice || 1
+
+                        earning_today = earning_today * currencyCourse;
+                        current_amount['value'] = current_amount?.value * currencyCourse;
+                        current_amount['currency'] = 'RUB';
+                        expected_yield['value'] = expected_yield?.value * currencyCourse;
+                        expected_yield['currency'] = 'RUB';
+
+                    }
+                    return_data.push({
+                        notes: notes,
+                        prices: symbol.payload.prices,
+                        earnings: symbol.payload.earnings,
+                        contentMarker: symbol.payload.contentMarker,
+                        holidayDescription: symbol.payload.holidayDescription,
+                        symbol: {
+                            dayLow: symbol.payload.symbol.dayLow,
+                            dayHigh: symbol.payload.symbol.dayHigh,
+                            "52WLow": symbol.payload.symbol["52WLow"],
+                            "52WHigh": symbol.payload.symbol["52WHigh"],
+                            dayOpen: symbol.payload.symbol.dayOpen,
+                            lastOTC: symbol.payload.lastOTC || '',
+                            absoluteOTC: symbol.payload.absoluteOTC || 0,
+                            relativeOTC: symbol.payload.relativeOTC || 0,
+                            consensus: symbol.payload.symbol.consensus,
+                            premium_consensus: symbol.payload.symbol.premium_consensus,
+                            finn_consensus: symbol.payload.symbol.finn_consensus,
+                            dividends: symbol.payload.symbol.dividends,
+                            symbolType: symbol.payload.symbol.symbolType,
+                            isOTC: symbol.payload.symbol.isOTC,
+                            sessionOpen: symbol.payload.symbol.sessionOpen,
+                            sessionClose: symbol.payload.symbol.sessionClose,
+                            premarketStartTime: symbol.payload.symbol.premarketStartTime,
+                            premarketEndTime: symbol.payload.symbol.premarketEndTime,
+                            marketEndTime: symbol.payload.symbol.marketEndTime,
+                            marketStartTime: symbol.payload.symbol.marketStartTime,
+                            securityType: securityType,
+                            ticker: element.ticker,
+                            longIsEnabled: symbol.payload.symbol.longIsEnabled,
+                            shortIsEnabled: symbol.payload.symbol.shortIsEnabled,
+                            isin: element.isin,
+                            status: element.status,
+                            showName: symbol.payload.symbol.showName || symbol.payload.symbol.description,
+                            lotSize: element.currentBalance,
+                            blocked: element.blocked,
+                            expectedYieldRelative: element.expectedYieldRelative,
+                            expectedYieldPerDayRelative: element.expectedYieldPerDayRelative / 100,
+                            expectedYield: expected_yield,
+                            currentPrice: element.currentPrice,
+                            currentAmount: current_amount,
+                            earningToday: earning_today,
+                            averagePositionPrice: element.averagePositionPrice || {
+                                value: 0,
+                                currency: element.currentPrice?.currency
+                            },
+                            timeToOpen: symbol.payload.symbol.timeToOpen,
+                        },
+                        exchangeStatus: symbol.payload.exchangeStatus,
+                        instrumentStatusDesc: symbol.payload.instrumentStatusDesc,
+                        instrumentStatusComment: symbol.payload.instrumentStatusComment
+                    });
             }
         })
     }
@@ -476,15 +575,18 @@ function cancelStop(orderId, brokerAccountType = 'Tinkoff') {
  * @param brokerAccountType
  * @return {Promise<any>}
  */
-function exportPortfolio(brokerAccountType = 'Tinkoff') {
+function exportPortfolio(dateFrom = "2015-03-01T00:00:00Z", dateTo = (new Date()).toJSON(), ticker) {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
             fetch(OPERATIONS_URL + session_id, {
                 method: "POST",
                 body: JSON.stringify({
-                    from: "2015-03-01T00:00:00Z",
-                    to: (new Date()).toJSON(),
-                    "overnightsDisabled": true
+                    from: dateFrom,
+                    to: dateTo,
+                    "overnightsDisabled": true,
+                    ...(ticker && {
+                        ticker: ticker.toUpperCase()
+                    })
                 }),
                 headers: {
                     'Accept': 'application/json',
@@ -507,6 +609,61 @@ function exportPortfolio(brokerAccountType = 'Tinkoff') {
     })
 }
 
+async function getVirtualOperation(ticker) {
+    let result = [];
+    let option = await MainProperties.getMinusCurrentPosOption();
+    console.warn(option);
+    if (option && ticker) {
+        let session_id = await MainProperties.getSession();
+        let response = await fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', ticker) + session_id);
+        let info = await response.json();
+        Object.keys(info.payload).forEach(key => {
+            if (key.indexOf('position') > -1) {
+                result.push({
+                    accountType: key.replace("position", ""),
+                    isin: info.payload[key].isin || ' ',
+                    ticker: info.payload[key].ticker || ' ',
+                    commission: 0,
+                    date: (new Date()).toJSON(),
+                    operationType: info.payload[key].currentBalance > 0 ? 'Sell' : 'Buy',
+                    price: info.payload[key].currentAmount?.value,
+                    payment: info.payload[key].currentAmount?.value,
+                    currency: info.payload[key].currentAmount?.currency || ' ',
+                    quantity: info.payload[key].currentBalance,
+                    description: 'Виртуальная операция',
+                    status: 'done'
+                })
+            }
+        });
+    }
+    return result;
+}
+
+/**
+ * получаем список акций
+ * @return {object} данные для отображения на форме
+ */
+async function getListStockForNote(name) {
+    console.log('try to get list for note');
+    let session_id = MainProperties.getSession();
+    if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
+        let json = await findTicker(name, session_id);
+        let return_data = [];
+        await json.payload.values.forEach(item => {
+            return_data.push({
+                prices: item.prices,
+                symbol: {
+                    ticker: item.symbol.ticker,
+                    showName: item.symbol.showName,
+                    isOTC: item.symbol.isOTC
+                },
+                exchangeStatus: item.exchangeStatus
+            });
+        });
+        return return_data.slice(0, 3);
+    }
+}
+
 /**
  * получаем список акций
  * @return {object} данные для отображения на форме
@@ -517,37 +674,26 @@ function getListStock(name) {
         MainProperties.getSession().then(session_id => {
             if (!/^\d+$/.test(name)) { // вручную, введена строка для поиска
                 if (name && name.toUpperCase().includes('ВАЛЮТ')) {
-                    Promise.all([
-                        getPriceInfo(USD_RUB, undefined, session_id).then(usd => {
-                            let usdInfo = {};
-                            usdInfo.prices = usd.payload;
-                            usdInfo.exchangeStatus = usd.payload.exchangeStatus;
-                            usdInfo.symbol = {
-                                ticker: USD_RUB,
-                                showName: "Доллар США",
-                                lotSize: 1,
-                            };
-                            return usdInfo;
-                        }).catch(function (ex) {
-                            console.log('parsing failed', ex);
-                            reject(undefined);
-                        }),
-                        getPriceInfo(EUR_RUB, undefined, session_id).then(eur => {
-                            let eurInfo = {};
-                            eurInfo.prices = eur.payload;
-                            eurInfo.exchangeStatus = eur.payload.exchangeStatus;
-                            eurInfo.symbol = {
-                                ticker: EUR_RUB,
-                                showName: "Евро",
-                                lotSize: 1,
-                            };
-                            return eurInfo;
-                        }).catch(function (ex) {
-                            console.log('parsing failed', ex);
-                            reject(undefined);
-                        })]
-                    ).then(currency => {
-                        resolve(Object.assign({}, {result: "listStock"}, {stocks: currency}));
+                    getCurrencyCourse().then(list => {
+                        console.log(JSON.stringify(list));
+                        let result = [];
+                        Object.keys(list).forEach(key => {
+                                result.push({
+                                    symbol: {
+                                        ticker: key,
+                                        showName: list[key].showName,
+                                        lotSize: 1,
+                                    },
+                                    prices: {
+                                        last: {
+                                            value: list[key].lastPrice,
+                                            currency: 'RUB'
+                                        }
+                                    }
+                                });
+                            }
+                        );
+                        resolve(Object.assign({}, {result: "listStock"}, {stocks: result}));
                     })
                 } else
                     findTicker(name, session_id)
@@ -555,16 +701,34 @@ function getListStock(name) {
                             console.log('found list');
                             let return_data = [];
                             json.payload.values.forEach(item => {
-                                return_data.push({
-                                    prices: item.prices,
-                                    symbol: {
-                                        ticker: item.symbol.ticker,
-                                        showName: item.symbol.showName,
-                                        lotSize: item.symbol.lotSize,
-                                        isOTC: item.symbol.isOTC
-                                    },
-                                    exchangeStatus: item.exchangeStatus
-                                });
+                                if (item.symbol?.otcType !== 'Extended')
+                                    return_data.push({
+                                        prices: item.prices || {
+                                            buy: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.buy
+                                            },
+                                            close: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.close
+                                            },
+                                            last: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.last
+                                            },
+                                            sell: {
+                                                currency: item.orderInfo.pointValue.currency,
+                                                value: item.priceInfo.sell
+                                            },
+                                        },
+                                        symbol: {
+                                            ticker: item.symbol?.ticker || item.isin || item.instrumentInfo.ticker,
+                                            showName: item.symbol?.showName || item.showName || item.viewInfo.showName,
+                                            lotSize: item.symbol?.lotSize,
+                                            isOTC: item.symbol?.isOTC
+                                        },
+                                        exchangeStatus: item.exchangeStatus
+                                    });
                             });
                             resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                         }).catch(function (ex) {
@@ -577,18 +741,24 @@ function getListStock(name) {
                     .then(json => {
                         console.log('list of favorite');
                         let return_data = [];
-                        json.payload.stocks.forEach(item => {
-                            return_data.push({
-                                prices: item.prices,
-                                symbol: {
-                                    isin: item.symbol.isin,
-                                    ticker: item.symbol.ticker,
-                                    showName: item.symbol.showName,
-                                    lotSize: item.symbol.lotSize,
-                                },
-                                exchangeStatus: item.exchangeStatus
+                        [].concat(json.payload.stocks)
+                            .concat(json.payload.bonds)
+                            .concat(json.payload.currencies)
+                            .concat(json.payload.etf)
+                            .concat(json.payload.isgs)
+                            .forEach(item => {
+                                return_data.push({
+                                    prices: item.prices,
+                                    symbol: {
+                                        isin: item.symbol.isin,
+                                        ticker: item.symbol.ticker,
+                                        showName: item.symbol.showName,
+                                        lotSize: item.symbol.lotSize,
+                                        isOTC: item.symbol.isOTC
+                                    },
+                                    exchangeStatus: item.exchangeStatus
+                                });
                             });
-                        });
                         portfolio.favorite = return_data;
                         resolve(Object.assign({}, {result: "listStock"}, {stocks: return_data}));
                     }).catch(function (ex) {
@@ -597,15 +767,15 @@ function getListStock(name) {
                 })
             } else {
                 if (name === 2) { // портфолио
-                    getPriceInfo(USD_RUB, undefined, session_id).then(currency => {
+                    getCurrencyCourse().then(currencies => {
                         MainProperties.getConvertToRUB().then(needConvert => {
                             console.log('get session option');
                             getPortfolio(session_id).then(allPortfolio => {
 
                                 console.log('list of portfolio');
                                 Promise.all([
-                                        convertPortfolio(allPortfolio.tcs.payload.data, needConvert, currency, session_id),
-                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currency, session_id),
+                                        convertPortfolio(allPortfolio.tcs.payload.data, needConvert, currencies, session_id),
+                                        convertPortfolio(allPortfolio.iis.payload.data, needConvert, currencies, session_id),
 
                                     ]
                                 ).then(([tcs_data, iis_data]) => {
@@ -628,33 +798,72 @@ function getListStock(name) {
     })
 }
 
+async function getCurrencyCourse() {
+    let session_id = await MainProperties.getSession();
+    // POST
+    let response = await fetch(CURRENCY_LIST_URL + session_id, {
+            method: "POST",
+            body: JSON.stringify({
+                "country": "All",
+                "end": 30,
+                "orderType": "Asc",
+                "sortType": "ByBuyBackDate",
+                "start": 0
+            }),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        }
+    );
+    let listOfCurrency = await response.json();
+    let result = {};
+    listOfCurrency.payload.values.forEach(item => {
+        Object.assign(result, {
+            [item.symbol.ticker]: {
+                showName: item.symbol.showName,
+                lastPrice: item.prices.last.value
+            }
+        }, {});
+    });
+    return result;
+}
+
 function findTicker(search, session_id) {
     return new Promise((resolve, reject) => {
-            // POST
-            fetch(SEARCH_URL + session_id, {
-                method: "POST",
-                body: JSON.stringify({
-                    start: 0,
-                    end: 10,
-                    sortType: "ByName",
-                    orderType: "Asc",
-                    country: "All",
-                    //otcType:["Tradable","Market"],
-                    filter: search
-                }),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                }
-            }).then(response => response.json())
-                .then(listOfFound => {
-                    if (listOfFound.status.toLocaleUpperCase() === 'OK') {
-                        resolve(listOfFound);
-                    } else {
-                        console.log('Сервис поиска недоступен');
-                        reject(undefined)
+            // Запускаем несколько поисков по всем типам бумаг
+            Promise.all(SEARCH_SECURITY_TYPE.map(url =>
+                // POST
+                fetch(SEARCH_URL.replace('${securityType}', url) + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        start: 0,
+                        end: 10,
+                        sortType: "ByName",
+                        orderType: "Asc",
+                        country: "All",
+                        //otcType:["Tradable","Market"],
+                        filter: search
+                    }),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
                     }
-                }).catch(e => {
+                }).then(resp => resp.json())
+            )).then(listOfFound => {
+                if (listOfFound.length > 0) {
+                    let result = {payload: {values: []}};
+                    //в цикле по сгруппированным по типам найденных бумаг
+                    listOfFound.map(listOfTicker => {
+                        // объединяем все массивы
+                        result.payload.values = result.payload.values.concat(listOfTicker.payload.values)
+                    })
+                    resolve(result);
+                } else {
+                    console.log('Сервис поиска недоступен');
+                    reject(undefined)
+                }
+            }).catch(e => {
                 console.log(e);
                 reject(undefined);
             })
@@ -733,6 +942,17 @@ function getComments(id) {
     })
 }
 
+async function getIndex(indexName) {
+    const option = await MainProperties.getAVOption();
+    try {
+        const response = await fetch(FINN_CONSTITUENTS.replace('${ticker}', indexName) + option.AVKey);
+        let json = await response.json();
+        return json.constituents;
+    } catch (e) {
+        console.error('Достигнуто ограничение finnhub', e);
+    }
+}
+
 function getFavorite() {
     return new Promise((resolve, reject) => {
         MainProperties.getSession().then(session_id => {
@@ -741,16 +961,23 @@ function getFavorite() {
                 .then(json => {
                     console.log('list of Favourite');
                     let return_data = [];
-                    json.payload.stocks.forEach(item => {
-                        return_data.push({
-                            symbol: {
-                                showName: item.symbol.showName,
-                                isin: item.symbol.isin,
-                                ticker: item.symbol.ticker,
-                                symbolType: item.symbol.symbolType
-                            }
+                    [].concat(json.payload.stocks)
+                        .concat(json.payload.bonds)
+                        .concat(json.payload.currencies)
+                        .concat(json.payload.etf)
+                        .concat(json.payload.isgs)
+                        .concat(json.payload.futures)
+                        .forEach(item => {
+                            return_data.push({
+                                symbol: {
+                                    showName: item?.symbol?.showName || item.viewInfo.showName,
+                                    isin: item?.symbol?.isin || '',
+                                    ticker: item?.symbol?.ticker || item.instrumentInfo.ticker,
+                                    symbolType: item?.symbol?.symbolType || '',
+                                    isOTC: item?.symbol?.isOTC
+                                }
+                            });
                         });
-                    });
                     MainProperties.getFavoriteOption().then(isFavoriteChecked => {
                         resolve(isFavoriteChecked ? return_data : []);
                     })
@@ -784,7 +1011,7 @@ function getNews(nav_id) {
                 case /^[0-9]+$/.test(nav_id) || !nav_id:
                     url = NEWS_URL.replace('${navId}', nav_id) + session_id;
                     break;
-                case /^[A-Z0-9]+$/.test(nav_id):
+                case /^[a-zA-Z@0-9]+$/.test(nav_id):
                     type = 'ticker';
                     url = PULSE_FOR_TICKER_URL.replace('${navId}', nav_id) + session_id;
                     break;
@@ -950,31 +1177,75 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
     return new Promise((resolve, reject) => {
         console.log(`Get price for ${tickerName}`);
         if (tickerName) {
-            // POST
-            fetch((tickerName.includes('RUB') ? CURRENCY_PRICE_URL : PRICE_URL.replace('${securityType}', securityType)) + session_id, {
-                method: "POST",
-                body: JSON.stringify({ticker: tickerName}),
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                }
-            }).then(response => response.json())
-                .then(res => {
-                    fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
-                        .then(extendInfo => {
-                            res.payload.isFavorite = extendInfo.payload.isFavorite;
-                            //res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
-                            //res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
-                            res.payload.subscriptions = extendInfo.payload.priceAlert;
-                            resolve(res);
-                        }).catch(e => {
-                        console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
-                        reject(res)
-                    });
-                }).catch(e => {
-                console.log(e);
-                reject(undefined);
-            })
+            if (securityType === 'futures') {
+                fetch((FEATURES_URL.replace('${ticker}', tickerName)) + session_id, {
+                    method: "GET",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                            .then(extendInfo => {
+                                /*
+                                online_buy_price: res.payload.buy?.value || res.payload.last?.value || 0,
+                                online_sell_price: res.payload.sell?.value || res.payload.last?.value || 0,
+                                buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[0].price : 0),
+                                sell_price: item.sell_price || 0,
+                                */
+                                res.payload = {
+                                    buy: {value: res.payload.priceInfo.last},
+                                    sell: {value: res.payload.priceInfo.last},
+                                    last: {
+                                        value: res.payload.priceInfo.last,
+                                        currency: res.payload.orderInfo.pointValue.currency
+                                    },
+                                    earnings: {
+                                        absolute: {
+                                            currency: res.payload.orderInfo.pointValue.currency,
+                                            value: res.payload.earningsInfo.absolute
+                                        },
+                                        relative: res.payload.earningsInfo.relative
+                                    },
+                                    isFavorite: extendInfo.payload.isFavorite,
+                                    subscriptions: extendInfo.payload.priceAlert
+                                };
+                                resolve(res);
+                            }).catch(e => {
+                            console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
+                            reject(res)
+                        });
+                    }).catch(e => {
+                    console.log(e);
+                    reject(undefined);
+                });
+            } else
+                // POST
+                fetch((PRICE_URL.replace('${securityType}', securityType)) + session_id, {
+                    method: "POST",
+                    body: JSON.stringify({ticker: tickerName}),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => response.json())
+                    .then(res => {
+                        fetch(SYMBOL_EXTENDED_LINK.replace('${ticker}', tickerName) + session_id).then(response => response.json())
+                            .then(extendInfo => {
+                                res.payload.isFavorite = extendInfo.payload.isFavorite;
+                                //res.payload.subscriptId = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert[0].subscriptionId : undefined;
+                                //res.payload.subscriptPrice = extendInfo.payload.priceAlert ? extendInfo.payload.priceAlert : [];
+                                res.payload.subscriptions = extendInfo.payload.priceAlert;
+                                resolve(res);
+                            }).catch(e => {
+                            console.log(`Сервис доп информации для ${tickerName} недоступен`, e);
+                            reject(res)
+                        });
+                    }).catch(e => {
+                    console.log(e);
+                    reject(undefined);
+                })
         } else reject(undefined);
     })
 
@@ -983,8 +1254,8 @@ function getPriceInfo(tickerName, securityType = 'stocks', session_id) {
 function getSymbolInfo(tickerName, securityType, sessionId) {
     return new Promise((resolve, reject) => {
         // POST
-        console.log('try to get symbolInfo for', tickerName);
-        fetch((tickerName.includes('RUB') ? CURRENCY_SYMBOL_URL : SYMBOL_URL.replace('${securityType}', securityType)) + sessionId, {
+        console.log('try to get symbolInfo for', tickerName, securityType);
+        fetch(SYMBOL_URL.replace('${securityType}', securityType) + sessionId, {
             method: "POST",
             body: securityType.includes('notes') ? JSON.stringify({isin: tickerName}) : JSON.stringify({ticker: tickerName}),
             headers: {
@@ -994,7 +1265,8 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
         }).then(response => response.json())
             .then(async res => {
                 if (res.status.toLocaleUpperCase() === 'OK' && !securityType.includes('notes')) {
-                    const response = await fetch(SYMBOL_FUNDAMENTAL_URL + sessionId, {
+                    console.log('get fundamentals for ', tickerName);
+                    const response = await fetch(SYMBOL_FUNDAMENTAL_URL.replace('${securityType}', securityType) + sessionId, {
                         method: "POST",
                         body: JSON.stringify({
                             period: 'year',
@@ -1006,26 +1278,31 @@ function getSymbolInfo(tickerName, securityType, sessionId) {
                         }
                     });
                     let json = await response.json();
-                    res.payload.symbol.dayHigh = json.payload.dayHigh;
-                    res.payload.symbol.dayLow = json.payload.dayLow;
-                    res.payload.symbol.dayOpen = json.payload.dayOpen;
-                    res.payload.symbol["52WLow"] = json.payload["52WLow"];
-                    res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
-                    res.payload.symbol.dividends = [];
+                    if (json.status.toLocaleUpperCase() === 'OK') {
+                        res.payload.symbol.dayHigh = json.payload.dayHigh;
+                        res.payload.symbol.dayLow = json.payload.dayLow;
+                        res.payload.symbol.dayOpen = json.payload.dayOpen;
+                        res.payload.symbol["52WLow"] = json.payload["52WLow"];
+                        res.payload.symbol["52WHigh"] = json.payload["52WHigh"];
+                        res.payload.symbol.dividends = [];
+                    } else {
+                        console.warn('cant get fundamentals for', tickerName, securityType)
+                    }
                 }
                 const option = await MainProperties.getAVOption();
                 if (res.payload.symbol && option.AVOption && res.payload.symbol.isOTC) {
-                    const response = await fetch(AV_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey);
-                    let json = await response.json();
-                    if (json.Note) {
-                        console.log('Достигнуто ограничение alphavantage');
-                    } else {
-                        res.payload.lastOTC = parseFloat(json["Global Quote"]["05. price"]);
-                        res.payload.absoluteOTC = parseFloat(json["Global Quote"]["09. change"]);
-                        res.payload.relativeOTC = parseFloat(json["Global Quote"]["10. change percent"]) / 100;
-                        res.payload['symbol']['dayHigh'] = parseFloat(json["Global Quote"]["03. high"]);
-                        res.payload['symbol']['dayLow'] = parseFloat(json["Global Quote"]["04. low"]);
-                        res.payload['symbol']['dayOpen'] = parseFloat(json["Global Quote"]["02. open"]);
+                    try {
+                        const response = await fetch(FINN_SYMBOL_URL.replace('${ticker}', tickerName) + option.AVKey);
+                        let json = await response.json();
+                        res.payload.lastOTC = parseFloat(json.c);
+                        res.payload.absoluteOTC = parseFloat(json.c - json.pc);
+                        res.payload.relativeOTC = parseFloat((json.c - json.pc) * 100 / json.o) / 100;
+                        res.payload['symbol']['dayHigh'] = parseFloat(json.h);
+                        res.payload['symbol']['dayLow'] = parseFloat(json.l);
+                        res.payload['symbol']['dayOpen'] = parseFloat(json.o);
+
+                    } catch (e) {
+                        console.error('Достигнуто ограничение finnhub', e);
                     }
                 }
                 resolve(res)
@@ -1089,8 +1366,11 @@ function getOrders(session_id) {
                         active: true,
                         timeToExpire: element.timeToExpire,
                         orderId: element.orderId,
+                        orderType: element.orderType,
+                        isOTC: element.isOTC,
                         status: element.status,
                         quantityExecuted: element.quantityExecuted,
+                        brokerAccountType: element.brokerAccountType
                     });
                 });
                 resolve(return_data)
@@ -1117,11 +1397,15 @@ function getStop(session_id) {
                         operationType: element.operationType,
                         buy_price: element.operationType === 'Buy' ? element.stopPrice : '',
                         sell_price: element.operationType === 'Sell' ? element.stopPrice : '',
+                        price: element.price,
+                        currency: element.currency,
                         best_before: undefined,
                         active: true,
-                        timeToExpire: undefined,
+                        timeToExpire: element.timeToExpire,
                         orderId: element.orderId,
-                        status: element.status
+                        status: element.status,
+                        orderType: element.orderType,
+                        brokerAccountType: element.brokerAccountType
                     });
                 });
                 resolve(return_data)
@@ -1172,8 +1456,21 @@ function getPrognosisList() {
                                 const response = await fetch(PROGNOSIS_URL.replace('${ticker}', item.ticker) + session_id);
                                 let json = await response.json();
                                 item['consensus'] = json.payload.consensus;
+                                const api = await MainProperties.getAVOption();
+                                const finn = await MainProperties.getFinnOption();
+                                if (finn.FinnEnabled && item?.ticker && item.securityType === 'Stock')// только для портфеля запрашиваем рекомендации
+                                    try {
+                                        const response = await fetch(FINN_RECOMENDATION.replace('${ticker}', item.ticker) + api.AVKey);
+                                        let array = await response.json();
+                                        if (finn.FinnLast) array = array.slice(0, 1); // только один прогноз
+                                        else array = array.slice(0, 6);
+                                        item['finn_consensus'] = array; // последние 6 пронозов
+                                    } catch (e) {
+                                        console.error(e);
+                                    }
                             }
-                            if (item?.isin) {
+                            const rif = await MainProperties.getRifOption();
+                            if (rif.RifEnabled && item?.isin) {
                                 const response = await fetch(CONSENSUS_URL.replace('${isin}', item.isin) + session_id)
                                 let json = await response.json();
                                 item['premium_consensus'] = json.payload;
@@ -1232,12 +1529,53 @@ function updateAlertPrices() {
                         }
                     };
                 });
+                favorite_list = favorite_list.filter(favoriteItem => {
+                    // исключаем из списка Избранного элементы из др списков, чтобы сократить итоговой список
+                    return !([].concat(orders, stops, subscriptions).find(item => item.ticker === favoriteItem.ticker));
+                })
                 let alert_data = [].concat(await MainProperties.getFavoriteListOption() ? favorite_list : [], orders, stops, subscriptions);
                 let i = 0;
+                const alertOrderOption = await MainProperties.getAlertOrderOption();
+                //console.info(alert_data);
+                //TODO сделать запрос к поиску
                 for (const item of alert_data) {
                     //alert_data.forEach(function (item, i, alertList) {
-                    await getPriceInfo(item.ticker, PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')], session_id).then(res => {
+                    let notes = await getTickerNote(item.ticker);
+                    await getPriceInfo(item.ticker, SYMBOL_URL_CONVERT[(item.symbolType || item.securityType || 'Stock')], session_id).then(priceInfo => {
+
+                        let sorted_subscriptions = item.subscriptions?.sort((a, b) => a.price - b.price);
+                        let opacity_rate = giveLessDiffToTarget({
+                            online_buy_price: priceInfo.payload.buy?.value || priceInfo.payload.last?.value || 0,
+                            online_sell_price: priceInfo.payload.sell?.value || priceInfo.payload.last?.value || 0,
+                            buy_price: item.buy_price || (item.subscriptions ? sorted_subscriptions[sorted_subscriptions.length - 1]?.price : 0),
+                            sell_price: item.sell_price || 0,
+                        });
+
+                        if (item.orderId && alertOrderOption.alertEnabled && opacity_rate > 0 && Math.abs(opacity_rate) * 100 <= alertOrderOption.alertOrder) {
+                            getOldRelative(item.ticker + '_order').then(old_relative => {
+                                console.log('repeated alert for ' + item.ticker, old_relative);
+                                //chrome.storage.sync.remove(item.ticker + '_order');
+
+                            }).catch(e => {
+                                // сохраняем достигнутую доходность
+                                setOldRelative(item.ticker + '_order', alertOrderOption.alertOrder);
+                                chrome.notifications.create(OPTION_ALERT_ORDER_PER_SYMBOL + '|' + item.ticker, {
+                                    type: 'basic',
+                                    iconUrl: '/icons/order.png',
+                                    title: `Заявка по ${item.ticker} близка к исполнению (примерно на ${(Math.abs(opacity_rate) * 100).toFixed(2)}%)`,
+                                    message: 'Проверьте свой портфель',
+                                    requireInteraction: true,
+                                    buttons: [
+                                        {title: 'Удалить уведомление и перейти в портфель'}
+                                    ],
+                                    priority: 0
+                                });
+                                console.log('alert order near to execution')
+                            });
+
+                        }
                         alert_data[i] = {
+                            notes: notes,
                             ticker: item.ticker,
                             securityType: PLURAL_SECURITY_TYPE[(item.symbolType || item.securityType || 'Stock')],
                             showName: item.showName,
@@ -1245,21 +1583,26 @@ function updateAlertPrices() {
                             sell_price: item.sell_price,
                             best_before: item.best_before,
                             active: item.active,
-                            earnings: res.payload.earnings,
-                            exchangeStatus: res.payload.exchangeStatus,
-                            currency: !res.payload.last ? 'USD' : res.payload.last.currency,
-                            online_average_price: !res.payload.last ? 0 : res.payload.last.value,
-                            online_buy_price: res.payload.buy ? res.payload.buy.value : '',
-                            online_sell_price: res.payload.sell ? res.payload.sell.value : '',
+                            earnings: priceInfo.payload.earnings,
+                            exchangeStatus: priceInfo.payload.exchangeStatus,
+                            currency: !priceInfo.payload.last ? 'USD' : priceInfo.payload.last.currency,
+                            online_average_price: !priceInfo.payload.last ? 0 : priceInfo.payload.last.value,
+                            online_buy_price: priceInfo.payload.buy?.value,
+                            online_sell_price: priceInfo.payload.sell?.value || priceInfo.payload.last?.value || 0,
+                            price: item.price,
                             orderId: item.orderId,
+                            opacity_rate: opacity_rate,
                             operationType: item.operationType,
                             timeToExpire: item.timeToExpire,
                             status: item.status,
-                            isFavorite: res.payload.isFavorite,
-                            subscriptPrice: item.subscriptions,
+                            isFavorite: priceInfo.payload.isFavorite,
+                            isOTC: item.isOTC,
+                            subscriptPrice: sorted_subscriptions,
                             quantity: item.quantity,
                             quantityExecuted: item.quantityExecuted,
                             favoriteList: item.favoriteList,
+                            orderType: item.orderType,
+                            brokerAccountType: item.brokerAccountType
                         };
                         i++;
                     })
@@ -1430,94 +1773,252 @@ function createMobileAlert(params) {
     })
 }
 
-function getTreeMap(country = 'All') {
-    return new Promise((resolve, reject) => {
-        MainProperties.getSession().then(session_id => {
-                // POST
-                fetch(SEARCH_URL + session_id, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        start: 0,
-                        end: 500,
-                        sortType: "ByPrice",
-                        orderType: "Asc",
-                        country: country,
-                        popular: true,
-                        //filterOTC: true,
-                        //filterRisky: true,
+async function getNewTickers(clean) {
+    let session_id = await MainProperties.getSession();
+    let search_obj = {
+        country: "All",
+        sortType: "ByPrice",
+        orderType: "Asc",
+    };
+    let response = await fetch(SEARCH_URL.replace('${securityType}', 'stocks') + session_id, {
+        method: "POST",
+        body: JSON.stringify(search_obj),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    let listOfFound = await response.json();
+    if (listOfFound.status.toLocaleUpperCase() === 'OK') {
+        async function getValue(name) {
+            return new Promise(resolve => {
+                chrome.storage.local.get(name, data => {
+                    resolve(data);
+                });
+            });
+        }
 
-                    }),
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    }
-                }).then(response => response.json())
-                    .then(listOfFound => {
-                        if (listOfFound.status.toLocaleUpperCase() === 'OK') {
-                            // уникальный массив категорий (секторов)
-                            let category = Array.from(new Set(listOfFound.payload.values.map(({symbol}) => symbol.sector)));
-                            let min = Math.min.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100
-                                , max = Math.max.apply(null, listOfFound.payload.values.map(item => item.relative)) * 100;
-                            // список тикеров для TreeMap
-                            let list = listOfFound.payload.values.reduce((result, item, index) => {
-                                if (item.earnings) {
-                                    let fill;
-                                    item.earnings.relative *= 100;
-                                    //item.earnings.relative = Math.random()*100;
-                                    if (item.earnings.relative < -30) {
-                                        fill = '#F5383D';
-                                    }
-                                    if (item.earnings.relative >= -30 && item.earnings.relative <= -1) {
-                                        fill = '#C64045'
-                                    }
-                                    if (item.earnings.relative > -1 && item.earnings.relative < 1) {
-                                        fill = '#414553'
-                                    }
-                                    if (item.earnings.relative >= 1 && item.earnings.relative <= 30) {
-                                        fill = '#367D51'
-                                    }
-                                    if (item.earnings.relative > 30) {
-                                        fill = '#33B15A'
-                                    }
+        let list = listOfFound.payload.values.reduce((result, item, index) => {
+            if (item.price) result.push({
+                ticker: item.symbol.ticker,
+                isin: item.symbol.isin,
+                showName: item.symbol.showName,
+                isOTC: item.symbol.isOTC,
+                symbolType: item.symbol.symbolType,
+            });
+            return result;
+        }, []);
+        let newList = [];
+        // сохраненение нового списка newList останется undefined
+        if (!clean) {
+            // берем список ранее сохраненного списка
+            newList = await getValue(NEW_TICKERS);
+            newList = newList[NEW_TICKERS];
+        }
+        console.log('get old list');
+        if (newList?.length) {
+            // ищем разницу между списками
+            const different = newList.filter(o1 => !list.some(o2 => o1.isin === o2.isin));
+            // ищем одинаковые но которые поменяли флаг isOTC
+            let isNotOTC = newList.filter(o1 => list.some(o2 => o1.isin === o2.isin && o1.isOTC !== o2.isOTC));
+            // брокер возвращает дубли, удаляем
+            isNotOTC = isNotOTC.filter(item => {
+                return !item.isOTC
+            });
+            return {different: different, isNotOTC: isNotOTC};
+        } else {
+            chrome.storage.local.set({[NEW_TICKERS]: list}, () => {
+                console.log('save newtickets list');
+            })
+            return {different: undefined, isNotOTC: undefined};
+        }
 
-                                    let obj = {
-                                        parent: item.symbol.sector,
-                                        id: item.symbol.ticker,
-                                        product: item.symbol.ticker,
-                                        showName: item.symbol.showName,
-                                        relative: item.earnings.relative.toFixed(2), // здесь истинное значение для вывода на экран
-                                        value: Math.abs(item.earnings.relative), //treemap не учитывает отриц значения, приходится перобразовыввать
-                                        fill: fill,
-                                    };
-                                    result.push(obj);
-                                }
-                                return result;
-                            }, []);
-                            // склееиваем все списки
-                            resolve([{ // родительский пустой узел
-                                parent: null,
-                                id: 0,
-                                product: ''
-                            }].concat(category.reduce((result, item, index) => {
-                                let obj = { // категории
-                                    parent: 0,
-                                    id: item,
-                                    product: item,
-                                };
-                                result.push(obj);
-                                return result;
-                            }, [])).concat(list));// список тикеров
-                        } else {
-                            console.log('Сервис поиска недоступен');
-                            reject(undefined)
-                        }
-                    }).catch(e => {
-                    console.log(e);
-                    reject(undefined);
-                })
+    } else {
+        console.log('Сервис поиска недоступен');
+        return undefined
+    }
+}
+
+async function getIPO() {
+    let session_id = await MainProperties.getSession();
+    let response = await fetch(SHELVES_URL + session_id, {
+        method: "GET",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    let shelves = await response.json();
+
+    if (shelves.status.toLocaleUpperCase() === 'OK') {
+        return shelves.payload.shelves.filter(item => {
+            return item.shelfName && (item.shelfName.toLocaleUpperCase() === 'РАЗМЕЩЕНИЯ' || item.shelfName.toLocaleUpperCase().indexOf('IPO') > 0)
+        })
+
+    } else {
+        console.log('Сервис поиска недоступен');
+        return undefined
+    }
+}
+
+async function getTreeMap(listName = 'All', isOTC) {
+    let session_id = await MainProperties.getSession();
+    let list;
+    let search_obj = {
+        start: 0,
+        end: 500,
+        sortType: "ByPrice",
+        orderType: "Asc",
+        country: listName
+    };
+    if (isOTC) {
+        search_obj['filterOTC'] = isOTC === 1
+    }
+    if (listName === 'Mine') {
+        search_obj['country'] = 'All';
+        search_obj['popular'] = true;
+        let favorite = await getFavorite();
+        // сворачиваем все портфолио до списка акций
+        list = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
+            return item.symbol.symbolType === 'Stock'
+        }).reduce((prev, curr) => {
+            return [...prev, ...[curr.symbol.ticker]];
+        }, []))];
+        search_obj['tickers'] = list;
+    }
+    if (listName === 'IMOEX') {
+        search_obj['country'] = 'All';
+        search_obj['tickers'] = IMOEX_LIST;
+    }
+    if (listName === '^GSPC' || listName === '^NDX' || listName === '^DJI') {
+        search_obj['country'] = 'All';
+        search_obj['tickers'] = await getIndex(listName);
+    }
+    // POST
+    let response = await fetch(SEARCH_URL.replace('${securityType}', 'stocks') + session_id, {
+        method: "POST",
+        body: JSON.stringify(search_obj),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    });
+    let listOfFound = await response.json();
+
+    if (listOfFound.status.toLocaleUpperCase() === 'OK') {
+        // уникальный массив категорий (секторов)
+        let category = Array.from(new Set(listOfFound.payload.values.map(({symbol}) => symbol.sector)));
+        // список тикеров для TreeMap
+        let list = listOfFound.payload.values.reduce((result, item, index) => {
+            if (item.earnings) {
+                let fill;
+                item.earnings.relative *= 100;
+                //item.earnings.relative = Math.random()*100;
+                if (item.earnings.relative < -3) {
+                    fill = 'rgb(246, 53, 56)';
+                }
+                if (item.earnings.relative >= -3 && item.earnings.relative <= -2) {
+                    fill = 'rgb(191, 64, 69)'
+                }
+                if (item.earnings.relative >= -2 && item.earnings.relative < -1) {
+                    fill = 'rgb(139, 68, 78)'
+                }
+                if (item.earnings.relative >= -1 && item.earnings.relative < 1) {
+                    fill = '#414553'
+                }
+                if (item.earnings.relative >= 1 && item.earnings.relative < 2) {
+                    fill = 'rgb(53, 118, 78)'
+                }
+                if (item.earnings.relative >= 2 && item.earnings.relative <= 3) {
+                    fill = 'rgb(47, 158, 79)'
+                }
+                if (item.earnings.relative > 3) {
+                    fill = 'rgb(48, 204, 90)'
+                }
+
+                let obj = {
+                    parent: item.symbol.sector,
+                    id: item.symbol.ticker,
+                    product: (item.symbol.isOTC ? '👑' : '') + item.symbol.ticker,
+                    showName: item.symbol.showName,
+                    relative: item.earnings.relative.toFixed(2), // здесь истинное значение для вывода на экран
+                    value: Math.abs(item.earnings.relative), //treemap не учитывает отриц значения, приходится перобразовыввать
+                    fill: fill,
+                };
+                result.push(obj);
             }
-        )
+            return result;
+        }, []);
+        // склееиваем все списки
+        return ([{ // родительский пустой узел
+            parent: null,
+            id: 0,
+            product: ''
+        }].concat(category.reduce((result, item, index) => {
+            let obj = { // категории
+                parent: 0,
+                id: item,
+                product: item,
+            };
+            result.push(obj);
+            return result;
+        }, [])).concat(list));// список тикеров
+    } else {
+        console.log('Сервис поиска недоступен');
+        return undefined
+    }
+}
+
+async function getTickerNote(ticker) {
+    let session_id = await MainProperties.getSession();
+    const controller = new AbortController()
+    // 1 second timeout:
+    setTimeout(() => controller.abort(), 1000)
+    try {
+        let response = await fetch(NOTE_URL.replace('${ticker}', ticker) + session_id, {
+            signal: controller.signal,
+            method: "GET",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        });
+        if (response.status === 200) {
+            let notes = await response.json();
+            return notes.payload.items;
+        } else {
+            return []
+        }
+    } catch (er) {
+        console.error(er);
+        return [];
+    }
+}
+
+/*
+    добавляет заметку по тикеру в хранилище
+ */
+function addNote(ticker, note, date) {
+    return new Promise(resolve => {
+        chrome.storage.sync.get([NOTE_LIST], notes => {
+            notes[NOTE_LIST][hashCode(ticker + note)] = {ticker: ticker, note: note, date: date};
+            chrome.storage.sync.set({[NOTE_LIST]: notes}, () => {
+                console.log('add new note, now is ', notes);
+                resolve(notes)
+            })
+        });
     })
+}
+
+function deleteNote(id) {
+    chrome.storage.sync.get([NOTE_LIST], notes => {
+        notes.push({ticker: ticker, note: note, date: date});
+        chrome.storage.sync.set({[NOTE_LIST]: notes}, () => {
+            console.log('add new note');
+            port.postMessage({result: "noteList", params: {list: notes}});
+        })
+    });
+
 }
 
 // основной слушатель
@@ -1552,6 +2053,12 @@ chrome.runtime.onConnect.addListener(function (port) {
                 getListStock(msg.params).then(function (list_symbols) {
                     console.log("send message listStock .....");
                     port.postMessage(list_symbols);
+                });
+                break;
+            case 'getListStockForNote':
+                getListStockForNote(msg.params).then(function (list_symbols) {
+                    console.log("send message listStockForNote .....");
+                    port.postMessage({result: "listStockForNote", stocks: list_symbols});
                 });
                 break;
             case 'getListStockForOrder':
@@ -1665,6 +2172,26 @@ chrome.runtime.onConnect.addListener(function (port) {
                         console.log(`cant send delete order, because ${e}`)
                     });
                 break;
+            case 'getOperations':
+                getCurrencyCourse().then(currencies => {
+                    Promise.all([getVirtualOperation(msg.ticker), exportPortfolio(msg.dateFrom, msg.dateTo, msg.ticker)])
+                        .then(([virtualOperation, realOperation]) => {
+                            console.info(virtualOperation);
+                            console.info(realOperation);
+                            port.postMessage(Object.assign({},
+                                {result: "listOfOperations"},
+                                {account: msg.account},
+                                {list: virtualOperation.concat(realOperation)},
+                                {currencies: currencies},
+                                {hideCommission: msg.hideCommission},
+                                {operationType: msg.operationType})
+                            );
+                        })
+                        .catch(e => {
+                            console.log(`cant send data for operations, because ${e}`)
+                        });
+                });
+                break;
             case 'exportPortfolio':
                 console.log('send data for Export');
                 if (msg.params.collapse) {
@@ -1679,7 +2206,7 @@ chrome.runtime.onConnect.addListener(function (port) {
                         );
                     });
                 } else
-                    exportPortfolio(msg.params.account)
+                    exportPortfolio()
                         .then(result => {
                                 port.postMessage(Object.assign({},
                                     {result: "listForExport"},
@@ -1725,9 +2252,9 @@ chrome.runtime.onConnect.addListener(function (port) {
                         let favorite = [];
                         if (await MainProperties.getFavoriteOption()) favorite = await getFavorite();
                         // сворачиваем все портфолио до списка акций для рисования навигации в пульсе
-                        // пульс доступен только для акций, поэтому фильтруем
+                        // пульс доступен для всех типов кроме структурных нот и внебиржевых, поэтому фильтруем
                         news['navs'] = [...new Set([].concat(portfolio.items.stocks_tcs, portfolio.items.stocks_iis, portfolio.orders, favorite).filter(item => {
-                            return item.symbol.symbolType === 'Stock' && !item.symbol.isOTC
+                            return item.symbol.symbolType !== 'Note' && !item.symbol.isOTC
                         }).reduce((prev, curr) => {
                             return [...prev, ...[curr.symbol.ticker]];
                         }, []))];
@@ -1739,36 +2266,69 @@ chrome.runtime.onConnect.addListener(function (port) {
                                 {result: "pulse"},
                                 {news: news}));
                             console.log("send puls list .....");
+                            getTickerNote(msg.params.nav_id).then(notes => {
+                                    port.postMessage(Object.assign({},
+                                        {ticker: msg.params.nav_id},
+                                        {result: "note"},
+                                        {notes: notes})
+                                    );
+                                    console.log("send note for ", msg.params.nav_id);
+                                }
+                            );
+                            getPriceInfo()
                         });
                     })();
-
-
                 });
                 break;
-            case 'getTreemap':
-                getTreeMap(msg.params).then(res => {
+            case
+            'getTreemap':
+                getTreeMap(msg.country, msg.isOTC).then(res => {
                     port.postMessage(Object.assign({},
                         {result: "treemap"},
                         {list: res}));
                     console.log("send treemap .....");
                 });
                 break;
-            case 'postComment':
+            case
+            'getNewTickers':
+                Promise.all([getNewTickers(), getIPO()]).then(([newTickers, IPOs]) => {
+                    port.postMessage(Object.assign({},
+                        {result: "newTickers"},
+                        {IPOs: IPOs},
+                        {newTickers: newTickers}));
+                    console.log("send list of new tickers.....");
+                });
+                break;
+            case
+            'cleanNewTickers':
+                Promise.all([getNewTickers(true), getIPO()]).then(([newTickers, IPOs]) => {
+                    port.postMessage(Object.assign({},
+                        {result: "newTickers"},
+                        {IPOs: IPOs},
+                        {newTickers: newTickers}));
+                    console.log("send list of new tickers.....");
+                });
+                break;
+            case
+            'postComment':
                 postComment(msg.params.postId, msg.params.text).then(res => {
                     console.log("post comment .....");
                 });
                 break;
-            case 'setLikeComment':
+            case
+            'setLikeComment':
                 likeComment(msg.params.commentId, msg.params.like).then(res => {
                     console.log("like comment .....");
                 });
                 break;
-            case 'setLikePost':
+            case
+            'setLikePost':
                 likePost(msg.params.commentId, msg.params.like).then(res => {
                     console.log("like post .....");
                 });
                 break;
-            case 'getProfile':
+            case
+            'getProfile':
                 getProfile(msg.params.profileId).then(res => {
                     port.postMessage(Object.assign({},
                         {result: "profile"},
@@ -1776,16 +2336,26 @@ chrome.runtime.onConnect.addListener(function (port) {
                     console.log("send profile .....");
                 });
                 break;
-            case 'logout':
+            case
+            'logout':
                 logout().then(res => {
                     console.log("logout .....");
                 });
                 break;
+            case
+            'addNote':
+                addNote(msg.params.ticker, msg.params.note, msg.params.date).then(res => {
+                    console.log("send update notes table .....");
+                    port.postMessage({result: "noteList", list: res});
+                })
+                break;
             default:
                 port.postMessage('unknown request');
         }
-    });
-});
+    })
+    ;
+})
+;
 // листнер на клик по уведомлению
 chrome.notifications.onClicked.addListener(function (notificationId) {
     let ticker = notificationId.split("|");
@@ -1799,6 +2369,10 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
         redirect_to_page(LOGIN_URL)
     }
     if (notificationId.includes(OPTION_ALERT_TODAY_PER_SYMBOL)) {
+        //redirect_to_page(SYMBOL_LINK + ticker[1])
+        chrome.notifications.clear(notificationId)
+    }
+    if (notificationId.includes(OPTION_ALERT_ORDER_PER_SYMBOL)) {
         //redirect_to_page(SYMBOL_LINK + ticker[1])
         chrome.notifications.clear(notificationId)
     }
@@ -1822,6 +2396,15 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, btnId
         // перейти в акцию
         if (btnIdx === 0) {
             redirect_to_page(SYMBOL_LINK.replace('${securityType}', ticker[2] || 'stocks') + ticker[1], true)
+        }
+    }
+    // нажали на кнопках в Уведомлении об изменении цены акций
+    if (notificationId.includes(OPTION_ALERT_ORDER_PER_SYMBOL)) {
+        chrome.notifications.clear(notificationId);
+        chrome.storage.sync.remove(ticker[1] + '_order');
+        // перейти в список
+        if (btnIdx === 0) {
+            redirect_to_page('https://www.tinkoff.ru/invest/orders/', true)
         }
     }
 });
@@ -1967,6 +2550,56 @@ export class MainProperties {
         })
     }
 
+    static async getFinnOption() {
+        if (!(this._FinnEnabled === undefined) && !(this._FinnLast === undefined)) {
+            return {FinnEnabled: this._FinnEnabled, FinnLast: this._FinnLast};
+        }
+        const promises = [
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_FINN_ENABLED], (result) => {
+                    this._FinnEnabled = result[OPTION_FINN_ENABLED];
+                    resolve(result[OPTION_FINN_ENABLED]);
+                })
+            ),
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_FINN_GETLAST], (result) => {
+                    this._FinnLast = result[OPTION_FINN_GETLAST];
+                    resolve(result[OPTION_FINN_GETLAST]);
+                })
+            )
+        ];
+        return new Promise(resolve => {
+            Promise.all(promises)
+                .then(([Enabled, Last]) => {
+                    this._FinnEnabled = Enabled;
+                    this._FinnLast = Last;
+                    //console.log('get NOT cached AVOption');
+                    resolve({FinnEnabled: Enabled, FinnLast: Last});
+                })
+        })
+    }
+
+    static async getRifOption() {
+        if (!(this._RifEnabled === undefined)) {
+            return {RifEnabled: this._RifEnabled};
+        }
+        const promises = [
+            new Promise(resolve =>
+                chrome.storage.sync.get([OPTION_RIFINITIV], (result) => {
+                    this._RifEnabled = result[OPTION_RIFINITIV];
+                    resolve(result[OPTION_RIFINITIV]);
+                })
+            )
+        ];
+        return new Promise(resolve => {
+            Promise.all(promises)
+                .then(([Enabled]) => {
+                    this._RifEnabled = Enabled;
+                    resolve({RifEnabled: Enabled});
+                })
+        })
+    }
+
     static async getFavoriteOption() {
         if (!(this._favoriteOption === undefined)) {
             //console.log('get cached sessionId');
@@ -1981,6 +2614,30 @@ export class MainProperties {
 
     };
 
+    static async getAlertOrderOption() {
+        if (!(this._alertOrder === undefined) && !(this._alertOrderEnabled === undefined)) {
+            //console.log('get cached sessionId');
+            return {alertOrder: this._alertOrder, alertEnabled: this._alertOrderEnabled};
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_ALERT_ORDER_PER_SYMBOL, OPTION_ALERT_ORDER_VALUE_PER_SYMBOL], result => {
+                if (result[OPTION_ALERT_ORDER_PER_SYMBOL]) {
+                    this._alertOrder = result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL];
+                    this._alertOrderEnabled = result[OPTION_ALERT_ORDER_PER_SYMBOL];
+                    resolve({
+                        alertOrder: result[OPTION_ALERT_ORDER_VALUE_PER_SYMBOL],
+                        alertEnabled: result[OPTION_ALERT_ORDER_PER_SYMBOL]
+                    });
+                } else {
+                    this._alertOrder = 0;
+                    this.alertEnabled = false;
+                    resolve({alertOrder: 0, alertEnabled: false});
+                }
+            })
+        );
+
+    };
+
     static async getFavoriteListOption() {
         if (!(this._favoriteListOption === undefined)) {
             //console.log('get cached sessionId');
@@ -1990,6 +2647,20 @@ export class MainProperties {
             chrome.storage.sync.get([OPTION_FAVORITE_LIST], result => {
                 this._favoriteListOption = result[OPTION_FAVORITE_LIST];
                 resolve(result[OPTION_FAVORITE_LIST]);
+            })
+        );
+
+    };
+
+    static async getMinusCurrentPosOption() {
+        if (!(this._minusCurrentPosOption === undefined)) {
+            //console.log('get cached sessionId');
+            return this._minusCurrentPosOption
+        }
+        return new Promise(resolve =>
+            chrome.storage.sync.get([OPTION_MINUS_CURRENT_POS], result => {
+                this._minusCurrentPosOption = result[OPTION_MINUS_CURRENT_POS];
+                resolve(result[OPTION_MINUS_CURRENT_POS]);
             })
         );
 
@@ -2011,6 +2682,37 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             if (key === OPTION_SESSION) MainProperties._sessionOption = storageChange.newValue;
             if (key === OPTION_FAVORITE) MainProperties._favoriteOption = storageChange.newValue;
             if (key === OPTION_FAVORITE_LIST) MainProperties._favoriteListOption = storageChange.newValue;
+            if (key === OPTION_ALERT_ORDER_VALUE_PER_SYMBOL) MainProperties._alertOrder = storageChange.newValue;
+            if (key === OPTION_ALERT_ORDER_PER_SYMBOL) MainProperties._alertOrderEnabled = storageChange.newValue;
+            if (key === OPTION_MINUS_CURRENT_POS) MainProperties._minusCurrentPosOption = storageChange.newValue;
+            // при установке галочек в опциях запрашиваем вновь прогноз, который будет измененм в зависомости от опций
+            if (key === OPTION_RIFINITIV) {
+                MainProperties._RifEnabled = storageChange.newValue;
+                portfolio._prognosisList = undefined;
+                (async () => {
+                    await getPrognosisList().then(list => {
+                        portfolio._prognosisList = list;
+                    });
+                })()
+            }
+            if (key === OPTION_FINN_ENABLED) {
+                MainProperties._FinnEnabled = storageChange.newValue;
+                portfolio._prognosisList = undefined;
+                (async () => {
+                    await getPrognosisList().then(list => {
+                        portfolio._prognosisList = list;
+                    });
+                })()
+            }
+            if (key === OPTION_FINN_GETLAST) {
+                MainProperties._FinnLast = storageChange.newValue;
+                portfolio._prognosisList = undefined;
+                (async () => {
+                    await getPrognosisList().then(list => {
+                        portfolio._prognosisList = list;
+                    });
+                })()
+            }
         }
     }
 });

@@ -1,13 +1,5 @@
 'use strict';
 
-export function sortAlertRow(first, second) {
-    let firstNum = giveLessDiffToTarget(first);
-    let secondNum = giveLessDiffToTarget(second);
-    if (firstNum < secondNum) return -1;
-    if (firstNum > secondNum) return 1;
-    return 0;
-}
-
 export function giveLessDiffToTarget(desireTicker) {
     let diffToBuy = 100;
     let diffToSell = 100;
@@ -17,4 +9,8 @@ export function giveLessDiffToTarget(desireTicker) {
     if (desireTicker.sell_price && desireTicker.online_sell_price) diffToSell = (desireTicker.sell_price - desireTicker.online_sell_price) / desireTicker.online_sell_price;
     if (diffToBuy + diffToSell === 200) return 0;
     return (diffToBuy < diffToSell) ? diffToBuy :diffToSell;
+}
+export function hashCode(str) {
+    return Array.from(str)
+        .reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0)
 }
