@@ -1,20 +1,17 @@
 {
 "update_url": "https://clients2.google.com/service/update2/crx",
-
   "manifest_version": 2,
   "name": "TCS Broker",
-  "version": "0.9.112",
+  "version": "0.9.115",
   "description": "Плагин добавляет функционал личному кабинету TCS брокер",
   "icons": {
     "16" : "/icons/icon16.png",
     "48" : "/icons/icon48.png",
     "128": "/icons/icon128.png"
   },
-
   "permissions": [
     "alarms",
     "tabs",
-    "activeTab",
     "storage",
     "notifications",
     "cookies",
@@ -29,13 +26,6 @@
   "background": {
     "page" : "background.html"
   },
-  "content_scripts": [
-    {
-      "matches": ["https://www.tinkoff.ru/invest/broker_account/*"],
-      "run_at": "document_end",
-      "js": ["/js/content.js"]
-    }
-  ],
   "content_security_policy":"script-src 'self' sha256-e82CtCE+q8S43aNHfWaLdiJcGlLmUztIZJCG4m1v/vU=' 'unsafe-inline' 'sha256-mWTdXwXGiIZrIgSy8EQra3Nd40+j6I4SsrpykSMgzCM=' https://s3.tradingview.com/; object-src 'self'",
   "web_accessible_resources": ["/css/styles.css"]
 }

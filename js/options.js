@@ -157,10 +157,11 @@ port.onMessage.addListener(function (msg) {
             */
             document.getElementById('approvedW8').innerText = msg.approvedW8;
             document.getElementById('employee').innerHTML = msg.employee ? 'Вы сотрудник банка 🏦💲☝<br>' : '';
-            let iis = (msg.accounts.filter(item => item.accountType === 'TinkoffIis' && item.hasOperations)).length > 0
+            console.log(msg.accounts);
+            let iis = (msg.accounts.filter(item => item.accountType === 'TinkoffIis')).length > 0
                 ? '<input type="radio" value="0" checked="checked" name="broker_type" id="broker_portfolio_input">' +
                 '<label for="broker_portfolio_input">Портфель Тинькофф</label>' : '';
-            let tcs = (msg.accounts.filter(item => item.accountType === 'Tinkoff' && item.hasOperations)).length > 0
+            let tcs = (msg.accounts.filter(item => item.accountType === 'Tinkoff')).length > 0
                 ? '<input type="radio" value="1" name="broker_type" id="iis_portfolio_input">' +
                 '<label for="iis_portfolio_input">Портфель ИИС</label>' : '';
             if (iis && tcs) {
@@ -1467,17 +1468,20 @@ document.getElementById('order_symbol_name').addEventListener('input', function 
 });
 
 // сохраняем применение косметического фильтра
+
+/*
 document.getElementById(OPTION_COSMETICS).addEventListener('change', function (e) {
     chrome.storage.sync.set({[OPTION_COSMETICS]: e.target.checked}, function () {
         console.log('Cosmetic option set to ' + e.target.checked);
     })
 });
+*/
 
 // подгружаем настройки
-chrome.storage.sync.get([OPTION_COSMETICS], function (result) {
+/*chrome.storage.sync.get([OPTION_COSMETICS], function (result) {
     console.log('get css filter option');
     document.getElementById(OPTION_COSMETICS).checked = result[OPTION_COSMETICS] === true;
-});
+});*/
 
 // сохраняем применение Редиректа
 document.getElementById(OPTION_REDIRECT).addEventListener('change', function (e) {
